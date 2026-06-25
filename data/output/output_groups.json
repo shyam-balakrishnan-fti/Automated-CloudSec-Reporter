@@ -1,0 +1,1024 @@
+{
+  "run_id": "a72b794a-4e7c-4e95-8cae-c0ac6dd60d21",
+  "group_count": 16,
+  "generated_at": "2026-06-25T15:46:58.167473+00:00",
+  "groups": [
+    {
+      "output_group_key": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22:AWS",
+      "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+      "output_section": "AWS",
+      "instance_count": 2,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_account_uids": [
+        "111122223333",
+        "777788889999"
+      ],
+      "instance_ids": [
+        "f41d2d0c-4240-4bb0-ba04-062cf6ff76e0",
+        "139598c0-e631-4ae3-837e-5ca037eaa1a6"
+      ],
+      "representative": {
+        "finding_instance_id": "f41d2d0c-4240-4bb0-ba04-062cf6ff76e0",
+        "source_row_id": "Sheet:prowler-output Row:15",
+        "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+        "check_title": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+        "severity": "critical",
+        "service_name": "ec2",
+        "resource_type": "AWSEC2SecurityGroup",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+        "check_title": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended_raw": "Security group sg-0prod1234 (web-servers) allows unrestricted SSH (0.0.0.0/0:22).",
+        "description": "Checks whether security groups allow unrestricted inbound access on TCP port 22 (SSH).",
+        "risk": "Unrestricted SSH access allows anyone to attempt brute-force login to EC2 instances.",
+        "remediation_recommendation_text": "Restrict SSH ingress to specific trusted IP ranges. Remove the 0.0.0.0/0 rule.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": "aws ec2 revoke-security-group-ingress --group-id sg-0prod1234 --protocol tcp --port 22 --cidr 0.0.0.0/0",
+        "remediation_code_terraform": null,
+        "service_name": "ec2",
+        "subservice_name": null,
+        "resource_type": "AWSEC2SecurityGroup",
+        "categories": [
+          "internet-exposed",
+          "network-security"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "5.2",
+          "NIST-800-53",
+          "SC-7",
+          "PCI-DSS",
+          "1.2"
+        ],
+        "instance_count": 2,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod",
+          "acme-legacy"
+        ]
+      }
+    },
+    {
+      "output_group_key": "iam_root_mfa_enabled:AWS",
+      "check_id": "iam_root_mfa_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "e8a7d618-6795-4866-9e20-6c06fee6a731"
+      ],
+      "representative": {
+        "finding_instance_id": "e8a7d618-6795-4866-9e20-6c06fee6a731",
+        "source_row_id": "Sheet:prowler-output Row:12",
+        "check_id": "iam_root_mfa_enabled",
+        "check_title": "Ensure MFA is enabled for the root account",
+        "severity": "critical",
+        "service_name": "iam",
+        "resource_type": "AWSIAMAccountSummary",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": true
+      },
+      "llm_context": {
+        "check_id": "iam_root_mfa_enabled",
+        "check_title": "Ensure MFA is enabled for the root account",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended_raw": "The root account does not have an MFA device configured.",
+        "description": "Checks whether MFA is enabled for the AWS account root user.",
+        "risk": "The root account has unrestricted access to all AWS services. Without MFA it is vulnerable to credential theft.",
+        "remediation_recommendation_text": "Enable a hardware or virtual MFA device for the root account.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "iam",
+        "subservice_name": null,
+        "resource_type": "AWSIAMAccountSummary",
+        "categories": [
+          "identity-management",
+          "mfa"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "1.5",
+          "NIST-800-53",
+          "IA-2(1)"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "iam_user_mfa_enabled_console_access:AWS",
+      "check_id": "iam_user_mfa_enabled_console_access",
+      "output_section": "AWS",
+      "instance_count": 4,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_account_uids": [
+        "111122223333",
+        "777788889999"
+      ],
+      "instance_ids": [
+        "23f0ae0d-7b7f-4572-be02-bf962a855678",
+        "9a5450ca-11c1-4c65-8bec-1cd2f6f6cc71",
+        "bd7e10cb-60ee-4cb3-8569-51a263d0c8d2",
+        "b5a1f02f-990e-4bde-a826-4247778c3f68"
+      ],
+      "representative": {
+        "finding_instance_id": "23f0ae0d-7b7f-4572-be02-bf962a855678",
+        "source_row_id": "Sheet:prowler-output Row:9",
+        "check_id": "iam_user_mfa_enabled_console_access",
+        "check_title": "Ensure MFA is enabled for all IAM users with console access",
+        "severity": "critical",
+        "service_name": "iam",
+        "resource_type": "AWSIAMUser",
+        "region": "global",
+        "completeness_score": 3,
+        "has_description": false,
+        "has_risk": false,
+        "has_remediation": true,
+        "human_review_required": true
+      },
+      "llm_context": {
+        "check_id": "iam_user_mfa_enabled_console_access",
+        "check_title": "Ensure MFA is enabled for all IAM users with console access",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended_raw": "IAM user john.smith has console access but no MFA device.",
+        "description": null,
+        "risk": null,
+        "remediation_recommendation_text": "Enable MFA for the IAM user via the AWS Console or CLI.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": "aws iam enable-mfa-device --user-name john.smith --serial-number <mfa-arn> --authentication-code1 <code1> --authentication-code2 <code2>",
+        "remediation_code_terraform": null,
+        "service_name": "iam",
+        "subservice_name": null,
+        "resource_type": "AWSIAMUser",
+        "categories": [
+          "identity-management",
+          "mfa"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "1.10",
+          "NIST-800-53",
+          "IA-2"
+        ],
+        "instance_count": 4,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod",
+          "acme-legacy"
+        ]
+      }
+    },
+    {
+      "output_group_key": "rds_instance_no_public_access:AWS",
+      "check_id": "rds_instance_no_public_access",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "53abd4d1-d399-413e-b4ff-c1ff274a441a"
+      ],
+      "representative": {
+        "finding_instance_id": "53abd4d1-d399-413e-b4ff-c1ff274a441a",
+        "source_row_id": "Sheet:prowler-output Row:21",
+        "check_id": "rds_instance_no_public_access",
+        "check_title": "Ensure RDS instances are not publicly accessible",
+        "severity": "critical",
+        "service_name": "rds",
+        "resource_type": "AWSRDSDBInstance",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "rds_instance_no_public_access",
+        "check_title": "Ensure RDS instances are not publicly accessible",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended_raw": "RDS instance prod-postgres is publicly accessible.",
+        "description": "Checks whether RDS DB instances are publicly accessible.",
+        "risk": "Publicly accessible RDS instances can be reached from the internet, increasing the attack surface.",
+        "remediation_recommendation_text": "Modify the RDS instance to disable public accessibility.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": "aws rds modify-db-instance --db-instance-identifier prod-postgres --no-publicly-accessible",
+        "remediation_code_terraform": null,
+        "service_name": "rds",
+        "subservice_name": null,
+        "resource_type": "AWSRDSDBInstance",
+        "categories": [
+          "internet-exposed",
+          "network-security"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.3.2"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "cloudtrail_multi_region_enabled:AWS",
+      "check_id": "cloudtrail_multi_region_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "e086d73a-6fe0-4408-89f3-b57c7f3cc21d"
+      ],
+      "representative": {
+        "finding_instance_id": "e086d73a-6fe0-4408-89f3-b57c7f3cc21d",
+        "source_row_id": "Sheet:prowler-output Row:24",
+        "check_id": "cloudtrail_multi_region_enabled",
+        "check_title": "Ensure CloudTrail is enabled in all regions",
+        "severity": "high",
+        "service_name": "cloudtrail",
+        "resource_type": "AWSCloudTrailTrail",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "cloudtrail_multi_region_enabled",
+        "check_title": "Ensure CloudTrail is enabled in all regions",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended_raw": "CloudTrail trail management-trail is not enabled in all regions.",
+        "description": "Checks whether CloudTrail is enabled in all AWS regions.",
+        "risk": "Without multi-region CloudTrail, API calls in non-logged regions go undetected.",
+        "remediation_recommendation_text": "Update the CloudTrail trail to be multi-region.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/",
+        "remediation_code_cli": "aws cloudtrail update-trail --name management-trail --is-multi-region-trail",
+        "remediation_code_terraform": null,
+        "service_name": "cloudtrail",
+        "subservice_name": null,
+        "resource_type": "AWSCloudTrailTrail",
+        "categories": [
+          "logging",
+          "auditing"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "3.1",
+          "NIST-800-53",
+          "AU-2"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "ec2_ebs_volume_encryption_enabled:AWS",
+      "check_id": "ec2_ebs_volume_encryption_enabled",
+      "output_section": "AWS",
+      "instance_count": 3,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "addb12e2-651f-4dc2-8da0-91601531e54c",
+        "b914928c-a39b-422f-8675-b06f5fd75443",
+        "0bf30f6b-46df-48cc-98ea-5a35dc32fb2d"
+      ],
+      "representative": {
+        "finding_instance_id": "addb12e2-651f-4dc2-8da0-91601531e54c",
+        "source_row_id": "Sheet:prowler-output Row:17",
+        "check_id": "ec2_ebs_volume_encryption_enabled",
+        "check_title": "Ensure EBS volumes are encrypted",
+        "severity": "high",
+        "service_name": "ec2",
+        "resource_type": "AWSEC2Volume",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "ec2_ebs_volume_encryption_enabled",
+        "check_title": "Ensure EBS volumes are encrypted",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended_raw": "EBS volume vol-0aaa1111 is not encrypted.",
+        "description": "Checks whether EBS volumes are encrypted.",
+        "risk": "Unencrypted EBS volumes may expose sensitive data if the underlying hardware is compromised.",
+        "remediation_recommendation_text": "Create an encrypted snapshot and replace the unencrypted volume.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "ec2",
+        "subservice_name": null,
+        "resource_type": "AWSEC2Volume",
+        "categories": [
+          "encryption",
+          "data-protection"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.2.1",
+          "NIST-800-53",
+          "SC-28"
+        ],
+        "instance_count": 3,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "ec2_instance_imdsv2_enabled:AWS",
+      "check_id": "ec2_instance_imdsv2_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "abbbad5e-d14f-4222-8cb8-568a85936742"
+      ],
+      "representative": {
+        "finding_instance_id": "abbbad5e-d14f-4222-8cb8-568a85936742",
+        "source_row_id": "Sheet:prowler-output Row:16",
+        "check_id": "ec2_instance_imdsv2_enabled",
+        "check_title": "Ensure EC2 instances use IMDSv2",
+        "severity": "high",
+        "service_name": "ec2",
+        "resource_type": "AWSEC2Instance",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "ec2_instance_imdsv2_enabled",
+        "check_title": "Ensure EC2 instances use IMDSv2",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended_raw": "Instance i-0aabbccdd does not enforce IMDSv2.",
+        "description": "Checks whether EC2 instances are configured to use Instance Metadata Service Version 2.",
+        "risk": "IMDSv1 is susceptible to SSRF attacks that can expose IAM credentials.",
+        "remediation_recommendation_text": "Enforce IMDSv2 on all EC2 instances by setting HttpTokens to required.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": "aws ec2 modify-instance-metadata-options --instance-id i-0aabbccdd --http-tokens required",
+        "remediation_code_terraform": null,
+        "service_name": "ec2",
+        "subservice_name": null,
+        "resource_type": "AWSEC2Instance",
+        "categories": [
+          "configuration",
+          "credential-protection"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "5.6"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "rds_instance_storage_encrypted:AWS",
+      "check_id": "rds_instance_storage_encrypted",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "8478efc5-63c5-4793-87bb-b90eba89fe33"
+      ],
+      "representative": {
+        "finding_instance_id": "8478efc5-63c5-4793-87bb-b90eba89fe33",
+        "source_row_id": "Sheet:prowler-output Row:20",
+        "check_id": "rds_instance_storage_encrypted",
+        "check_title": "Ensure RDS instances are encrypted at rest",
+        "severity": "high",
+        "service_name": "rds",
+        "resource_type": "AWSRDSDBInstance",
+        "region": "ap-southeast-2",
+        "completeness_score": 3,
+        "has_description": false,
+        "has_risk": false,
+        "has_remediation": true,
+        "human_review_required": true
+      },
+      "llm_context": {
+        "check_id": "rds_instance_storage_encrypted",
+        "check_title": "Ensure RDS instances are encrypted at rest",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended_raw": "RDS instance prod-postgres is not encrypted at rest.",
+        "description": null,
+        "risk": null,
+        "remediation_recommendation_text": "Enable encryption at rest for the RDS instance by creating an encrypted read replica and promoting it.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "rds",
+        "subservice_name": null,
+        "resource_type": "AWSRDSDBInstance",
+        "categories": [
+          "encryption"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.3.1",
+          "NIST-800-53",
+          "SC-28"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "s3_bucket_public_access:AWS",
+      "check_id": "s3_bucket_public_access",
+      "output_section": "AWS",
+      "instance_count": 4,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod",
+        "acme-dev",
+        "acme-legacy"
+      ],
+      "affected_account_uids": [
+        "111122223333",
+        "444455556666",
+        "777788889999"
+      ],
+      "instance_ids": [
+        "c73991f9-ed64-4295-83a6-04a1a183278a",
+        "05c8857f-f1bd-474a-bf79-9fb2f2c391b4",
+        "d2d80bcd-51ff-4f78-bc7c-65ab3c42d992",
+        "4c4e30da-c53a-4eed-9db7-762b4e3c515b"
+      ],
+      "representative": {
+        "finding_instance_id": "c73991f9-ed64-4295-83a6-04a1a183278a",
+        "source_row_id": "Sheet:prowler-output Row:2",
+        "check_id": "s3_bucket_public_access",
+        "check_title": "Ensure S3 bucket does not allow public access",
+        "severity": "high",
+        "service_name": "s3",
+        "resource_type": "AWSS3Bucket",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "s3_bucket_public_access",
+        "check_title": "Ensure S3 bucket does not allow public access",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended_raw": "Bucket acme-prod-logs has Block Public Access disabled.",
+        "description": "This control checks whether Amazon S3 buckets have Block Public Access enabled.",
+        "risk": "Public S3 buckets expose data to the internet. Attackers can exfiltrate sensitive data.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access settings at the bucket level for all four settings.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket acme-prod-logs --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "service_name": "s3",
+        "subservice_name": null,
+        "resource_type": "AWSS3Bucket",
+        "categories": [
+          "internet-exposed",
+          "data-protection"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7",
+          "PCI-DSS",
+          "1.2"
+        ],
+        "instance_count": 4,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod",
+          "acme-dev",
+          "acme-legacy"
+        ]
+      }
+    },
+    {
+      "output_group_key": "config_recorder_all_regions_enabled:AWS",
+      "check_id": "config_recorder_all_regions_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "0e58095d-8e48-4702-bec1-81f55dff0279"
+      ],
+      "representative": {
+        "finding_instance_id": "0e58095d-8e48-4702-bec1-81f55dff0279",
+        "source_row_id": "Sheet:prowler-output Row:27",
+        "check_id": "config_recorder_all_regions_enabled",
+        "check_title": "Ensure AWS Config is enabled in all regions",
+        "severity": "medium",
+        "service_name": "account",
+        "resource_type": "AWSAccount",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": true
+      },
+      "llm_context": {
+        "check_id": "config_recorder_all_regions_enabled",
+        "check_title": "Ensure AWS Config is enabled in all regions",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended_raw": "AWS Config recorder is not enabled in one or more regions.",
+        "description": "Checks whether AWS Config is enabled and recording in all regions.",
+        "risk": "Without AWS Config, resource configuration changes cannot be tracked or audited.",
+        "remediation_recommendation_text": "Enable AWS Config in all regions with an S3 delivery channel.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "account",
+        "subservice_name": null,
+        "resource_type": "AWSAccount",
+        "categories": [
+          "configuration",
+          "auditing"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "3.5",
+          "NIST-800-53",
+          "CM-8"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "iam_password_policy_lowercase:AWS",
+      "check_id": "iam_password_policy_lowercase",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "fd7825ed-b29a-4c88-8600-5d33db4e93b8"
+      ],
+      "representative": {
+        "finding_instance_id": "fd7825ed-b29a-4c88-8600-5d33db4e93b8",
+        "source_row_id": "Sheet:prowler-output Row:14",
+        "check_id": "iam_password_policy_lowercase",
+        "check_title": "Ensure IAM password policy requires at least one lowercase letter",
+        "severity": "medium",
+        "service_name": "iam",
+        "resource_type": "AWSIAMPasswordPolicy",
+        "region": "global",
+        "completeness_score": 3,
+        "has_description": true,
+        "has_risk": false,
+        "has_remediation": false,
+        "human_review_required": true
+      },
+      "llm_context": {
+        "check_id": "iam_password_policy_lowercase",
+        "check_title": "Ensure IAM password policy requires at least one lowercase letter",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended_raw": "Password policy does not require lowercase letters.",
+        "description": "Checks whether the IAM password policy requires lowercase letters.",
+        "risk": null,
+        "remediation_recommendation_text": null,
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "iam",
+        "subservice_name": null,
+        "resource_type": "AWSIAMPasswordPolicy",
+        "categories": [
+          "identity-management"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "1.8"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "iam_user_access_key_age_90_days:AWS",
+      "check_id": "iam_user_access_key_age_90_days",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "2557276e-82c9-4497-8476-ca3a041b90a3"
+      ],
+      "representative": {
+        "finding_instance_id": "2557276e-82c9-4497-8476-ca3a041b90a3",
+        "source_row_id": "Sheet:prowler-output Row:13",
+        "check_id": "iam_user_access_key_age_90_days",
+        "check_title": "Ensure IAM user access keys are rotated every 90 days or less",
+        "severity": "medium",
+        "service_name": "iam",
+        "resource_type": "AWSIAMUser",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "iam_user_access_key_age_90_days",
+        "check_title": "Ensure IAM user access keys are rotated every 90 days or less",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "MUTED(FAIL)",
+        "status_extended_raw": "Access key AKIAI... for user svc-deploy is 134 days old.",
+        "description": "This control checks whether IAM user access keys are rotated within 90 days.",
+        "risk": "Long-lived access keys increase the risk of credential compromise.",
+        "remediation_recommendation_text": "Rotate IAM user access keys and delete old keys.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "iam",
+        "subservice_name": null,
+        "resource_type": "AWSIAMUser",
+        "categories": [
+          "identity-management",
+          "credential-hygiene"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "1.14"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "s3_bucket_default_encryption:AWS",
+      "check_id": "s3_bucket_default_encryption",
+      "output_section": "AWS",
+      "instance_count": 2,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_account_uids": [
+        "111122223333",
+        "777788889999"
+      ],
+      "instance_ids": [
+        "12ebe646-50e8-4911-ae68-97f9f83ee077",
+        "5c4d14f4-1e3b-4c12-9ada-109a2cbacc49"
+      ],
+      "representative": {
+        "finding_instance_id": "12ebe646-50e8-4911-ae68-97f9f83ee077",
+        "source_row_id": "Sheet:prowler-output Row:7",
+        "check_id": "s3_bucket_default_encryption",
+        "check_title": "Ensure S3 bucket has default encryption enabled",
+        "severity": "medium",
+        "service_name": "s3",
+        "resource_type": "AWSS3Bucket",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "s3_bucket_default_encryption",
+        "check_title": "Ensure S3 bucket has default encryption enabled",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "MUTED(FAIL)",
+        "status_extended_raw": "Bucket acme-prod-archive has no default encryption configured.",
+        "description": "This control checks whether default encryption is enabled on Amazon S3 buckets.",
+        "risk": "Without default encryption, objects are stored in plaintext.",
+        "remediation_recommendation_text": "Enable default encryption on the S3 bucket using SSE-S3 or SSE-KMS.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "s3",
+        "subservice_name": null,
+        "resource_type": "AWSS3Bucket",
+        "categories": [
+          "encryption"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.1"
+        ],
+        "instance_count": 2,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod",
+          "acme-legacy"
+        ]
+      }
+    },
+    {
+      "output_group_key": "securityhub_enabled:AWS",
+      "check_id": "securityhub_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "240afa01-b8d2-413d-a6eb-398fde3d2e5b"
+      ],
+      "representative": {
+        "finding_instance_id": "240afa01-b8d2-413d-a6eb-398fde3d2e5b",
+        "source_row_id": "Sheet:prowler-output Row:28",
+        "check_id": "securityhub_enabled",
+        "check_title": "Ensure AWS Security Hub is enabled",
+        "severity": "medium",
+        "service_name": "securityhub",
+        "resource_type": "AWSSecurityHub",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "securityhub_enabled",
+        "check_title": "Ensure AWS Security Hub is enabled",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended_raw": "Security Hub is not enabled in ap-southeast-2.",
+        "description": "Checks whether AWS Security Hub is enabled.",
+        "risk": "Security Hub aggregates findings from multiple AWS services. Without it, security posture visibility is reduced.",
+        "remediation_recommendation_text": "Enable AWS Security Hub in all regions.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "securityhub",
+        "subservice_name": null,
+        "resource_type": "AWSSecurityHub",
+        "categories": [
+          "configuration",
+          "monitoring"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "4.16"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "vpc_flow_logs_enabled:AWS",
+      "check_id": "vpc_flow_logs_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "4b6ca903-68f4-4f58-9dea-ecbad4ea44ed"
+      ],
+      "representative": {
+        "finding_instance_id": "4b6ca903-68f4-4f58-9dea-ecbad4ea44ed",
+        "source_row_id": "Sheet:prowler-output Row:23",
+        "check_id": "vpc_flow_logs_enabled",
+        "check_title": "Ensure VPC flow logging is enabled in all VPCs",
+        "severity": "medium",
+        "service_name": "vpc",
+        "resource_type": "AWSVPC",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "vpc_flow_logs_enabled",
+        "check_title": "Ensure VPC flow logging is enabled in all VPCs",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended_raw": "VPC vpc-0prod5678 does not have flow logging enabled.",
+        "description": "Checks whether VPC flow logs are enabled for each VPC.",
+        "risk": "Without flow logs, network traffic is not captured and security incidents cannot be investigated.",
+        "remediation_recommendation_text": "Enable VPC flow logs for all VPCs and send logs to CloudWatch Logs or S3.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "service_name": "vpc",
+        "subservice_name": null,
+        "resource_type": "AWSVPC",
+        "categories": [
+          "logging",
+          "internet-exposed"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "3.9",
+          "NIST-800-53",
+          "AU-12"
+        ],
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "cloudwatch_log_group_retention_policy_specific_days_enabled:AWS",
+      "check_id": "cloudwatch_log_group_retention_policy_specific_days_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Low",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "111122223333"
+      ],
+      "instance_ids": [
+        "f5a25e95-67a9-415a-8f1f-599a12f3aaa3"
+      ],
+      "representative": {
+        "finding_instance_id": "f5a25e95-67a9-415a-8f1f-599a12f3aaa3",
+        "source_row_id": "Sheet:prowler-output Row:25",
+        "check_id": "cloudwatch_log_group_retention_policy_specific_days_enabled",
+        "check_title": "Ensure CloudWatch log groups have retention policies set",
+        "severity": "informational",
+        "service_name": "cloudwatch",
+        "resource_type": "AWSCloudWatchLogGroup",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "cloudwatch_log_group_retention_policy_specific_days_enabled",
+        "check_title": "Ensure CloudWatch log groups have retention policies set",
+        "check_type": "Software and Configuration Checks",
+        "severity": "informational",
+        "status": "FAIL",
+        "status_extended_raw": "Log group /aws/lambda/prod-api has no retention policy.",
+        "description": "Checks whether CloudWatch log groups have a retention period set.",
+        "risk": "Without retention policies, log groups accumulate data indefinitely increasing storage costs.",
+        "remediation_recommendation_text": "Set a retention policy on the CloudWatch log group.",
+        "remediation_recommendation_url": null,
+        "remediation_code_cli": "aws logs put-retention-policy --log-group-name /aws/lambda/prod-api --retention-in-days 90",
+        "remediation_code_terraform": null,
+        "service_name": "cloudwatch",
+        "subservice_name": null,
+        "resource_type": "AWSCloudWatchLogGroup",
+        "categories": [
+          "logging",
+          "cost-optimisation"
+        ],
+        "compliance": [],
+        "instance_count": 1,
+        "likelihood_rating": "Low",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    }
+  ]
+}

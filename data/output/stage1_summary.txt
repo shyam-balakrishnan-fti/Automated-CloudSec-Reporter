@@ -1,0 +1,51 @@
+======================================================================
+STAGE 1 — INGEST & PARSE SUMMARY
+======================================================================
+Run ID           : a72b794a-4e7c-4e95-8cae-c0ac6dd60d21
+Source file      : data/synthetic/synthetic_prowler_messy.xlsx
+SHA-256          : 40d41253a83672f68cad05de2f9e2b98ef308d77300457c3f84307fd90f0d541
+Scanner          : prowler v4.3.1
+Sheet detected   : prowler-output
+Rows read        : 30
+Findings parsed  : 30
+Unknown columns  : ['FUTURE_PROWLER_COLUMN']
+Ingested at      : 2026-06-25T15:46:58.135065
+
+STATUS BREAKDOWN:
+  FAIL                     : 26
+  MANUAL                   : 1
+  MUTED(FAIL)              : 2
+  PASS                     : 1
+
+BLANK VALUE CLASSIFICATIONS:
+  Category 2 — DESCRIPTION blank      : 7
+  Category 2 — RISK blank              : 8
+  Category 2 — REMEDIATION_TEXT blank  : 3
+  Category 1 — REGION blank (global)   : 8
+
+MUTED RECONCILIATIONS: 1
+  Row Sheet:prowler-output Row:13: iam_user_access_key_age_90_days — STATUS='FAIL' + MUTED=True → MUTED(FAIL)
+
+ARN FALLBACKS (name used instead of ARN): 3
+  ec2_instance_imdsv2_enabled: resource='i-0aabbccdd'
+  guardduty_is_enabled: resource='guardduty'
+  securityhub_enabled: resource='security-hub'
+
+FLAGGED FOR HUMAN REVIEW: 11
+  Sheet:prowler-output Row:8: s3_bucket_versioning_enabled — Category 2 blank fields: RISK, REMEDIATION_RECOMMENDATION_TEXT
+  Sheet:prowler-output Row:9: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:10: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:11: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:12: iam_root_mfa_enabled — No resource identifier (both RESOURCE_UID and RESOURCE_NAME blank)
+  Sheet:prowler-output Row:14: iam_password_policy_lowercase — Category 2 blank fields: RISK, REMEDIATION_RECOMMENDATION_TEXT
+  Sheet:prowler-output Row:20: rds_instance_storage_encrypted — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:26: guardduty_is_enabled — Category 2 blank fields: DESCRIPTION
+  Sheet:prowler-output Row:27: config_recorder_all_regions_enabled — No resource identifier (both RESOURCE_UID and RESOURCE_NAME blank)
+  Sheet:prowler-output Row:29: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  ... and 1 more
+
+WARNINGS (14):
+  ARN_FALLBACK                       : 3
+  DATA_QUALITY_BLANK                 : 9
+  MUTED_STATUS_RECONCILED            : 1
+  UNKNOWN_COLUMNS                    : 1
