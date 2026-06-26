@@ -1,11 +1,11 @@
 {
-  "run_id": "5e5537d8-fa7b-412f-8212-3a1ddb5addac",
-  "source_file": "/mnt/hgfs/Notes/test-files/Omico/TestClone.xlsx",
+  "run_id": "399191c6-0a7e-48f2-95c8-d510bf7d96af",
+  "source_file": "/mnt/hgfs/Notes/Cloud Project/Internship_Shyam/Internship_Shyam/Omico/Omico_Prowler/TestClone.xlsx",
   "source_file_hash": "33a5a999fbf0a662db1169e6dea9507c2acc1f9dc866b8de824d1dc7803e9904",
   "scanner": "prowler",
   "scanner_version": "4.6.0",
   "schema_version": "1.0.0",
-  "generated_at": "2026-06-25T16:55:33.508562+00:00",
+  "generated_at": "2026-06-26T11:48:45.833705+00:00",
   "config": {
     "include_statuses": [
       "FAIL",

@@ -265,28 +265,41 @@ class CanonicalFinding(BaseModel):
 
     def to_ai_lane(self) -> dict[str, Any]:
         """
-        Return only the non-sensitive fields safe to send to the LLM.
-        Sensitive fields (16 columns) are never included.
-        STATUS_EXTENDED is included but must be scrubbed before use.
+        Return the full finding context for the LLM.
+
+        AWS Bedrock policy confirmed: model providers have no access to prompts
+        or completions, data is not used for training, and retention is
+        configurable to zero. Full context produces better narratives.
         """
         return {
+            # Finding identity
             "check_id":                         self.raw_check_id,
             "check_title":                      self.raw_check_title,
             "check_type":                       self.raw_check_type,
             "severity":                         self.raw_severity,
             "status":                           self.scanner_status.value,
-            "status_extended_raw":              self.raw_status_extended,  # caller must scrub
+            "status_extended":                  self.raw_status_extended,
+            # Content fields
             "description":                      self.raw_description,
             "risk":                             self.raw_risk,
             "remediation_recommendation_text":  self.raw_remediation_recommendation_text,
             "remediation_recommendation_url":   self.raw_remediation_recommendation_url,
             "remediation_code_cli":             self.raw_remediation_code_cli,
             "remediation_code_terraform":       self.raw_remediation_code_terraform,
+            "remediation_code_nativeiac":       self.raw_remediation_code_nativeiac,
+            # Scope fields
             "service_name":                     self.raw_service_name,
             "subservice_name":                  self.raw_subservice_name,
             "resource_type":                    self.raw_resource_type,
+            "resource_uid":                     self.raw_resource_uid,
+            "resource_name":                    self.raw_resource_name,
+            "region":                           self.region_normalised,
+            "account_name":                     self.raw_account_name,
+            # Parsed structured fields
             "categories":                       self.categories_list,
             "compliance":                       self.compliance_values,
+            "resource_tags":                    self.resource_tags_parsed,
+            # Pipeline-computed
             "instance_count":                   self.instance_count,
             "likelihood_rating":                self.likelihood_rating,
         }

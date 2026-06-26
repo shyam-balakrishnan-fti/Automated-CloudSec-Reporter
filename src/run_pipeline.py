@@ -330,7 +330,7 @@ def _write_stage2_summary(pr: ProcessResult, path: Path) -> None:
 
 # ── Main runner ───────────────────────────────────────────────────────
 
-def run(input_file: str, output_dir: str, config_path: str) -> None:
+def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto") -> None:
     input_path  = Path(input_file)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -345,7 +345,7 @@ def run(input_file: str, output_dir: str, config_path: str) -> None:
 
     # ── Stage 1 ──────────────────────────────────────────────────────
     print("[ Stage 1 ] Ingesting and parsing...")
-    ir = ingest(input_path)
+    ir = ingest(input_path, fmt=fmt)
 
     print(f"  ✓ SHA-256          : {ir.source_file_hash}")
     print(f"  ✓ Rows read        : {ir.total_rows_read}")
@@ -504,5 +504,12 @@ if __name__ == "__main__":
         help="Path to config.toml (default: config/config.toml)",
     )
 
+    parser.add_argument(
+        "--format", "-f",
+        choices=["auto", "csv", "xlsx", "json"],
+        default="auto",
+        help="Force input format (default: auto-detect from extension)",
+    )
+
     args = parser.parse_args()
-    run(args.input, args.output_dir, args.config)
+    run(args.input, args.output_dir, args.config, args.format)

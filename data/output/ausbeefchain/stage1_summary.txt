@@ -1,0 +1,32 @@
+======================================================================
+STAGE 1 — INGEST & PARSE SUMMARY
+======================================================================
+Run ID           : 0c520c3c-b7bc-4607-aa8f-e401b5d2a0f3
+Source file      : /mnt/hgfs/Notes/Cloud Project/Test/ausbeefchain/ausbeefchain1.xlsx
+SHA-256          : fb5939581d2592c74a35a872b3f0def92808d7fcd9fe82fcb2c05904b7f1b857
+Scanner          : prowler v5.31.0
+Sheet detected   : prowler-output-ausbeefchain com
+Rows read        : 71
+Findings parsed  : 71
+Unknown columns  : ['ADDITIONAL_URLS', 'ACCOUNT_OU_UID', 'ACCOUNT_OU_NAME']
+Ingested at      : 2026-06-26T11:38:34.805211
+
+STATUS BREAKDOWN:
+  FAIL                     : 38
+  MANUAL                   : 3
+  PASS                     : 30
+
+BLANK VALUE CLASSIFICATIONS:
+  Category 2 — DESCRIPTION blank      : 0
+  Category 2 — RISK blank              : 0
+  Category 2 — REMEDIATION_TEXT blank  : 0
+  Category 1 — REGION blank (global)   : 0
+
+MUTED RECONCILIATIONS: 0
+
+ARN FALLBACKS (name used instead of ARN): 0
+
+FLAGGED FOR HUMAN REVIEW: 0
+
+WARNINGS (1):
+  UNKNOWN_COLUMNS                    : 1

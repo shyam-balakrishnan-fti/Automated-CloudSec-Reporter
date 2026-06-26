@@ -1,15 +1,15 @@
 ======================================================================
 STAGE 1 — INGEST & PARSE SUMMARY
 ======================================================================
-Run ID           : 5e5537d8-fa7b-412f-8212-3a1ddb5addac
-Source file      : /mnt/hgfs/Notes/test-files/Omico/TestClone.xlsx
+Run ID           : 399191c6-0a7e-48f2-95c8-d510bf7d96af
+Source file      : /mnt/hgfs/Notes/Cloud Project/Internship_Shyam/Internship_Shyam/Omico/Omico_Prowler/TestClone.xlsx
 SHA-256          : 33a5a999fbf0a662db1169e6dea9507c2acc1f9dc866b8de824d1dc7803e9904
 Scanner          : prowler v4.6.0
 Sheet detected   : Full Output (Criti+High+Medium)
 Rows read        : 1292
 Findings parsed  : 1292
 Unknown columns  : ['ASSESSMENT_TIME']
-Ingested at      : 2026-06-25T16:55:33.327692
+Ingested at      : 2026-06-26T11:48:45.629707
 
 STATUS BREAKDOWN:
   FAIL                     : 928

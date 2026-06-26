@@ -1,0 +1,2296 @@
+{
+  "run_id": "0c520c3c-b7bc-4607-aa8f-e401b5d2a0f3",
+  "group_count": 34,
+  "generated_at": "2026-06-26T11:38:34.818648+00:00",
+  "groups": [
+    {
+      "output_group_key": "defenderxdr_endpoint_privileged_user_exposed_credentials:AWS",
+      "check_id": "defenderxdr_endpoint_privileged_user_exposed_credentials",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "93bb6e7a-4238-4441-b2dc-f23d079dde94"
+      ],
+      "representative": {
+        "finding_instance_id": "93bb6e7a-4238-4441-b2dc-f23d079dde94",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:13",
+        "check_id": "defenderxdr_endpoint_privileged_user_exposed_credentials",
+        "check_title": "Privileged users do not have credentials exposed on vulnerable endpoints",
+        "severity": "critical",
+        "service_name": "defenderxdr",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "defenderxdr_endpoint_privileged_user_exposed_credentials",
+        "check_title": "Privileged users do not have credentials exposed on vulnerable endpoints",
+        "check_type": null,
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended": "Unable to query Microsoft Defender XDR status. Verify that ThreatHunting.Read.All permission is granted.",
+        "description": "Microsoft Defender XDR's **Security Exposure Management** detects when credentials from users with Entra ID privileged roles are present on vulnerable devices. Privileged users may have authentication artifacts (CLI secrets, cookies, tokens) exposed on endpoints with high risk scores.",
+        "risk": "Exposed credentials on vulnerable endpoints enable account takeover through stolen tokens or cookies, Conditional Access bypass via primary refresh tokens, lateral movement to sensitive resources, and persistence until tokens are explicitly revoked.",
+        "remediation_recommendation_text": "Privileged users should only authenticate from secure, hardened devices with low exposure scores. Implement Privileged Access Workstations (PAWs) and enforce device compliance policies through Conditional Access to prevent credential exposure on vulnerable endpoints.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/defenderxdr_endpoint_privileged_user_exposed_credentials",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "defenderxdr",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "mdeStatus",
+        "resource_name": "Defender XDR",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "secrets",
+          "identity-access",
+          "e5"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.7, A.5.17, A.8.1, A.8.2, A.8.8",
+          "ProwlerThreatScore-1.0: 1.2.4"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "admincenter_groups_not_public_visibility:AWS",
+      "check_id": "admincenter_groups_not_public_visibility",
+      "output_section": "AWS",
+      "instance_count": 3,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "e37718b8-c8b6-437d-bf2c-6cf725d6e795",
+        "d2a003cc-bbcd-4b1a-8609-8c9af0f13c25",
+        "db99806c-881f-4995-ac08-b09c18165894"
+      ],
+      "representative": {
+        "finding_instance_id": "e37718b8-c8b6-437d-bf2c-6cf725d6e795",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:2",
+        "check_id": "admincenter_groups_not_public_visibility",
+        "check_title": "Microsoft 365 group has Private visibility",
+        "severity": "high",
+        "service_name": "admincenter",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "admincenter_groups_not_public_visibility",
+        "check_title": "Microsoft 365 group has Private visibility",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "Group Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512 has Public visibility and should be Private.",
+        "description": "**Microsoft 365 groups** are assessed for their visibility setting.\n\nThe finding highlights groups configured as `Public`; groups set to `Private` align with the intended privacy posture.",
+        "risk": "**Public visibility** lets any authenticated tenant user discover and self-join, accessing group files, conversations, SharePoint sites, and calendars.\n\nThis weakens **confidentiality** and can enable unauthorized changes that affect **integrity**.",
+        "remediation_recommendation_text": "Set groups to `Private` by default and allow `Public` only for clearly non-sensitive communities.\n\nApply **least privilege**: restrict who can create or change visibility, require owner approval for membership, review access regularly, and use **sensitivity labels** to reinforce classification.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/admincenter_groups_not_public_visibility",
+        "remediation_code_cli": "Set-UnifiedGroup -Identity <GROUP_NAME_OR_ID> -AccessType Private",
+        "remediation_code_terraform": "```hcl\nresource \"azuread_group\" \"<example_resource_name>\" {\n  display_name     = \"<example_resource_name>\"\n  mail_enabled     = true\n  security_enabled = false\n  types            = [\"Unified\"]\n  visibility       = \"Private\" # Critical: sets the group visibility to Private to pass the check\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "admincenter",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "215036be-c7fa-4640-be69-454915bc42bf",
+        "resource_name": "Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 1.2.1",
+          "CIS-4.0: 1.2.1",
+          "ISO27001-2022: A.5.2, A.5.33, A.8.2",
+          "ProwlerThreatScore-1.0: 1.2.1"
+        ],
+        "resource_tags": {},
+        "instance_count": 3,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "admincenter_users_admins_reduced_license_footprint:AWS",
+      "check_id": "admincenter_users_admins_reduced_license_footprint",
+      "output_section": "AWS",
+      "instance_count": 3,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "f7cabaa1-94c6-41df-9d79-147686d57648",
+        "c1aef5f3-7a89-4d17-a25f-68fdee4eee4f",
+        "f9360c33-854e-4faa-ba55-98fb4b5d9245"
+      ],
+      "representative": {
+        "finding_instance_id": "f7cabaa1-94c6-41df-9d79-147686d57648",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:6",
+        "check_id": "admincenter_users_admins_reduced_license_footprint",
+        "check_title": "Administrative user has no license or an allowed license (AAD_PREMIUM or AAD_PREMIUM_P2)",
+        "severity": "high",
+        "service_name": "admincenter",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "admincenter_users_admins_reduced_license_footprint",
+        "check_title": "Administrative user has no license or an allowed license (AAD_PREMIUM or AAD_PREMIUM_P2)",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "User David Kelly has administrative roles Global Administrator and an invalid license: SPB.",
+        "description": "Privileged users in Microsoft 365 are evaluated for a **reduced license footprint**: only `AAD_PREMIUM` (P1) or `AAD_PREMIUM_P2` (P2), or no license. Assignments that include productivity app suites indicate excess application entitlements on administrative accounts.",
+        "risk": "Productivity licenses on **privileged identities** create mailboxes and collaboration surfaces that widen attack paths. Phishing, malicious content, or rogue OAuth apps can steal credentials/tokens, enabling tenant-wide role misuse, data exfiltration, and configuration tampering-compromising **confidentiality** and **integrity**.",
+        "remediation_recommendation_text": "Maintain **dedicated admin accounts** with a **least-privilege, reduced-license** model: assign only Microsoft Entra P1/P2 features needed for identity security, or keep them unlicensed for apps. Separate admin from daily-use accounts, enforce **MFA** and just-in-time elevation, and use **privileged access workstations** for administration.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/admincenter_users_admins_reduced_license_footprint",
+        "remediation_code_cli": "Set-MgUserLicense -UserId <USER_PRINCIPAL_NAME_OR_ID> -AddLicenses @() -RemoveLicenses @(Get-MgUserLicenseDetail -UserId <USER_PRINCIPAL_NAME_OR_ID> | Select-Object -ExpandProperty SkuId)",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "admincenter",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "14cda4fc-6485-4a49-9be6-ef0f319b2687",
+        "resource_name": "David Kelly",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 1.1.4",
+          "CIS-4.0: 1.1.4",
+          "ISO27001-2022: A.5.2, A.5.15, A.8.2, A.8.19, A.8.26",
+          "ProwlerThreatScore-1.0: 1.3.2"
+        ],
+        "resource_tags": {},
+        "instance_count": 3,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_admin_users_phishing_resistant_mfa_enabled:AWS",
+      "check_id": "entra_admin_users_phishing_resistant_mfa_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "6a94ce5b-8c6d-48b0-b66c-57bab0fde7c1"
+      ],
+      "representative": {
+        "finding_instance_id": "6a94ce5b-8c6d-48b0-b66c-57bab0fde7c1",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:17",
+        "check_id": "entra_admin_users_phishing_resistant_mfa_enabled",
+        "check_title": "At least one Conditional Access policy requires phishing-resistant MFA strength for administrator roles",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_admin_users_phishing_resistant_mfa_enabled",
+        "check_title": "At least one Conditional Access policy requires phishing-resistant MFA strength for administrator roles",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires Phishing-resistant MFA strength for admin users.",
+        "description": "Microsoft Entra **Conditional Access** for administrator roles requires **phishing-resistant MFA** authentication strength on `All` applications. Disabled policies are ignored; report-only policies aren't considered. Policies with custom strengths require review to confirm they are truly **phishing-resistant**.",
+        "risk": "Without phishing-resistant MFA on admin accounts, attackers can:\n- Bypass OTP/push via **AiTM phishing**\n- Abuse **MFA fatigue** to gain sessions\n- Perform **tenant takeover**, alter policies, and exfiltrate data\n\nThis harms confidentiality, configuration integrity, and service availability.",
+        "remediation_recommendation_text": "Require `Phishing-resistant MFA` via Conditional Access for all privileged roles and `All resources`. Favor **FIDO2**, **Windows Hello for Business**, or **certificate-based auth**. Apply **least privilege**, use **PIM** for step-up on role activation, test in report-only, and keep a monitored break-glass account.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_admin_users_phishing_resistant_mfa_enabled",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.2.5",
+          "CIS-4.0: 5.2.2.5",
+          "ISO27001-2022: A.5.2, A.5.3, A.5.7, A.5.15, A.8.1, A.8.2, A.8.12",
+          "ProwlerThreatScore-1.0: 1.1.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_admin_users_sign_in_frequency_enabled:AWS",
+      "check_id": "entra_admin_users_sign_in_frequency_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "fd65b30d-f273-412b-88b5-9512a3eb7e9f"
+      ],
+      "representative": {
+        "finding_instance_id": "fd65b30d-f273-412b-88b5-9512a3eb7e9f",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:18",
+        "check_id": "entra_admin_users_sign_in_frequency_enabled",
+        "check_title": "Admin users have sign-in frequency enforced by Conditional Access at or below the recommended interval",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_admin_users_sign_in_frequency_enabled",
+        "check_title": "Admin users have sign-in frequency enforced by Conditional Access at or below the recommended interval",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy enforces sign-in frequency for admin users.",
+        "description": "Microsoft Entra **Conditional Access** evaluates whether admin roles are covered by policies that enforce a defined **sign-in frequency** and **non-persistent browser sessions** across *all cloud apps*. It looks for reauthentication set to a time interval or `Every time`, persistent browser set to `never`, and policies that are enforced rather than report-only or disabled.",
+        "risk": "Lax reauthentication and persistent sessions let admin tokens live too long, enabling **session hijacking**, **token replay**, and access after **credential theft**. Attackers can modify configurations, elevate privileges, and exfiltrate data, threatening **confidentiality** and **integrity** and increasing risk of **tenant takeover**.",
+        "remediation_recommendation_text": "Use **Conditional Access** for admin roles to:\n- Enforce short sign-in frequency (e.g.,  `4` hours, or `Every time` for critical actions)\n- Set persistent browser to `never`\n- Cover all apps and run in enforce mode\n\nPair with **least privilege**, **MFA**, **PIM**, and **token protection** to reduce session abuse.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_admin_users_sign_in_frequency_enabled",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": "```hcl\nresource \"azuread_conditional_access_policy\" \"<example_resource_name>\" {\n  display_name = \"<example_resource_name>\"\n  state        = \"enabled\" # Critical: must be enabled (not report-only) to enforce\n\n  conditions {\n    users {\n      included_roles = [\"<example_role_id>\"] # Critical: target admin directory roles (e.g., Global Administrator)\n    }\n    applications {\n      included_applications = [\"All\"] # Critical: apply to all cloud apps\n    }\n  }\n\n  session_controls {\n    sign_in_frequency          = 4          # Critical: enforce reauth at or below 4 hours\n    sign_in_frequency_interval = \"hours\"   # Critical: time-based frequency in hours\n    persistent_browser_mode    = \"never\"   # Critical: enforce non-persistent browser sessions\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-4.0: 5.2.2.4",
+          "ISO27001-2022: A.5.2, A.5.3, A.5.17, A.7.4, A.8.2, A.8.5",
+          "ProwlerThreatScore-1.0: 1.3.8"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required:AWS",
+      "check_id": "entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "6d6722d7-879d-4df9-a83d-eb49769b06f5"
+      ],
+      "representative": {
+        "finding_instance_id": "6d6722d7-879d-4df9-a83d-eb49769b06f5",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:30",
+        "check_id": "entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required",
+        "check_title": "Conditional Access requires compliant device OR hybrid joined device OR MFA for admins or all users",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required",
+        "check_title": "Conditional Access requires compliant device OR hybrid joined device OR MFA for admins or all users",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires compliant device, hybrid joined device, or MFA for admin roles or all users across all cloud apps.",
+        "description": "Microsoft Entra **Conditional Access** policy enforces one of the following grant controls for admin roles or all users across all cloud apps: - 'Require device to be marked as compliant' - 'Require Microsoft Entra hybrid joined device' - 'Require multifactor authentication' This ensures that access is provided only under strong authentication or trusted device conditions.",
+        "risk": "If this policy is not implemented, attackers with compromised credentials may gain access from unmanaged devices or without strong authentication, increasing the likelihood of **unauthorized access and data breaches**.",
+        "remediation_recommendation_text": "Enforce a Conditional Access baseline where admins or all users must satisfy at least one strong control: compliant device, hybrid joined device, or MFA.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_device_code_flow_blocked:AWS",
+      "check_id": "entra_conditional_access_policy_device_code_flow_blocked",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "f0acb3cc-1f79-4b1c-bf1a-08585ac9bbc8"
+      ],
+      "representative": {
+        "finding_instance_id": "f0acb3cc-1f79-4b1c-bf1a-08585ac9bbc8",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:32",
+        "check_id": "entra_conditional_access_policy_device_code_flow_blocked",
+        "check_title": "Conditional Access policy blocks device code flow to prevent phishing attacks",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_device_code_flow_blocked",
+        "check_title": "Conditional Access policy blocks device code flow to prevent phishing attacks",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy blocks device code flow.",
+        "description": "Conditional Access policies restrict the **device code authentication flow**, which is commonly abused in phishing campaigns to hijack user sessions. A policy targeting `deviceCodeFlow` in authentication flow conditions with a block grant control prevents this attack vector.",
+        "risk": "Device code flow is heavily exploited in phishing attacks such as **Storm-2372**, where attackers trick users into entering device codes on legitimate Microsoft login pages. Without a blocking policy, attackers can obtain tokens and gain persistent access to organizational resources.",
+        "remediation_recommendation_text": "Block device code flow via Conditional Access to mitigate phishing attacks that abuse this authentication method. Exclude only break-glass accounts and legitimate service accounts that require device code flow. Regularly review exceptions to minimize the attack surface.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_device_code_flow_blocked",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "trust-boundaries",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.2.12",
+          "ISO27001-2022: A.5.17, A.5.36, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_device_registration_mfa_required:AWS",
+      "check_id": "entra_conditional_access_policy_device_registration_mfa_required",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "ea73b146-5c01-4c8c-bad8-6bb69958c563"
+      ],
+      "representative": {
+        "finding_instance_id": "ea73b146-5c01-4c8c-bad8-6bb69958c563",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:33",
+        "check_id": "entra_conditional_access_policy_device_registration_mfa_required",
+        "check_title": "Conditional Access policies enforce MFA for device registration",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_device_registration_mfa_required",
+        "check_title": "Conditional Access policies enforce MFA for device registration",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires MFA for device registration.",
+        "description": "Microsoft Entra **Conditional Access** policies can require **multifactor authentication (MFA)** for **device registration** operations.\n\nThis control ensures users must complete MFA before **registering or joining devices** to the directory, reducing the likelihood that compromised credentials can be used to register rogue devices.",
+        "risk": "Without MFA for device registration, attackers with stolen credentials could register unauthorized devices into the directory, gain persistence, and bypass compliance-based Conditional Access protections that rely on trusted device state.",
+        "remediation_recommendation_text": "Enforce **MFA** through **Conditional Access** for **device registration** so users must verify identity before registering or joining devices to the directory.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_device_registration_mfa_required",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.17, A.8.1, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_mdm_compliant_device_required:AWS",
+      "check_id": "entra_conditional_access_policy_mdm_compliant_device_required",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "7f7fbf28-670f-437d-bb1a-add428d41aac"
+      ],
+      "representative": {
+        "finding_instance_id": "7f7fbf28-670f-437d-bb1a-add428d41aac",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:36",
+        "check_id": "entra_conditional_access_policy_mdm_compliant_device_required",
+        "check_title": "Conditional Access policy requires an MDM-compliant device for all cloud app access",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_mdm_compliant_device_required",
+        "check_title": "Conditional Access policy requires an MDM-compliant device for all cloud app access",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires an MDM-compliant device for all cloud app access.",
+        "description": "An enabled Conditional Access policy enforces **Require device to be marked as compliant** for **all users** across **all cloud apps** with no application exclusions. This check also verifies that Intune has assigned compliance policies and at least one currently reported **compliant MDM-managed device**. If Graph exposes tenant settings, it also checks **secure-by-default** evaluation.",
+        "risk": "Without a mandatory MDM-backed compliant device requirement, users can access cloud resources from **unmanaged or non-compliant devices**. If Intune compliance policies are missing, unassigned, or devices without policy assignment can remain compliant, Conditional Access can create a **false sense of protection** and increase the risk of **credential theft** and **data exfiltration**.",
+        "remediation_recommendation_text": "Enforce a Conditional Access policy requiring all users to access cloud applications only from **MDM-compliant devices**. Back that policy with Microsoft Intune device compliance policies that are actually assigned, configure Intune so devices without a compliance policy assignment are treated as **Not compliant**, and verify that at least one device is currently enrolled and reporting a **compliant** state through an MDM/Intune management channel. If Microsoft Graph exposes Intune tenant settings, also confirm the tenant reports **secure-by-default** compliance evaluation.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_mdm_compliant_device_required",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_emergency_access_exclusion:AWS",
+      "check_id": "entra_emergency_access_exclusion",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "514a2861-5d66-48e3-b5f6-74a07608b21d"
+      ],
+      "representative": {
+        "finding_instance_id": "514a2861-5d66-48e3-b5f6-74a07608b21d",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:46",
+        "check_id": "entra_emergency_access_exclusion",
+        "check_title": "Emergency access exclusions prevent lockout from Conditional Access policies",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_emergency_access_exclusion",
+        "check_title": "Emergency access exclusions prevent lockout from Conditional Access policies",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No user or group is excluded as emergency access from all 1 enabled Conditional Access policies with a Block grant control.",
+        "description": "Microsoft Entra **Conditional Access** is verified to have at least one **emergency access** (break glass) account or group excluded from every enabled Conditional Access policy with a **Block** grant control. Emergency access accounts provide a fallback mechanism when normal administrative access is blocked due to misconfigured blocking policies.",
+        "risk": "Without emergency access accounts excluded from every blocking Conditional Access policy, a misconfigured Block policy can lock out all administrators from the tenant. This creates a **critical availability risk** where legitimate administrators cannot access or remediate issues in the environment.",
+        "remediation_recommendation_text": "Create and maintain at least two emergency access accounts that are excluded from every Conditional Access policy with a **Block** grant control so they can never be denied access by a misconfiguration. Store credentials securely offline, monitor usage, and test access regularly. Follow **least privilege** principles for these accounts while ensuring they can recover tenant access when needed.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_emergency_access_exclusion",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 1.1.2",
+          "CIS-4.0: 1.1.2",
+          "ISO27001-2022: A.5.17, A.8.2, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_identity_protection_sign_in_risk_enabled:AWS",
+      "check_id": "entra_identity_protection_sign_in_risk_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "ac04cff4-b6e3-45ab-8bda-e4f3e18ff6ab"
+      ],
+      "representative": {
+        "finding_instance_id": "ac04cff4-b6e3-45ab-8bda-e4f3e18ff6ab",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:47",
+        "check_id": "entra_identity_protection_sign_in_risk_enabled",
+        "check_title": "At least one Conditional Access Identity Protection sign-in risk policy protects against high and medium risk sign-ins",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_identity_protection_sign_in_risk_enabled",
+        "check_title": "At least one Conditional Access Identity Protection sign-in risk policy protects against high and medium risk sign-ins",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy is a sign-in risk based Identity Protection Policy.",
+        "description": "Microsoft Entra **Conditional Access** has a sign-in risk-based Identity Protection policy that targets `All users` and `All cloud apps`, evaluates `Medium` and `High` sign-in risk, requires **MFA**, sets `sign-in frequency: every time`, and is actively enforced *not report-only*.",
+        "risk": "Without this policy, risky authentications using stolen or replayed credentials may proceed without step-up verification, enabling account takeover. Attackers can establish persistent sessions, exfiltrate data, change configurations, and move laterally-eroding confidentiality and integrity and potentially impacting availability through privilege abuse.",
+        "remediation_recommendation_text": "Adopt a **risk-based Conditional Access** policy for sign-in risk that applies broadly and enforces **MFA** with `every-time` reauthentication for `Medium` and `High` risk. Align with **Zero Trust** and **least privilege**: ensure MFA enrollment, exclude emergency accounts, validate in report-only, then enforce and regularly review risky sign-in reports.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_identity_protection_sign_in_risk_enabled",
+        "remediation_code_cli": "New-MgIdentityConditionalAccessPolicy -BodyParameter @{displayName='<example_resource_name>';state='enabled';conditions=@{users=@{includeUsers=@('All')};applications=@{includeApplications=@('All')};signInRiskLevels=@('medium','high')};grantControls=@{operator='OR';builtInControls=@('mfa')};sessionControls=@{signInFrequency=@{isEnabled=$true;frequencyInterval='everyTime'}}}",
+        "remediation_code_terraform": "```hcl\nresource \"azuread_conditional_access_policy\" \"<example_resource_name>\" {\n  display_name = \"<example_resource_name>\"\n  state        = \"enabled\" # Critical: enforce policy\n\n  conditions {\n    users {\n      include_users = [\"All\"] # Critical: apply to all users\n    }\n    applications {\n      include_applications = [\"All\"] # Critical: apply to all apps\n    }\n    sign_in_risk_levels = [\"medium\", \"high\"] # Critical: protect Medium and High sign-in risks\n    client_app_types    = [\"all\"]\n  }\n\n  grant_controls {\n    operator          = \"OR\"\n    built_in_controls = [\"mfa\"] # Critical: require MFA\n  }\n\n  session_controls {\n    sign_in_frequency_interval = \"everyTime\" # Critical: require reauth every time\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e5"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.2.7",
+          "CIS-4.0: 5.2.2.7",
+          "ISO27001-2022: A.5.1, A.5.7, A.5.19, A.5.21, A.5.34, A.5.36, A.8.5, A.8.30",
+          "ProwlerThreatScore-1.0: 1.2.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_identity_protection_user_risk_enabled:AWS",
+      "check_id": "entra_identity_protection_user_risk_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "07374a68-6cac-40ff-9801-1487c1ce0884"
+      ],
+      "representative": {
+        "finding_instance_id": "07374a68-6cac-40ff-9801-1487c1ce0884",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:48",
+        "check_id": "entra_identity_protection_user_risk_enabled",
+        "check_title": "At least one Conditional Access policy enforces Identity Protection user risk for high-risk users",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_identity_protection_user_risk_enabled",
+        "check_title": "At least one Conditional Access policy enforces Identity Protection user risk for high-risk users",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy is a user risk based Identity Protection Policy.",
+        "description": "Microsoft Entra **Conditional Access** has a **user risk-based policy** that targets `All` users and `All` applications, evaluates `High` user risk, and actively enforces controls requiring both **multifactor authentication** and a **secure password change** with an `AND` condition.",
+        "risk": "Without an active `High` user-risk policy that forces **MFA** and secure password reset, compromised identities can persist, enabling data exfiltration, tampering, and privilege escalation. Report-only mode or narrow scope leaves gaps, undermining confidentiality and integrity across resources.",
+        "remediation_recommendation_text": "Adopt **least privilege** by enabling an active user-risk policy that:\n- covers `All` users and apps (exclude only break-glass)\n- triggers on `High` user risk\n- requires **MFA** and a **secure password change** together\n- reauthenticates risky sessions\n\nPair with sign-in risk policies, ensure MFA registration, and review risky-user reports to validate effectiveness.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_identity_protection_user_risk_enabled",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": "```hcl\nresource \"azuread_conditional_access_policy\" \"<example_resource_name>\" {\n  display_name = \"<example_resource_name>\"\n  state        = \"enabled\"\n\n  conditions {\n    client_app_types = [\"all\"]\n    users {\n      include_users = [\"All\"] # Critical: targets all users\n    }\n    applications {\n      included_applications = [\"All\"] # Critical: applies to all cloud apps\n    }\n    user_risk_levels = [\"high\"] # Critical: enforces on high user risk\n  }\n\n  grant_controls {\n    operator          = \"AND\" # Critical: require all selected controls\n    built_in_controls = [\"mfa\", \"passwordChange\"] # Critical: require MFA and password change\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e5"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.2.6",
+          "CIS-4.0: 5.2.2.6",
+          "ISO27001-2022: A.5.1, A.5.7, A.5.19, A.5.21, A.5.34, A.5.36, A.8.30",
+          "ProwlerThreatScore-1.0: 1.2.4"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_intune_enrollment_sign_in_frequency_every_time:AWS",
+      "check_id": "entra_intune_enrollment_sign_in_frequency_every_time",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "e44ffe66-8f2c-486b-8771-d1506d9f3b43"
+      ],
+      "representative": {
+        "finding_instance_id": "e44ffe66-8f2c-486b-8771-d1506d9f3b43",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:49",
+        "check_id": "entra_intune_enrollment_sign_in_frequency_every_time",
+        "check_title": "Conditional Access requires strong authentication and Every Time sign-in frequency for Intune Enrollment",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_intune_enrollment_sign_in_frequency_every_time",
+        "check_title": "Conditional Access requires strong authentication and Every Time sign-in frequency for Intune Enrollment",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires strong authentication and enforces Every Time sign-in frequency for Intune Enrollment.",
+        "description": "Microsoft Entra **Conditional Access** for **Microsoft Intune Enrollment** must require **strong authentication** and set **sign-in frequency** to `Every time` for all users.\n\nThis check evaluates whether an active policy targets the Intune Enrollment app, requires MFA or authentication strength, and forces reauthentication on each enrollment attempt.",
+        "risk": "Absent strong authentication and `Every time` reauthentication at enrollment, attackers with stolen or replayed credentials can enroll rogue devices and obtain compliant access.\n\nImpacts:\n- Confidentiality: data exposure from unauthorized devices\n- Integrity: untrusted endpoints modifying resources\n- Availability: persistence via device-based access paths",
+        "remediation_recommendation_text": "Implement a **Conditional Access** policy on the **Intune Enrollment** app that requires **MFA** or **authentication strength** and sets sign-in frequency to `Every time`.\n\nMicrosoft Entra requires this grant control when `Every time` is configured for Intune Enrollment, so Prowler validates both conditions together in a single check.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_intune_enrollment_sign_in_frequency_every_time",
+        "remediation_code_cli": "az rest --method POST --url https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies --headers 'Content-Type=application/json' --body '{\"displayName\":\"Intune Enrollment - MFA and Every time\",\"state\":\"enabled\",\"conditions\":{\"users\":{\"includeUsers\":[\"All\"]},\"applications\":{\"includeApplications\":[\"d4ebce55-015a-49b5-a083-c84d1797ae8c\"]}},\"grantControls\":{\"operator\":\"OR\",\"builtInControls\":[\"mfa\"]},\"sessionControls\":{\"signInFrequency\":{\"isEnabled\":true,\"type\":\"everyTime\"}}}'",
+        "remediation_code_terraform": "```hcl\nresource \"azuread_conditional_access_policy\" \"<example_resource_name>\" {\n  display_name = \"<example_resource_name>\"\n  state        = \"enabled\"\n\n  conditions {\n    users {\n      include_users = [\"All\"] # critical: include all users\n    }\n    applications {\n      include_applications = [\"d4ebce55-015a-49b5-a083-c84d1797ae8c\"] # critical: target Microsoft Intune Enrollment app\n    }\n  }\n\n  session_controls {\n    sign_in_frequency {\n      is_enabled = true      # critical: enable sign-in frequency control\n      type       = \"everyTime\" # critical: require reauthentication every time\n    }\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.2.11, 5.2.3.1",
+          "ISO27001-2022: A.5.17, A.8.1, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_managed_device_required_for_authentication:AWS",
+      "check_id": "entra_managed_device_required_for_authentication",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "f5fa4148-d54a-4d20-b722-fed60a42b886"
+      ],
+      "representative": {
+        "finding_instance_id": "f5fa4148-d54a-4d20-b722-fed60a42b886",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:51",
+        "check_id": "entra_managed_device_required_for_authentication",
+        "check_title": "Conditional Access policies require authentication from a managed device for all users and applications",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_managed_device_required_for_authentication",
+        "check_title": "Conditional Access policies require authentication from a managed device for all users and applications",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires a managed device for authentication.",
+        "description": "Microsoft Entra **Conditional Access** evaluates whether an enabled policy targeting `all users` and `all applications` includes grant controls that require a **managed device** (hybrid domain-joined) with **multifactor authentication** during sign-in.",
+        "risk": "Sign-ins from **unmanaged devices** erode confidentiality and integrity: compromised hosts can steal tokens, hijack sessions, and exfiltrate data. With leaked credentials, attackers bypass endpoint controls, gain persistent access, and move laterally to alter resources.",
+        "remediation_recommendation_text": "Enforce **Conditional Access** to allow only **managed devices** (Entra hybrid joined or Intune-compliant) and require **MFA**, aligning with **Zero Trust** and **least privilege**. Apply to all users and apps, limit exclusions to break-glass accounts, and regularly review device compliance to prevent access from unknown endpoints.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_managed_device_required_for_authentication",
+        "remediation_code_cli": "New-MgIdentityConditionalAccessPolicy -DisplayName \"<example_resource_name>\" -State \"enabled\" -Conditions @{ Users=@{ IncludeUsers=@(\"All\") }; Applications=@{ IncludeApplications=@(\"All\") } } -GrantControls @{ Operator=\"OR\"; BuiltInControls=@(\"mfa\",\"domainJoinedDevice\") }",
+        "remediation_code_terraform": "```hcl\nresource \"azuread_conditional_access_policy\" \"example\" {\n  display_name = \"<example_resource_name>\"\n  state        = \"enabled\" # Critical: must be enabled (not report-only) to enforce\n\n  conditions {\n    users {\n      include_users = [\"All\"] # Critical: target all users\n    }\n    applications {\n      include_applications = [\"All\"] # Critical: target all cloud apps\n    }\n  }\n\n  grant_controls {\n    operator          = \"OR\" # Critical: require one of the selected controls\n    built_in_controls = [\"mfa\", \"domainJoinedDevice\"] # Critical: MFA or Microsoft Entra hybrid joined device\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.2.9",
+          "CIS-4.0: 5.2.2.10",
+          "ISO27001-2022: A.5.17, A.8.1, A.8.5",
+          "ProwlerThreatScore-1.0: 1.1.6"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_managed_device_required_for_mfa_registration:AWS",
+      "check_id": "entra_managed_device_required_for_mfa_registration",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "4a7c1656-326b-4472-a317-4b1db19ce7f9"
+      ],
+      "representative": {
+        "finding_instance_id": "4a7c1656-326b-4472-a317-4b1db19ce7f9",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:52",
+        "check_id": "entra_managed_device_required_for_mfa_registration",
+        "check_title": "Tenant has a Conditional Access policy that requires a managed device for MFA registration for all users",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_managed_device_required_for_mfa_registration",
+        "check_title": "Tenant has a Conditional Access policy that requires a managed device for MFA registration for all users",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires a managed device for MFA registration.",
+        "description": "Microsoft Entra **Conditional Access** evaluates whether **MFA registration** is restricted to organization-managed devices. It looks for policies that target the security info registration action for all users and require a **managed (compliant or hybrid-joined) device** when registering authentication methods.",
+        "risk": "Allowing **MFA enrollment** from unmanaged or compromised devices enables attackers with stolen passwords to add their own factors, causing **account takeover** and potential lockout of the legitimate user.\n\nThis jeopardizes **confidentiality** (data access), **integrity** (unauthorized changes), and **availability** (user access disruption).",
+        "remediation_recommendation_text": "Enforce **MFA registration** only from **managed devices** using Conditional Access. Apply the policy broadly, with minimal exclusions for break-glass accounts.\n\nAlign with **Zero Trust** and **least privilege** by requiring devices be compliant or hybrid-joined, monitoring enrollment activity, and regularly reviewing policies to prevent bypass and abuse.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_managed_device_required_for_mfa_registration",
+        "remediation_code_cli": "New-MgIdentityConditionalAccessPolicy -BodyParameter @{displayName=\"<example_resource_name>\";state=\"enabled\";conditions=@{users=@{includeUsers=@(\"All\")};applications=@{includeUserActions=@(\"urn:user:registersecurityinfo\")}};grantControls=@{operator=\"OR\";builtInControls=@(\"mfa\",\"domainJoinedDevice\")}}",
+        "remediation_code_terraform": "```hcl\nresource \"azuread_conditional_access_policy\" \"<example_resource_name>\" {\n  display_name = \"<example_resource_name>\"\n  state        = \"enabled\" # Critical: policy must be enforced (not report-only)\n\n  conditions {\n    users {\n      include_users = [\"All\"] # Critical: applies to all users\n    }\n    applications {\n      include_user_actions = [\"urn:user:registersecurityinfo\"] # Critical: targets security info (MFA) registration\n    }\n  }\n\n  grant_controls {\n    operator          = \"OR\" # Critical: required by the check logic\n    built_in_controls = [\"mfa\", \"domainJoinedDevice\"] # Critical: require MFA or hybrid joined device\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.2.10",
+          "CIS-4.0: 5.2.2.11",
+          "ISO27001-2022: A.8.1",
+          "ProwlerThreatScore-1.0: 1.1.7"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_policy_guest_invite_only_for_admin_roles:AWS",
+      "check_id": "entra_policy_guest_invite_only_for_admin_roles",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "4e369f41-94a4-47bd-a247-ee618dca6758"
+      ],
+      "representative": {
+        "finding_instance_id": "4e369f41-94a4-47bd-a247-ee618dca6758",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:55",
+        "check_id": "entra_policy_guest_invite_only_for_admin_roles",
+        "check_title": "Tenant guest invitations are restricted to specific admin roles or disabled",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_policy_guest_invite_only_for_admin_roles",
+        "check_title": "Tenant guest invitations are restricted to specific admin roles or disabled",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "Guest invitations are not restricted to users with specific administrative roles only.",
+        "description": "Microsoft Entra authorization policy controls **guest invitations** via `guest_invite_settings`. It should be `adminsAndGuestInviters` or `none`, so only specific **administrative roles** can invite guests-or invitations are disabled.",
+        "risk": "Unrestricted invites allow broad creation of external identities. A compromised user can onboard attacker-controlled guests, gaining ongoing access to teams, sites, and apps. This erodes **confidentiality**, enables **privilege abuse**, and complicates revocation and audit.",
+        "remediation_recommendation_text": "Apply **least privilege**: restrict invites to the **Guest Inviter** or designated admin roles (`adminsAndGuestInviters`), or disable invites (`none`).\n- Require approval and justification\n- Allowlist partner domains and use access reviews\n- Combine with Conditional Access and cross-tenant policies for defense in depth",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_policy_guest_invite_only_for_admin_roles",
+        "remediation_code_cli": "Update-MgPolicyAuthorizationPolicy -AuthorizationPolicyId authorizationPolicy -AllowInvitesFrom adminsAndGuestInviters",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "authorizationPolicy",
+        "resource_name": "Authorization Policy",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.6.3",
+          "CIS-4.0: 5.1.6.3",
+          "ISO27001-2022: A.5.2, A.5.3, A.5.24, A.5.36, A.8.2",
+          "ProwlerThreatScore-1.0: 1.3.7"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_policy_restricts_user_consent_for_apps:AWS",
+      "check_id": "entra_policy_restricts_user_consent_for_apps",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "000d15fe-01d2-48a2-9e1a-20b229613728"
+      ],
+      "representative": {
+        "finding_instance_id": "000d15fe-01d2-48a2-9e1a-20b229613728",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:57",
+        "check_id": "entra_policy_restricts_user_consent_for_apps",
+        "check_title": "User consent for applications is set to 'Do not allow user consent'",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_policy_restricts_user_consent_for_apps",
+        "check_title": "User consent for applications is set to 'Do not allow user consent'",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "Entra allows users to consent apps accessing company data on their behalf.",
+        "description": "Microsoft Entra **tenant settings** restrict **user consent to applications**, preventing end users from granting delegated permissions to apps on their behalf. Only **administrator-approved** or policy-allowed consents are permitted.",
+        "risk": "Allowing end users to grant consent enables **consent phishing** and stealth access to mail, files, and directory data, impacting **confidentiality** and **integrity**. Attackers can obtain long-lived refresh tokens via `offline_access`, persist, and act as the user, evading detection.",
+        "remediation_recommendation_text": "Disable broad user consent and require **admin approval** for app permissions. If consent is needed, allow only **verified publishers** and low-impact scopes via app consent policies, and enable the **admin consent workflow**. Apply **least privilege**, review grants, and revoke unused consents regularly.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_policy_restricts_user_consent_for_apps",
+        "remediation_code_cli": "az rest --method patch --url https://graph.microsoft.com/v1.0/policies/authorizationPolicy/authorizationPolicy --body \"{\\\"defaultUserRolePermissions\\\":{\\\"permissionGrantPoliciesAssigned\\\":[\\\"ManagePermissionGrantsForOwnedResource.DeveloperConsent\\\"]}}\"",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "authorizationPolicy",
+        "resource_name": "Authorization Policy",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.5.1",
+          "CIS-4.0: 5.1.5.1",
+          "ISO27001-2022: A.5.36, A.8.18, A.8.26",
+          "ProwlerThreatScore-1.0: 1.3.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_thirdparty_integrated_apps_not_allowed:AWS",
+      "check_id": "entra_thirdparty_integrated_apps_not_allowed",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "e9beaa67-c3eb-43a6-98f3-8488c4cf6333"
+      ],
+      "representative": {
+        "finding_instance_id": "e9beaa67-c3eb-43a6-98f3-8488c4cf6333",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:63",
+        "check_id": "entra_thirdparty_integrated_apps_not_allowed",
+        "check_title": "Authorization policy disallows app creation by non-admin users",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_thirdparty_integrated_apps_not_allowed",
+        "check_title": "Authorization policy disallows app creation by non-admin users",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "App creation is not disabled for non-admin users.",
+        "description": "Microsoft Entra **authorization policy** restricts registration of **third-party applications**, verifying that **non-admin users** cannot create app registrations and that only administrators or explicitly delegated roles can add integrated apps.",
+        "risk": "Allowing users to create apps enables **consent phishing** and uncontrolled **service principals** with long-lived secrets, risking **data exfiltration** via over-privileged API access, **privilege escalation** through abused app permissions, and tenant **persistence**. This degrades confidentiality, integrity, and availability.",
+        "remediation_recommendation_text": "Restrict app registration to administrators or narrowly scoped delegated roles, following **least privilege** and **separation of duties**. Require **admin consent** and formal review for external integrations, disable broad user consent, and audit app creations and permissions to enforce **defense in depth**.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_thirdparty_integrated_apps_not_allowed",
+        "remediation_code_cli": "Invoke-MgGraphRequest -Method PATCH -Uri 'https://graph.microsoft.com/v1.0/policies/authorizationPolicy/authorizationPolicy' -Body '{\"defaultUserRolePermissions\":{\"allowedToCreateApps\":false}}' -ContentType 'application/json'",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "authorizationPolicy",
+        "resource_name": "Authorization Policy",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.6.1",
+          "CIS-4.0: 5.1.2.2",
+          "ISO27001-2022: A.8.18, A.8.26",
+          "ProwlerThreatScore-1.0: 1.3.3"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_users_mfa_capable:AWS",
+      "check_id": "entra_users_mfa_capable",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "e644af26-8018-4caa-a20f-38f38b3c3828"
+      ],
+      "representative": {
+        "finding_instance_id": "e644af26-8018-4caa-a20f-38f38b3c3828",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:66",
+        "check_id": "entra_users_mfa_capable",
+        "check_title": "User is MFA capable",
+        "severity": "high",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_users_mfa_capable",
+        "check_title": "User is MFA capable",
+        "check_type": null,
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "User Microsoft Prowler is not MFA capable.",
+        "description": "Microsoft Entra users have a registered and enabled **multifactor authentication** method (`MFA capable`). The evaluation targets enabled accounts and identifies those lacking any usable second factor.",
+        "risk": "Without **MFA**, accounts are vulnerable to **phishing**, **password spraying**, and credential reuse, enabling takeover. Attackers can access mail and files, change settings, and move laterally, harming **confidentiality**, **integrity**, and **availability** of M365 resources.",
+        "remediation_recommendation_text": "Enforce **MFA** for all enabled users, prioritizing **phishing-resistant** methods (`FIDO2`/`passkeys`/`CBA`) and limiting `SMS`/`voice`. Apply least privilege and require MFA for privileged roles. Require registration during onboarding and routinely review coverage to sustain defense-in-depth.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_users_mfa_capable",
+        "remediation_code_cli": "New-MgUserAuthenticationPhoneMethod -UserId <USER_UPN> -PhoneType mobile -PhoneNumber \"+15555550100\"",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "b01ca034-94aa-493c-a99f-219eae2ba690",
+        "resource_name": "Microsoft Prowler",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.2.3.4",
+          "CIS-4.0: 5.2.3.4",
+          "ISO27001-2022: A.8.1"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "defenderidentity_health_issues_no_open:AWS",
+      "check_id": "defenderidentity_health_issues_no_open",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "1311b7c1-57ff-40ff-9df1-8d917dd1531e"
+      ],
+      "representative": {
+        "finding_instance_id": "1311b7c1-57ff-40ff-9df1-8d917dd1531e",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:11",
+        "check_id": "defenderidentity_health_issues_no_open",
+        "check_title": "Defender for Identity has no unresolved health issues affecting hybrid infrastructure monitoring",
+        "severity": "medium",
+        "service_name": "defenderidentity",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "defenderidentity_health_issues_no_open",
+        "check_title": "Defender for Identity has no unresolved health issues affecting hybrid infrastructure monitoring",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Defender for Identity APIs are not accessible. Ensure the Service Principal has SecurityIdentitiesSensors.Read.All and SecurityIdentitiesHealth.Read.All permissions granted.",
+        "description": "**Microsoft Defender for Identity (MDI)** monitors your hybrid identity infrastructure and detects advanced threats targeting Active Directory. This check verifies that MDI sensors are deployed and that there are no unresolved health issues that may affect the ability to detect identity-based attacks.",
+        "risk": "Without deployed MDI sensors or with unresolved health issues, organizations face critical gaps in threat detection. Misconfigured or missing sensors fail to monitor domain controllers, allowing identity-based attacks like Pass-the-Hash, Golden Ticket, or lateral movement to go undetected. Attackers commonly exploit these blind spots to compromise hybrid environments while evading detection.",
+        "remediation_recommendation_text": "Regularly monitor and resolve Defender for Identity health issues to maintain comprehensive visibility into identity-based threats across your hybrid infrastructure.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/defenderidentity_health_issues_no_open",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "defenderidentity",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "defenderIdentity",
+        "resource_name": "Defender for Identity",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "e5"
+        ],
+        "compliance": [],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "defenderxdr_critical_asset_management_pending_approvals:AWS",
+      "check_id": "defenderxdr_critical_asset_management_pending_approvals",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "678d706f-37a2-4ec3-98f7-8dace2bf0bb3"
+      ],
+      "representative": {
+        "finding_instance_id": "678d706f-37a2-4ec3-98f7-8dace2bf0bb3",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:12",
+        "check_id": "defenderxdr_critical_asset_management_pending_approvals",
+        "check_title": "Critical asset management classifications are reviewed and approved",
+        "severity": "medium",
+        "service_name": "defenderxdr",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "defenderxdr_critical_asset_management_pending_approvals",
+        "check_title": "Critical asset management classifications are reviewed and approved",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Unable to query Critical Asset Management status. Verify that ThreatHunting.Read.All permission is granted.",
+        "description": "**Microsoft Defender XDR critical asset management classifications** with a lower classification confidence score must be approved by a security administrator.\n\nAsset classifications that have not yet been reviewed and approved may result in incomplete **critical asset** visibility.",
+        "risk": "Stale pending approvals lead to limited visibility in **Microsoft Defender XDR**. **Critical assets** that are not properly identified and classified may not receive appropriate security monitoring and protections, creating gaps in the organization's security posture.",
+        "remediation_recommendation_text": "Regularly review and approve pending critical asset classifications to ensure accurate asset visibility in Microsoft Defender XDR. Stale approvals reduce the effectiveness of security monitoring and incident response for critical assets.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/defenderxdr_critical_asset_management_pending_approvals",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "defenderxdr",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "criticalAssetManagement",
+        "resource_name": "Critical Asset Management",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "e5"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.13, A.5.36"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_admin_portals_access_restriction:AWS",
+      "check_id": "entra_admin_portals_access_restriction",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "733bba15-ba0c-40ef-8604-eeb1998e4ab4"
+      ],
+      "representative": {
+        "finding_instance_id": "733bba15-ba0c-40ef-8604-eeb1998e4ab4",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:14",
+        "check_id": "entra_admin_portals_access_restriction",
+        "check_title": "Admin portals are accessible only to administrative roles",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_admin_portals_access_restriction",
+        "check_title": "Admin portals are accessible only to administrative roles",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy limits Entra Admin Center access to administrative roles.",
+        "description": "Microsoft Entra **Conditional Access** restricts `MicrosoftAdminPortals` by targeting admin portals, including all users, excluding administrative roles, and applying a **block** decision. The assessment determines whether an active policy enforces this restriction rather than only reporting.",
+        "risk": "Absent this control, non-admin identities can reach admin portals, jeopardizing **integrity** (unauthorized tenant changes), **confidentiality** (exposure of settings and data), and **availability** (disabling services). Threats include privilege escalation, weakening policies, and creating persistence.",
+        "remediation_recommendation_text": "Enforce **least privilege** with Conditional Access that blocks `MicrosoftAdminPortals` for everyone except approved admin roles. Add **defense in depth**: require strong MFA/authentication strength, compliant devices, and trusted locations; use JIT via PIM. Review role assignments and policies routinely.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_admin_portals_access_restriction",
+        "remediation_code_cli": "New-MgIdentityConditionalAccessPolicy -BodyParameter @{displayName=\"<example_resource_name>\";state=\"enabled\";conditions=@{users=@{includeUsers=@(\"All\");excludeRoles=@(\"62e90394-69f5-4237-9190-012177145e10\")};applications=@{includeApplications=@(\"MicrosoftAdminPortals\")}};grantControls=@{builtInControls=@(\"block\")}}",
+        "remediation_code_terraform": "```hcl\nresource \"azuread_conditional_access_policy\" \"<example_resource_name>\" {\n  display_name = \"<example_resource_name>\"\n  state        = \"enabled\" # Critical: policy must be enabled to PASS\n\n  conditions {\n    users {\n      include_users = [\"All\"] # Critical: include all users\n      exclude_roles = [\"62e90394-69f5-4237-9190-012177145e10\"] # Critical: exclude admin role(s) so only admins can access\n    }\n    applications {\n      included_applications = [\"MicrosoftAdminPortals\"] # Critical: target Microsoft Admin Portals\n    }\n  }\n\n  grant_controls {\n    built_in_controls = [\"block\"] # Critical: block non-excluded users\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.2.4",
+          "ISO27001-2022: A.5.2, A.5.3, A.5.10, A.5.15, A.5.18, A.5.24, A.7.4, A.8.2, A.8.3",
+          "ProwlerThreatScore-1.0: 1.1.18"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_app_registration_no_unused_privileged_permissions:AWS",
+      "check_id": "entra_app_registration_no_unused_privileged_permissions",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "283de907-7bee-4d36-9de8-6fc295c5124d"
+      ],
+      "representative": {
+        "finding_instance_id": "283de907-7bee-4d36-9de8-6fc295c5124d",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:22",
+        "check_id": "entra_app_registration_no_unused_privileged_permissions",
+        "check_title": "App registration has no unused privileged API permissions",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_app_registration_no_unused_privileged_permissions",
+        "check_title": "App registration has no unused privileged API permissions",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "OAuth App Governance data is unavailable. Enable App Governance in Microsoft Defender for Cloud Apps and grant ThreatHunting.Read.All to evaluate unused privileged permissions.",
+        "description": "Microsoft Entra **OAuth app registrations** with privileged API permissions (High privilege level) that are not being actively used. Usage status is determined by Microsoft Defender for Cloud Apps App Governance.",
+        "risk": "Unused privileged permissions expand the attack surface. If a compromised app has dormant privileged permissions, attackers can exploit them for **privilege escalation**, **unauthorized access** to sensitive data, or **lateral movement** within the environment.",
+        "remediation_recommendation_text": "Apply the **principle of least privilege** by regularly reviewing and revoking unused privileged permissions from app registrations. Use Microsoft Defender for Cloud Apps App Governance to monitor permission usage.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_app_registration_no_unused_privileged_permissions",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "oauthApps",
+        "resource_name": "OAuth Applications",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.5.1",
+          "CIS-4.0: 5.1.5.1",
+          "ISO27001-2022: A.5.18, A.8.2, A.8.18, A.8.26",
+          "ProwlerThreatScore-1.0: 1.3.3, 1.3.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_app_enforced_restrictions:AWS",
+      "check_id": "entra_conditional_access_policy_app_enforced_restrictions",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "9eca63f8-7b2f-4fba-9099-460d64963ffd"
+      ],
+      "representative": {
+        "finding_instance_id": "9eca63f8-7b2f-4fba-9099-460d64963ffd",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:25",
+        "check_id": "entra_conditional_access_policy_app_enforced_restrictions",
+        "check_title": "Conditional Access policy enforces application restrictions for unmanaged devices",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_app_enforced_restrictions",
+        "check_title": "Conditional Access policy enforces application restrictions for unmanaged devices",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy enforces application restrictions for unmanaged devices.",
+        "description": "Microsoft Entra **Conditional Access** policy with **application enforced restrictions** limits access to SharePoint, OneDrive, and Exchange content from unmanaged devices.\n\nThis control helps prevent data exfiltration by restricting download, print, and sync capabilities on devices that are not managed by the organization.",
+        "risk": "Without application enforced restrictions, users accessing SharePoint, OneDrive, and Exchange from unmanaged devices can:\n\n- **Download** sensitive files to personal devices\n- **Print** confidential documents\n- **Sync** corporate data to uncontrolled locations\n\nThis increases the risk of data leakage and unauthorized access to sensitive information.",
+        "remediation_recommendation_text": "Configure Conditional Access policies with **application enforced restrictions** to control access from unmanaged devices. Apply this to Office 365 applications (SharePoint, OneDrive, Exchange) to limit download, print, and sync operations.\n\nCombine with SharePoint access control settings for comprehensive protection.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_app_enforced_restrictions",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "e3"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.14, A.8.1, A.8.3, A.8.12",
+          "ProwlerThreatScore-1.0: 1.3.9"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_approved_client_app_required_for_mobile:AWS",
+      "check_id": "entra_conditional_access_policy_approved_client_app_required_for_mobile",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "8f6e7b0b-ebac-441e-b27e-e1a0f7c471f8"
+      ],
+      "representative": {
+        "finding_instance_id": "8f6e7b0b-ebac-441e-b27e-e1a0f7c471f8",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:26",
+        "check_id": "entra_conditional_access_policy_approved_client_app_required_for_mobile",
+        "check_title": "Conditional Access policy enforces approved client apps or app protection for mobile devices",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_approved_client_app_required_for_mobile",
+        "check_title": "Conditional Access policy enforces approved client apps or app protection for mobile devices",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy requires approved client apps or app protection for mobile devices.",
+        "description": "Microsoft Entra **Conditional Access** policies can require that only **approved client apps** or apps with **app protection policies** are used on iOS and Android devices. This ensures corporate data on mobile platforms is accessed only through managed or protected applications.",
+        "risk": "Without requiring approved or protected client apps on mobile platforms, users can access corporate data through **unmanaged applications** that lack security controls. This increases the risk of **data leakage**, unauthorized data sharing, and exposure of sensitive information on personal or compromised mobile devices.",
+        "remediation_recommendation_text": "Enforce Conditional Access policies requiring app protection policies or approved client apps on iOS and Android devices. Prefer **app protection policies** over approved client apps, as the approved client app grant control is retiring June 30, 2026. Regularly review policies to ensure mobile access is restricted to managed applications.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_approved_client_app_required_for_mobile",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "e3"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.8.1, A.8.3, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_block_elevated_insider_risk:AWS",
+      "check_id": "entra_conditional_access_policy_block_elevated_insider_risk",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "decefd4d-9418-4a40-baf9-6f844d843639"
+      ],
+      "representative": {
+        "finding_instance_id": "decefd4d-9418-4a40-baf9-6f844d843639",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:27",
+        "check_id": "entra_conditional_access_policy_block_elevated_insider_risk",
+        "check_title": "Conditional Access Policy blocks access for users with elevated insider risk",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_block_elevated_insider_risk",
+        "check_title": "Conditional Access Policy blocks access for users with elevated insider risk",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Conditional Access Policy Block legacy authentication is configured to block all cloud apps and Microsoft Purview Adaptive Protection is not providing insider risk signals.",
+        "description": "This check verifies that at least one **enabled** Conditional Access policy **blocks access** to all cloud applications for users flagged with an **elevated insider risk** level by Microsoft Purview Insider Risk Management and Adaptive Protection.",
+        "risk": "Without blocking elevated insider risk users, compromised or malicious insiders retain **full access** to cloud applications. This enables data exfiltration, unauthorized modifications, and lateral movement, directly impacting **confidentiality** and **integrity**.",
+        "remediation_recommendation_text": "Configure **Adaptive Protection** in Microsoft Purview to classify insider risk tiers, then create a Conditional Access policy that **blocks access** to all cloud apps for users with **elevated** risk. Only exclude dedicated break-glass accounts.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_block_elevated_insider_risk",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "10212e8d-3679-447b-912a-b29fb7a50405",
+        "resource_name": "Block legacy authentication",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e5"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.7, A.8.3, A.8.12"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_block_o365_elevated_insider_risk:AWS",
+      "check_id": "entra_conditional_access_policy_block_o365_elevated_insider_risk",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "1fcdb3b3-dc7e-4f03-a1e9-431e4fcf093b"
+      ],
+      "representative": {
+        "finding_instance_id": "1fcdb3b3-dc7e-4f03-a1e9-431e4fcf093b",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:28",
+        "check_id": "entra_conditional_access_policy_block_o365_elevated_insider_risk",
+        "check_title": "Conditional Access policy blocks Office 365 access for users with elevated insider risk",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_block_o365_elevated_insider_risk",
+        "check_title": "Conditional Access policy blocks Office 365 access for users with elevated insider risk",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Conditional Access Policy Block legacy authentication is configured to block Office 365 and Microsoft Purview Adaptive Protection is not providing insider risk signals.",
+        "description": "A Conditional Access policy configured to **block** Office 365 access for users flagged with **elevated insider risk** by Microsoft Purview Adaptive Protection.\n\nThis control uses behavioral signals to restrict access when a user's risk level indicates potential insider threat activity.",
+        "risk": "Without a policy blocking Office 365 for elevated insider risk users, compromised or malicious insiders can continue accessing email, SharePoint, OneDrive, and Teams.\n\nThis may lead to **data exfiltration**, unauthorized sharing of sensitive information, or tampering with critical business communications.",
+        "remediation_recommendation_text": "Configure a Conditional Access policy to **block** Office 365 access for users with **elevated insider risk** levels. This leverages Microsoft Purview Adaptive Protection signals to dynamically restrict access based on user behavior analysis.\n\nEnsure Insider Risk Management and Adaptive Protection are configured in Microsoft Purview as prerequisites.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_block_o365_elevated_insider_risk",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "10212e8d-3679-447b-912a-b29fb7a50405",
+        "resource_name": "Block legacy authentication",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "e5"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.1, A.5.7, A.5.15, A.8.3, A.8.12"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_block_unknown_device_platforms:AWS",
+      "check_id": "entra_conditional_access_policy_block_unknown_device_platforms",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "7f174290-b64d-4a4c-91c8-bc1f1167c15f"
+      ],
+      "representative": {
+        "finding_instance_id": "7f174290-b64d-4a4c-91c8-bc1f1167c15f",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:29",
+        "check_id": "entra_conditional_access_policy_block_unknown_device_platforms",
+        "check_title": "Conditional Access policy blocks access from unknown or unsupported device platforms",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_block_unknown_device_platforms",
+        "check_title": "Conditional Access policy blocks access from unknown or unsupported device platforms",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy blocks access from unknown or unsupported device platforms.",
+        "description": "Microsoft Entra **Conditional Access** can block sign-ins from device platforms that the organization does not recognize or support. A policy that includes **all** platforms and excludes the known ones (Android, iOS, Windows, macOS, Linux) effectively blocks any **unknown or unsupported** platform, reducing the attack surface from unmanaged or unexpected devices.",
+        "risk": "Without blocking unknown device platforms, attackers may authenticate from **spoofed or uncommon operating systems** that bypass platform-specific security controls. This increases the risk of **unauthorized access** and makes it harder to enforce device compliance, potentially leading to **credential theft** or **data exfiltration** from unmanaged environments.",
+        "remediation_recommendation_text": "Create a Conditional Access policy that includes **all device platforms** and excludes the known ones (Android, iOS, Windows, macOS, Linux), then set the grant control to **Block access**. This ensures that only recognized platforms can authenticate, following a **zero-trust** approach to device management.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_block_unknown_device_platforms",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "trust-boundaries",
+          "e3"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.15, A.5.17, A.8.1, A.8.3, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced:AWS",
+      "check_id": "entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "16ef21ad-36a7-41b9-9584-e3866391e447"
+      ],
+      "representative": {
+        "finding_instance_id": "16ef21ad-36a7-41b9-9584-e3866391e447",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:31",
+        "check_id": "entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced",
+        "check_title": "Conditional Access policy enforces sign-in frequency for non-corporate devices",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced",
+        "check_title": "Conditional Access policy enforces sign-in frequency for non-corporate devices",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "No Conditional Access Policy enforces sign-in frequency for non-corporate devices.",
+        "description": "Microsoft Entra **Conditional Access** policy with **sign-in frequency** controls how often users must re-authenticate when accessing resources from non-corporate devices.\n\nThis ensures that sessions on unmanaged devices are time-limited, reducing the window of opportunity for unauthorized access through stale sessions.",
+        "risk": "Without sign-in frequency enforcement on non-corporate devices, user sessions may persist indefinitely on unmanaged devices.\n\n- **Session hijacking** on shared or public devices becomes more likely\n- **Stolen session tokens** remain valid for extended periods\n- **Unauthorized access** from compromised personal devices",
+        "remediation_recommendation_text": "Configure a Conditional Access policy to enforce **sign-in frequency** on non-corporate devices. Use device filters to target unmanaged endpoints and set a time-based re-authentication interval to limit session duration.\n\nThis aligns with **zero trust** principles by ensuring sessions on untrusted devices are regularly validated.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "conditionalAccessPolicies",
+        "resource_name": "Conditional Access Policies",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "e3"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.15, A.5.17, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_conditional_access_policy_directory_sync_account_excluded:AWS",
+      "check_id": "entra_conditional_access_policy_directory_sync_account_excluded",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "cf4c78f2-7b30-4cc4-87a8-b034d9539bde"
+      ],
+      "representative": {
+        "finding_instance_id": "cf4c78f2-7b30-4cc4-87a8-b034d9539bde",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:34",
+        "check_id": "entra_conditional_access_policy_directory_sync_account_excluded",
+        "check_title": "Conditional Access policy excludes Directory Synchronization Accounts to protect Entra Connect sync",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_conditional_access_policy_directory_sync_account_excluded",
+        "check_title": "Conditional Access policy excludes Directory Synchronization Accounts to protect Entra Connect sync",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Conditional Access Policy Block legacy authentication does not exclude the Directory Synchronization Accounts role, which may break Entra Connect sync.",
+        "description": "Conditional Access policies scoped to **all users** and **all cloud applications** are evaluated to confirm the **Directory Synchronization Accounts** role is explicitly excluded. The Microsoft Entra Connect Sync Account does not support multifactor authentication, so it must be excluded from restrictive policies to maintain directory synchronization.",
+        "risk": "If the Directory Synchronization Accounts role is not excluded from Conditional Access policies requiring MFA or blocking access, the Entra Connect Sync Account will be unable to authenticate. This breaks hybrid identity synchronization between on-premises Active Directory and Entra ID, potentially causing authentication failures and identity inconsistencies.",
+        "remediation_recommendation_text": "Exclude the Directory Synchronization Accounts role from all Conditional Access policies that target all users and all cloud applications. This prevents breaking Entra Connect directory synchronization while maintaining security controls for interactive users.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_conditional_access_policy_directory_sync_account_excluded",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "10212e8d-3679-447b-912a-b29fb7a50405",
+        "resource_name": "Block legacy authentication",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.15, A.8.3, A.8.5"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_default_app_management_policy_enabled:AWS",
+      "check_id": "entra_default_app_management_policy_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "4aadc2c8-b2a3-437f-a2a3-d9c78b52eece"
+      ],
+      "representative": {
+        "finding_instance_id": "4aadc2c8-b2a3-437f-a2a3-d9c78b52eece",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:43",
+        "check_id": "entra_default_app_management_policy_enabled",
+        "check_title": "Default app management policy enforces credential restrictions on applications and service principals",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_default_app_management_policy_enabled",
+        "check_title": "Default app management policy enforces credential restrictions on applications and service principals",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Default app management policy is missing the following credential restrictions: Block password addition, Restrict max password lifetime, Block custom passwords, Restrict max certificate lifetime.",
+        "description": "Microsoft Entra ID **default app management policy** is verified to have the required **credential restrictions** configured for applications: **block password addition**, **restrict max password lifetime**, **block custom passwords**, and **restrict max certificate lifetime**.",
+        "risk": "Without the required credential restrictions, applications and service principals can use **insecure credential configurations**, including **long-lived secrets**, **custom passwords**, or **unrestricted certificates**, increasing the risk of **credential compromise** and **unauthorized access**.",
+        "remediation_recommendation_text": "Configure the **default app management policy** with all required credential restrictions: **block password addition**, **restrict max password lifetime**, **block custom passwords**, and **restrict max certificate lifetime**. These restrictions prevent applications from using insecure or long-lived credentials.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_default_app_management_policy_enabled",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "00000000-0000-0000-0000-000000000000",
+        "resource_name": "Default App Management Policy",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "e3"
+        ],
+        "compliance": [
+          "ISO27001-2022: A.5.17"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_password_hash_sync_enabled:AWS",
+      "check_id": "entra_password_hash_sync_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "73bea764-61d7-423b-9a91-311cb456a9ca"
+      ],
+      "representative": {
+        "finding_instance_id": "73bea764-61d7-423b-9a91-311cb456a9ca",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:53",
+        "check_id": "entra_password_hash_sync_enabled",
+        "check_title": "Organization has password hash synchronization enabled for hybrid deployments",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_password_hash_sync_enabled",
+        "check_title": "Organization has password hash synchronization enabled for hybrid deployments",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Password hash synchronization is not enabled for hybrid Microsoft Entra deployments.",
+        "description": "Microsoft Entra hybrid tenants use **password hash synchronization** to replicate on-premises Active Directory password hashes to Entra for cloud authentication.\n\n*Applies to hybrid sync scenarios, not fully federated domains.*",
+        "risk": "Without **password hash synchronization**, hybrid accounts lose **leaked credential detection** and cloud risk-based protections, weakening confidentiality. Authentication remains tied to on-prem services, reducing availability during outages. Users may reuse passwords across systems, increasing **credential stuffing** exposure.",
+        "remediation_recommendation_text": "Enable **password hash synchronization** for hybrid identities and keep it active even alongside federation as a resilient fallback. Combine with **MFA**, **Conditional Access**, and strong password policy enforcement for **defense in depth**. Apply **least privilege** and monitor sign-in risk to prevent account compromise.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_password_hash_sync_enabled",
+        "remediation_code_cli": "Set-ADSyncAADCompanyFeature -PasswordHashSync $true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "4bc0c11a-fdb2-4a7e-98ae-f04828017364",
+        "resource_name": "AusBeefChain",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.8.1",
+          "CIS-4.0: 5.1.8.1",
+          "ProwlerThreatScore-1.0: 4.1.2"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_policy_ensure_default_user_cannot_create_tenants:AWS",
+      "check_id": "entra_policy_ensure_default_user_cannot_create_tenants",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "6958d916-cd8b-41af-920e-6ea5bfed814b"
+      ],
+      "representative": {
+        "finding_instance_id": "6958d916-cd8b-41af-920e-6ea5bfed814b",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:54",
+        "check_id": "entra_policy_ensure_default_user_cannot_create_tenants",
+        "check_title": "Tenant restricts non-admin users from creating tenants",
+        "severity": "medium",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_policy_ensure_default_user_cannot_create_tenants",
+        "check_title": "Tenant restricts non-admin users from creating tenants",
+        "check_type": null,
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Tenant creation is not disabled for non-admin users.",
+        "description": "Microsoft Entra authorization policy defines default user permissions, including whether **non-admin users** are `allowed_to_create_tenants`. This evaluates if tenant creation is disabled for default users via `default_user_role_permissions`.",
+        "risk": "Allowing default users to create tenants spawns unmanaged shadow tenants. Creators become **Global Administrator**, enabling escalation from compromised accounts and sidestepping governance. This degrades **confidentiality** and **integrity**, widens the **attack surface**, and introduces hidden costs.",
+        "remediation_recommendation_text": "Enforce **least privilege**: set `allowed_to_create_tenants=false` so only authorized staff-or those with the **Tenant Creator** role-may create tenants. Use **separation of duties** and **PIM** for just-in-time access, and routinely review audit events (e.g., *Create Company*) to deter and detect misuse.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_policy_ensure_default_user_cannot_create_tenants",
+        "remediation_code_cli": "Update-MgPolicyAuthorizationPolicy -AuthorizationPolicyId authorizationPolicy -DefaultUserRolePermissions @{ AllowedToCreateTenants = $false }",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "authorizationPolicy",
+        "resource_name": "Authorization Policy",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.2.3",
+          "CIS-4.0: 5.1.2.3",
+          "ISO27001-2022: A.5.2, A.5.3, A.5.36, A.8.2",
+          "ProwlerThreatScore-1.0: 1.3.4"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    },
+    {
+      "output_group_key": "entra_dynamic_group_for_guests_created:AWS",
+      "check_id": "entra_dynamic_group_for_guests_created",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Low",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "4a5e23e5-7476-4a71-bff6-d9177584c3c5"
+      ],
+      "representative": {
+        "finding_instance_id": "4a5e23e5-7476-4a71-bff6-d9177584c3c5",
+        "source_row_id": "Sheet:prowler-output-ausbeefchain com Row:45",
+        "check_id": "entra_dynamic_group_for_guests_created",
+        "check_title": "A dynamic membership group for guest users exists",
+        "severity": "low",
+        "service_name": "entra",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "entra_dynamic_group_for_guests_created",
+        "check_title": "A dynamic membership group for guest users exists",
+        "check_type": null,
+        "severity": "low",
+        "status": "FAIL",
+        "status_extended": "No dynamic group for guest users was found in Microsoft Entra.",
+        "description": "Microsoft Entra **groups** are evaluated for **dynamic membership** that includes only users with `userType -eq \"Guest\"`.\n\nThe finding indicates whether a guest-targeted dynamic group exists to centrally scope policies and governance.",
+        "risk": "Without a dedicated dynamic guest group, guests may evade consistent **Conditional Access** and least-privilege controls. This threatens **confidentiality** via excess data access, weakens **integrity** through unauthorized changes, and leaves stale external accounts that enable lateral movement.",
+        "remediation_recommendation_text": "Establish a **dynamic group** limited to users with `userType -eq \"Guest\"` and use it to scope **Conditional Access**, least-privilege roles, and access reviews.\n\nSegment guests by risk into separate groups, enforce lifecycle policies, and regularly audit membership and policy coverage.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/entra_dynamic_group_for_guests_created",
+        "remediation_code_cli": "New-MgGroup -DisplayName 'Dynamic Guest Users' -MailNickname 'DynGuestUsers' -MailEnabled $false -SecurityEnabled $true -GroupTypes 'DynamicMembership' -MembershipRule '(user.userType -eq \"Guest\")' -MembershipRuleProcessingState 'On'",
+        "remediation_code_terraform": "```hcl\nresource \"azuread_group\" \"example\" {\n  display_name     = \"<example_resource_name>\"\n  security_enabled = true\n\n  dynamic_membership {\n    enabled = true  # critical: enables dynamic membership\n    rule    = \"user.userType -eq \\\"Guest\\\"\"  # critical: includes only guest users\n  }\n}\n```",
+        "remediation_code_nativeiac": null,
+        "service_name": "entra",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "group",
+        "resource_name": "Group",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 5.1.3.1",
+          "CIS-4.0: 5.1.3.1",
+          "ProwlerThreatScore-1.0: 1.2.2"
+        ],
+        "resource_tags": {},
+        "instance_count": 1,
+        "likelihood_rating": "Low",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    }
+  ]
+}
