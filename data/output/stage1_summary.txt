@@ -1,0 +1,31 @@
+======================================================================
+STAGE 1 — INGEST & PARSE
+======================================================================
+Run ID          : 2524748d-49d2-4771-b4d5-9e782ca3d0d8
+Source file     : /home/shyam-balakrishnan/cloud-tool/data/synthetic/synthetic_prowler_messy.xlsx
+SHA-256         : 40d41253a83672f68cad05de2f9e2b98ef308d77300457c3f84307fd90f0d541
+Scanner         : prowler v4.3.1
+Sheet           : prowler-output
+Rows read       : 30
+Findings parsed : 30
+
+STATUS BREAKDOWN:
+  FAIL                     : 26
+  MANUAL                   : 1
+  MUTED(FAIL)              : 2
+  PASS                     : 1
+
+BLANK VALUE CLASSIFICATIONS:
+  Category 2 — DESCRIPTION blank     : 7
+  Category 2 — RISK blank            : 8
+  Category 2 — REMEDIATION blank     : 3
+  Category 1 — REGION blank (global) : 8
+
+MUTED RECONCILIATIONS:
+  Sheet:prowler-output Row:13: iam_user_access_key_age_90_days — STATUS='FAIL' + MUTED=True → MUTED(FAIL)
+
+WARNINGS (14):
+  ARN_FALLBACK                       : 3
+  DATA_QUALITY_BLANK                 : 9
+  MUTED_STATUS_RECONCILED            : 1
+  UNKNOWN_COLUMNS                    : 1

@@ -11,23 +11,24 @@ output_filename   = "SecurityReport_Jun2026.xlsx"
 
 # ── LLM (set once at setup) ────────────────────────────────────────
 [llm]
-provider         = "azure_openai"   # azure_openai | bedrock | local_ollama
-endpoint         = "https://your-instance.openai.azure.com/"
-deployment_name  = "gpt-4o-mini"
-api_key_env_var  = "AZURE_OPENAI_KEY"
+provider         = "bedrock_mantle"
+# bedrock-mantle endpoint — ap-southeast-2 (Sydney)
+# https://bedrock-mantle.ap-southeast-2.api.aws
+deployment_name  = "anthropic.claude-opus-4-8"
+aws_region      = "ap-northeast-1" 
+api_key_env_var  = "BEDROCK_API_KEY"   # export BEDROCK_API_KEY=your_key
 max_tokens       = 1000
-timeout_seconds  = 30
+timeout_seconds  = 60
+# store=false is sent on every request — enforces zero data retention per-call
+# Per AWS docs: "When store is false, Amazon Bedrock does not retain any
+# data from the request or response"
 
 # ── Processing (change occasionally) ──────────────────────────────
 [processing]
-# Statuses that enter the working set. Everything else is preserved
-# in canonical JSON but excluded from the output.
 include_statuses = ["FAIL", "MUTED(FAIL)"]
 preserve_passing = false
 
 # ── Severity rules (security lead owns this) ──────────────────────
-# Maps Prowler SEVERITY → pipeline Likelihood Rating
-# Override rules are checked after the base mapping.
 [severity_rules]
 critical      = "High"
 high          = "High"
@@ -35,23 +36,19 @@ medium        = "Medium"
 low           = "Low"
 informational = "Low"
 
-# Category-based overrides: if ANY of these appear in CATEGORIES,
-# force Likelihood to High regardless of SEVERITY.
 likelihood_high_if_categories = ["internet-exposed"]
 
 # ── Risk matrix (security lead owns this) ─────────────────────────
-# Likelihood × Consequence → Risk Rating
-# Keys are "Likelihood_Consequence"
 [risk_matrix]
-High_Major    = "High"
-High_Moderate = "High"
-High_Minor    = "High"
-Medium_Major  = "High"
+High_Major      = "Critical"
+High_Moderate   = "High"
+High_Minor      = "High"
+Medium_Major    = "High"
 Medium_Moderate = "Medium"
-Medium_Minor  = "Medium"
-Low_Major     = "Medium"
-Low_Moderate  = "Medium"
-Low_Minor     = "Low"
+Medium_Minor    = "Medium"
+Low_Major       = "Medium"
+Low_Moderate    = "Medium"
+Low_Minor       = "Low"
 
 # ── Output (reporting owner) ───────────────────────────────────────
 [output]

@@ -1,0 +1,38 @@
+======================================================================
+STAGE 2 — DETERMINISTIC PROCESS
+======================================================================
+Total findings in  : 30
+Included (working) : 26
+Excluded (filtered): 2
+Duplicates removed : 2
+Output groups      : 16
+
+EXCLUDED FINDINGS:
+  s3_bucket_versioning_enabled | acme-prod | PASS
+    scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  guardduty_is_enabled | acme-prod | MANUAL
+    scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+
+DUPLICATES:
+  s3_bucket_public_access | arn:aws:s3:::acme-prod-logs
+  rds_instance_no_public_access | arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres
+
+OUTPUT GROUPS:
+  #   Severity       Likelihood   Inst  Check ID
+  --- -------------- ------------ ----  ----------------------------------------
+  1   critical       High            2  ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22
+  2   critical       High            1  iam_root_mfa_enabled
+  3   critical       High            4  iam_user_mfa_enabled_console_access
+  4   critical       High            1  rds_instance_no_public_access
+  5   high           High            1  cloudtrail_multi_region_enabled
+  6   high           High            3  ec2_ebs_volume_encryption_enabled
+  7   high           High            1  ec2_instance_imdsv2_enabled
+  8   high           High            1  rds_instance_storage_encrypted
+  9   high           High            4  s3_bucket_public_access
+  10  medium         Medium          1  config_recorder_all_regions_enabled
+  11  medium         Medium          1  iam_password_policy_lowercase
+  12  medium         Medium          1  iam_user_access_key_age_90_days
+  13  medium         Medium          2  s3_bucket_default_encryption
+  14  medium         Medium          1  securityhub_enabled
+  15  medium         High            1  vpc_flow_logs_enabled
+  16  informational  Low             1  cloudwatch_log_group_retention_policy_specific_days_enabled
