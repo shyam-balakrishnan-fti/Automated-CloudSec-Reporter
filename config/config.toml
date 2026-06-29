@@ -1,6 +1,6 @@
-# config.toml — Pipeline configuration
+# config.toml - Pipeline configuration
 # One file. Six sections. Different owners.
-# API keys are NEVER stored here — use environment variables.
+# API keys are NEVER stored here - use environment variables.
 
 # ── Engagement (change every run) ──────────────────────────────────
 [engagement]
@@ -12,7 +12,7 @@ output_filename   = "SecurityReport_Jun2026.xlsx"
 # ── LLM (set once at setup) ────────────────────────────────────────
 [llm]
 provider         = "bedrock_runtime"
-deployment_name  = "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/78fidxvdv3nl"
+deployment_name  = "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/rh8es5bqj5jn" # "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/78fidxvdv3nl"
 aws_region       = "ap-southeast-2"
 max_tokens       = 1000
 timeout_seconds  = 60

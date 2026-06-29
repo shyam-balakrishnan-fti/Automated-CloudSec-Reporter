@@ -1,10 +1,10 @@
 """
-stage3_llm.py — Stage 3: LLM Enrichment
+stage3_llm.py - Stage 3: LLM Enrichment
 
 Responsibilities:
     - Build a structured prompt per OutputGroup with full finding context
     - Call the configured LLM (AWS Bedrock via Converse API)
-    - Validate the returned JSON — all 7 required fields must be present and valid
+    - Validate the returned JSON - all 7 required fields must be present and valid
     - On failure: retry once with a correction prompt
     - On second failure: write placeholder text, set llm_enrichment_failed=True
     - Write enrichment results back to the representative CanonicalFinding
@@ -21,13 +21,13 @@ Data privacy:
     names, ARNs) is sent to produce accurate narratives.
 
 LLM output fields (all required for final mode):
-    finding_title          — normalised check title (≤ 120 chars)
-    root_cause_narrative   — 1-3 sentences
-    situation_narrative    — 2-4 sentences, scope language if instance_count > 1
-    consequence_narrative  — 1-3 sentences
-    consequence_rating     — Minor | Moderate | Major
-    access_required        — 1 sentence
-    needs_human_review     — bool, true if LLM is uncertain about any field
+    finding_title          - normalised check title (≤ 120 chars)
+    root_cause_narrative   - 1-3 sentences
+    situation_narrative    - 2-4 sentences, scope language if instance_count > 1
+    consequence_narrative  - 1-3 sentences
+    consequence_rating     - Minor | Moderate | Major
+    access_required        - 1 sentence
+    needs_human_review     - bool, true if LLM is uncertain about any field
 """
 
 from __future__ import annotations
@@ -72,7 +72,7 @@ SYSTEM_PROMPT = (
 def _build_prompt(ctx: dict[str, Any]) -> str:
     """
     Build the LLM prompt from an OutputGroup's full context dict.
-    Full context is sent — AWS Bedrock does not share data with model providers.
+    Full context is sent - AWS Bedrock does not share data with model providers.
     """
     instance_count  = ctx.get("instance_count", 1)
     account_names   = ctx.get("affected_account_names", [])
@@ -140,12 +140,12 @@ Severity:       {severity}
 Check type:     {check_type}
 Categories:     {', '.join(categories) if categories else 'None'}
 Scope:          {scope_note}
-Likelihood:     {likelihood} (pre-computed — do not change){resource_block}{compliance_str}
+Likelihood:     {likelihood} (pre-computed - do not change){resource_block}{compliance_str}
 
-Description:    {description if description else '[Not provided — infer from check title and context]'}
-Risk:           {risk if risk else '[Not provided — infer from check title and context]'}
+Description:    {description if description else '[Not provided - infer from check title and context]'}
+Risk:           {risk if risk else '[Not provided - infer from check title and context]'}
 Status detail:  {status_extended if status_extended else '[Not provided]'}
-Remediation:    {remediation if remediation else '[Not provided — infer from context]'}
+Remediation:    {remediation if remediation else '[Not provided - infer from context]'}
 CLI fix:        {remediation_cli if remediation_cli else '[Not provided]'}
 Terraform fix:  {remediation_tf if remediation_tf else '[Not provided]'}
 
@@ -160,11 +160,11 @@ Write for a technical audience (security engineers, IT managers).
   Minor    = low impact, limited blast radius, easy to remediate.
   Moderate = material risk, requires planned remediation within weeks.
   Major    = high impact, could lead to data breach or significant outage, urgent.
-- access_required: one sentence — what level of access would an attacker need to exploit this?
+- access_required: one sentence - what level of access would an attacker need to exploit this?
 - needs_human_review: true only if you are genuinely uncertain about consequence_rating
   or if critical context is missing.
 - Do NOT use "significant", "crucial", "critical" as filler words.
-- Write clearly and concisely — no padding.
+- Write clearly and concisely - no padding.
 
 === OUTPUT FORMAT ===
 Respond with ONLY a valid JSON object. No preamble, no explanation, no markdown.
@@ -278,7 +278,7 @@ def _call_bedrock_runtime(prompt: str, llm_cfg: dict[str, Any]) -> str:
 
     Auth:
     - AWS credentials via environment variables, ~/.aws/credentials,
-      or IAM role — picked up automatically by boto3.
+      or IAM role - picked up automatically by boto3.
       Required env vars: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY
       Or use: aws configure
 
@@ -404,7 +404,7 @@ def _write_placeholders(finding: CanonicalFinding, reason: str) -> None:
         actor="pipeline",
     )
     finding.flag_for_review(
-        reason=f"LLM enrichment failed — placeholders written. {reason}",
+        reason=f"LLM enrichment failed - placeholders written. {reason}",
         stage="stage3_llm",
     )
 
@@ -496,7 +496,7 @@ def _enrich_group(
             check_id=check_id,
             finding_id=rep.finding_instance_id,
         ))
-        print(f"         ⚠ placeholders written — needs human review", flush=True)
+        print(f"         ⚠ placeholders written - needs human review", flush=True)
         return
 
     # ── Write enrichment results ──
@@ -600,7 +600,7 @@ def _run_enrichment(
     run_id: str,
     config: dict[str, Any],
 ) -> EnrichResult:
-    """Shared enrichment loop — works on OutputGroup or GroupedOutputGroup."""
+    """Shared enrichment loop - works on OutputGroup or GroupedOutputGroup."""
     llm_cfg     = config.get("llm", {})
     risk_matrix = config.get("risk_matrix", {})
     warnings: list[EnrichWarning] = []
@@ -616,7 +616,7 @@ def _run_enrichment(
     failed   = 0
 
     print(
-        f"\n[ Stage 3 ] LLM enrichment — {total} groups "
+        f"\n[ Stage 3 ] LLM enrichment - {total} groups "
         f"(provider={llm_cfg.get('provider')}, "
         f"model={llm_cfg.get('deployment_name')})",
         flush=True,
@@ -682,7 +682,7 @@ def enrich(
 
 
 def enrich_grouped(
-    grouping_result: "Any",  # GroupingResult — local import avoids circular dependency
+    grouping_result: "Any",  # GroupingResult - local import avoids circular dependency
     config: dict[str, Any],
 ) -> EnrichResult:
     """

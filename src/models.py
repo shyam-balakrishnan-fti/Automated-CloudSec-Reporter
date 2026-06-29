@@ -1,8 +1,8 @@
 """
-models.py — CanonicalFinding Pydantic model
+models.py - CanonicalFinding Pydantic model
 
 The backbone of the entire pipeline. Every stage reads from or writes to this model.
-Raw fields are write-once after parsing — enforced by validators.
+Raw fields are write-once after parsing - enforced by validators.
 Sensitive fields are never serialised into LLM payloads.
 """
 
@@ -46,9 +46,9 @@ class WorkflowStatus(str, Enum):
 
 class BlankCategory(str, Enum):
     """
-    Category 1: Structurally blank — Prowler never populates for this check type
-    Category 2: Data quality blank — should have a value but Prowler omitted it
-    Category 3: By-design blank — analyst/design intent, rarely populated
+    Category 1: Structurally blank - Prowler never populates for this check type
+    Category 2: Data quality blank - should have a value but Prowler omitted it
+    Category 3: By-design blank - analyst/design intent, rarely populated
     """
     STRUCTURAL      = "STRUCTURAL"
     DATA_QUALITY    = "DATA_QUALITY"
@@ -76,13 +76,13 @@ class CanonicalFinding(BaseModel):
     The single internal contract for the entire pipeline.
 
     Field groups:
-        RUN IDENTITY        — immutable after ingestion
-        FINDING IDENTITY    — four distinct keys, immutable after parsing
-        RAW FIELDS          — all 41 Prowler columns, immutable after parsing
-        NORMALISED FIELDS   — cleaned versions, written by Stage 2
-        OUTPUT FIELDS       — pipeline-generated, written by Stages 2-3
-        PROCESSING STATE    — mutable workflow flags
-        AUDIT               — append-only event log
+        RUN IDENTITY        - immutable after ingestion
+        FINDING IDENTITY    - four distinct keys, immutable after parsing
+        RAW FIELDS          - all 41 Prowler columns, immutable after parsing
+        NORMALISED FIELDS   - cleaned versions, written by Stage 2
+        OUTPUT FIELDS       - pipeline-generated, written by Stages 2-3
+        PROCESSING STATE    - mutable workflow flags
+        AUDIT               - append-only event log
     """
 
     model_config = {"validate_assignment": True}
@@ -305,5 +305,5 @@ class CanonicalFinding(BaseModel):
         }
 
     def to_audit_dict(self) -> dict[str, Any]:
-        """Full canonical record for JSON export — includes both lanes."""
+        """Full canonical record for JSON export - includes both lanes."""
         return self.model_dump(mode="json")

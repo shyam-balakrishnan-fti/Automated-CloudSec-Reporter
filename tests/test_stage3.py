@@ -1,5 +1,5 @@
 """
-test_stage3.py — Stage 3 LLM enrichment test suite.
+test_stage3.py - Stage 3 LLM enrichment test suite.
 
 All tests mock the LLM call so they run offline without AWS credentials.
 
@@ -56,7 +56,7 @@ VALID_RESPONSE = {
     "situation_narrative":  "Multiple S3 buckets across the environment have public access enabled, exposing stored data to unauthenticated internet access.",
     "consequence_narrative":"An attacker could read, exfiltrate, or overwrite data stored in the bucket without authentication.",
     "consequence_rating":   "Major",
-    "access_required":      "No authentication required — the bucket is publicly accessible from the internet.",
+    "access_required":      "No authentication required - the bucket is publicly accessible from the internet.",
     "needs_human_review":   False,
 }
 
@@ -110,7 +110,7 @@ def test(name: str, condition: bool, detail: str = "") -> None:
         print(f"  ✓  {name}")
     else:
         FAIL_LIST.append(name)
-        print(f"  ✗  {name}" + (f" — {detail}" if detail else ""))
+        print(f"  ✗  {name}" + (f" - {detail}" if detail else ""))
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -364,9 +364,9 @@ def test_finding_title_truncated():
 
     long_title_response = {
         **VALID_RESPONSE,
-        "finding_title": "A" * 150,  # over 120 chars — but validator allows it in response
+        "finding_title": "A" * 150,  # over 120 chars - but validator allows it in response
     }
-    # Validator DOES catch >120 and triggers retry — so let's test the truncation
+    # Validator DOES catch >120 and triggers retry - so let's test the truncation
     # that happens when we write the field: str(parsed["finding_title"])[:120]
     # We need to bypass validation to test the write truncation
     pr, cfg = _make_pipeline()
@@ -421,7 +421,7 @@ def test_risk_rating_distribution():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Stage 3 — LLM Enrichment  —  Test Suite")
+    print("Stage 3 - LLM Enrichment  -  Test Suite")
     print("=" * 60)
 
     test_validate_response()

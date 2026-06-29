@@ -1,5 +1,5 @@
 """
-test_bedrock_connection.py — Bedrock mantle connection smoke test.
+test_bedrock_connection.py - Bedrock mantle connection smoke test.
 
 Tests BEFORE running the full pipeline:
     1. BEDROCK_API_KEY env var is set
@@ -36,7 +36,7 @@ from stage3_llm import (
 CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "config.toml"
 
 # ── Minimal realistic test context ───────────────────────────────────
-# Uses a generic S3 finding — realistic enough to produce
+# Uses a generic S3 finding - realistic enough to produce
 # meaningful narratives without any real client data.
 
 TEST_CONTEXT = {
@@ -86,7 +86,7 @@ def _check(label: str, condition: bool, detail: str = "") -> None:
     if condition:
         print(f"  ✓  {label}")
     else:
-        print(f"  ✗  {label}" + (f" — {detail}" if detail else ""))
+        print(f"  ✗  {label}" + (f" - {detail}" if detail else ""))
         sys.exit(1)
 
 
@@ -114,7 +114,7 @@ def run() -> None:
     print(f"  Key env var: {key_env}")
 
     _check("Provider is bedrock_mantle", provider == "bedrock_mantle",
-           f"got '{provider}' — check config.toml [llm] provider")
+           f"got '{provider}' - check config.toml [llm] provider")
     _check("Model ID is set", bool(model),
            "set deployment_name in config.toml [llm]")
     _check("Region is set", bool(region),
@@ -140,7 +140,7 @@ def run() -> None:
 
     # ── Call Bedrock mantle ──────────────────────────────────────────
     print(f"\n[ 4 ] Calling bedrock-mantle ({region})...")
-    print(f"  store=false  : zero retention — no data written to durable storage")
+    print(f"  store=false  : zero retention - no data written to durable storage")
     print(f"  Sending request...", flush=True)
 
     try:
@@ -172,7 +172,7 @@ def run() -> None:
     if errors:
         print("  ✗ Validation errors:")
         for err in errors:
-            print(f"      — {err}")
+            print(f"      - {err}")
         print(f"\n  Raw response:\n{raw[:500]}")
         sys.exit(1)
 
@@ -209,18 +209,18 @@ def run() -> None:
     print("\n[ 8 ] Data residency summary:")
     print(f"  Endpoint        : bedrock-mantle.{region}.api.aws")
     print(f"  store=false     : ✓ sent on this request")
-    print(f"  Data retained   : None — request/response not written to storage")
+    print(f"  Data retained   : None - request/response not written to storage")
     print(f"  Model provider  : No data shared (store=false)")
     print(f"  Data stayed in  : {region} (AWS region boundary)")
     if region == "ap-northeast-1":
-        print(f"  Note            : Tokyo region — switch to ap-southeast-4")
+        print(f"  Note            : Tokyo region - switch to ap-southeast-4")
         print(f"                    tomorrow by changing aws_region in config.toml")
     elif region == "ap-southeast-4":
-        print(f"  ✓ Melbourne region — Australian data residency confirmed")
+        print(f"  ✓ Melbourne region - Australian data residency confirmed")
 
     print()
     print("=" * 65)
-    print("✓ All checks passed — Bedrock is configured correctly")
+    print("✓ All checks passed - Bedrock is configured correctly")
     print("  Safe to run the full pipeline on synthetic data")
     print("=" * 65)
     print()

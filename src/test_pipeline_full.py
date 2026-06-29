@@ -1,5 +1,5 @@
 """
-test_pipeline_full.py — Full pipeline test: Stage 1 + 2 + 3 on synthetic data.
+test_pipeline_full.py - Full pipeline test: Stage 1 + 2 + 3 on synthetic data.
 
 Runs the complete pipeline against the messy synthetic dataset,
 calls real Bedrock for LLM enrichment, and prints a detailed
@@ -149,7 +149,7 @@ def _write_stage1_summary(ir, path: Path) -> None:
     lines = []
     a = lines.append
     a("=" * 70)
-    a("STAGE 1 — INGEST & PARSE")
+    a("STAGE 1 - INGEST & PARSE")
     a("=" * 70)
     a(f"Run ID          : {ir.run_id}")
     a(f"Source file     : {ir.source_file}")
@@ -164,15 +164,15 @@ def _write_stage1_summary(ir, path: Path) -> None:
         a(f"  {s:25s}: {c}")
     a("")
     a("BLANK VALUE CLASSIFICATIONS:")
-    a(f"  Category 2 — DESCRIPTION blank     : {sum(1 for f in ir.findings if f.blank_description  == BlankCategory.DATA_QUALITY)}")
-    a(f"  Category 2 — RISK blank            : {sum(1 for f in ir.findings if f.blank_risk         == BlankCategory.DATA_QUALITY)}")
-    a(f"  Category 2 — REMEDIATION blank     : {sum(1 for f in ir.findings if f.blank_remediation  == BlankCategory.DATA_QUALITY)}")
-    a(f"  Category 1 — REGION blank (global) : {sum(1 for f in ir.findings if f.blank_region       == BlankCategory.STRUCTURAL)}")
+    a(f"  Category 2 - DESCRIPTION blank     : {sum(1 for f in ir.findings if f.blank_description  == BlankCategory.DATA_QUALITY)}")
+    a(f"  Category 2 - RISK blank            : {sum(1 for f in ir.findings if f.blank_risk         == BlankCategory.DATA_QUALITY)}")
+    a(f"  Category 2 - REMEDIATION blank     : {sum(1 for f in ir.findings if f.blank_remediation  == BlankCategory.DATA_QUALITY)}")
+    a(f"  Category 1 - REGION blank (global) : {sum(1 for f in ir.findings if f.blank_region       == BlankCategory.STRUCTURAL)}")
     a("")
     a("MUTED RECONCILIATIONS:")
     for f in ir.findings:
         if f.muted_reconciled:
-            a(f"  {f.source_row_id}: {f.raw_check_id} — STATUS='{f.raw_status}' + MUTED=True → {f.scanner_status.value}")
+            a(f"  {f.source_row_id}: {f.raw_check_id} - STATUS='{f.raw_status}' + MUTED=True → {f.scanner_status.value}")
     a("")
     a(f"WARNINGS ({len(ir.warnings)}):")
     for code, count in sorted(Counter(w.code for w in ir.warnings).items()):
@@ -184,7 +184,7 @@ def _write_stage2_summary(pr, path: Path) -> None:
     lines = []
     a = lines.append
     a("=" * 70)
-    a("STAGE 2 — DETERMINISTIC PROCESS")
+    a("STAGE 2 - DETERMINISTIC PROCESS")
     a("=" * 70)
     a(f"Total findings in  : {pr.total_findings}")
     a(f"Included (working) : {pr.included_count}")
@@ -220,7 +220,7 @@ def _write_pipeline_report(er: EnrichResult, path: Path) -> None:
     lines = []
     a = lines.append
     a("=" * 70)
-    a("PIPELINE TEST REPORT — STAGES 1 + 2 + 3")
+    a("PIPELINE TEST REPORT - STAGES 1 + 2 + 3")
     a(f"Generated: {datetime.now(timezone.utc).isoformat()}")
     a("=" * 70)
     a("")
@@ -235,7 +235,7 @@ def _write_pipeline_report(er: EnrichResult, path: Path) -> None:
     a(f"  Low    : {rc.get('Low',    0)}")
     a("")
     a("=" * 70)
-    a("ENRICHED FINDINGS — FULL DETAIL")
+    a("ENRICHED FINDINGS - FULL DETAIL")
     a("=" * 70)
     for i, g in enumerate(er.output_groups, 1):
         rep = g.representative
@@ -268,7 +268,7 @@ def _write_pipeline_report(er: EnrichResult, path: Path) -> None:
         a(f"    {rep.access_required or '[not set]'}")
         if rep.llm_enrichment_failed:
             a("")
-            a(f"  ⚠ LLM FAILURE — REASON:")
+            a(f"  ⚠ LLM FAILURE - REASON:")
             # Find the failure reason in audit trail
             failure_event = next(
                 (e for e in rep.audit_trail if e.field == "llm_enrichment_failed"),
@@ -293,7 +293,7 @@ def run() -> None:
 
     print()
     print("=" * 65)
-    print("Full Pipeline Test — Stages 1 + 2 + 3")
+    print("Full Pipeline Test - Stages 1 + 2 + 3")
     print("Synthetic data → Bedrock mantle → Enriched output")
     print("=" * 65)
 
@@ -460,15 +460,15 @@ def run() -> None:
     print()
     print("=" * 65)
     if er.failed_count == 0:
-        print("✓ ALL STAGES PASSED — PIPELINE READY FOR STAGE 4")
+        print("✓ ALL STAGES PASSED - PIPELINE READY FOR STAGE 4")
     else:
-        print(f"⚠ PIPELINE COMPLETE — {er.failed_count} GROUP(S) NEED HUMAN REVIEW")
+        print(f"⚠ PIPELINE COMPLETE - {er.failed_count} GROUP(S) NEED HUMAN REVIEW")
     print("=" * 65)
     print(f"  Groups enriched  : {er.enriched_count}/{er.group_count}")
     print(f"  Risk distribution: High={rc.get('High',0)}  Medium={rc.get('Medium',0)}  Low={rc.get('Low',0)}")
     print()
     print("  Review these files:")
-    print(f"    pipeline_test_report.txt  ← start here — all narratives")
+    print(f"    pipeline_test_report.txt  ← start here - all narratives")
     print(f"    enriched_groups.json      ← structured LLM output per group")
     print(f"    canonical_findings.json   ← full audit trail")
     print(f"    run_manifest.json         ← run metadata + data residency")

@@ -1,5 +1,5 @@
 """
-stage1_ingest.py — Stage 1: Ingest & Parse
+stage1_ingest.py - Stage 1: Ingest & Parse
 
 Responsibilities:
     - Accept one or more Prowler CSV/XLSX files
@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # ── Constants ─────────────────────────────────────────────────────────
 
 # The exact 41 column names Prowler uses (as of v4.x).
-# Lookup is always by name — position is irrelevant.
+# Lookup is always by name - position is irrelevant.
 PROWLER_COLUMNS: set[str] = {
     "AUTH_METHOD", "TIMESTAMP", "ACCOUNT_UID", "ACCOUNT_NAME",
     "ACCOUNT_EMAIL", "ACCOUNT_ORGANIZATION_UID", "ACCOUNT_ORGANIZATION_NAME",
@@ -73,7 +73,7 @@ STRUCTURALLY_BLANK_FIELDS: set[str] = {
     "NOTES",                      # analyst field, always blank from scanner
 }
 
-# Fields that are Category 2 (data quality blank — should have a value).
+# Fields that are Category 2 (data quality blank - should have a value).
 DATA_QUALITY_FIELDS: set[str] = {
     "DESCRIPTION",
     "RISK",
@@ -285,7 +285,7 @@ def _parse_compliance(value: Optional[str]) -> tuple[list[str], bool]:
     """
     Attempt to parse the COMPLIANCE field.
     Returns (parsed_list, success_flag).
-    Stores raw string regardless — parsing failure never blocks the pipeline.
+    Stores raw string regardless - parsing failure never blocks the pipeline.
     """
     if not value:
         return [], False
@@ -361,7 +361,7 @@ def _reconcile_status(
         except ValueError:
             return ScannerStatus.MUTED_FAIL, was_overridden
 
-    # MUTED=False or None — use STATUS column as-is
+    # MUTED=False or None - use STATUS column as-is
     try:
         return ScannerStatus(status_from_col), False
     except ValueError:
@@ -415,9 +415,9 @@ def _normalise_resource_id(
     if resource_uid:
         uid_clean = resource_uid.strip()
         if ARN_PATTERN.match(uid_clean):
-            # Valid ARN — normalise: lowercase, strip trailing slashes
+            # Valid ARN - normalise: lowercase, strip trailing slashes
             return uid_clean.rstrip("/"), False
-        # Not an ARN — still use it as identifier
+        # Not an ARN - still use it as identifier
         if uid_clean:
             return uid_clean, False
 
@@ -816,7 +816,7 @@ def _read_csv(
     with open(path, "rb") as f:
         raw = f.read()
 
-    # Fix line endings — handles the double-CRLF Prowler bug
+    # Fix line endings - handles the double-CRLF Prowler bug
     text = _fix_line_endings(raw)
     if "\r" in text or "\r\r" in raw.decode("latin-1", errors="replace"):
         warnings.append(IngestWarning(
@@ -1066,7 +1066,7 @@ def _read_json(
         elif "data" in data:
             data = data["data"]
         else:
-            # Single finding wrapped in a dict — treat as one-item list
+            # Single finding wrapped in a dict - treat as one-item list
             data = [data]
 
     if not isinstance(data, list):
@@ -1089,7 +1089,7 @@ def _read_json(
         row_dicts = [_ocsf_to_flat(item) for item in data if isinstance(item, dict)]
         logger.info("OCSF JSON: parsed %d findings", len(row_dicts))
     else:
-        # Prowler v4 flat JSON — same keys as CSV
+        # Prowler v4 flat JSON - same keys as CSV
         row_dicts = []
         for item in data:
             if not isinstance(item, dict):
@@ -1177,7 +1177,7 @@ def ingest(
     elif resolved_fmt == "csv":
         sheet_name, row_dicts = _read_csv(path, warnings)
     else:
-        # Unknown extension — try JSON first (most reliable), then XLSX, then CSV
+        # Unknown extension - try JSON first (most reliable), then XLSX, then CSV
         for reader_fn in (_read_json, _read_xlsx, _read_csv):
             try:
                 sheet_name, row_dicts = reader_fn(path, warnings)

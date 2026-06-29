@@ -1,5 +1,5 @@
 """
-test_stage2.py — Stage 2 deterministic processing engine test suite.
+test_stage2.py - Stage 2 deterministic processing engine test suite.
 
 Tests every contract Stage 2 makes:
 
@@ -105,7 +105,7 @@ def test(name: str, condition: bool, detail: str = "") -> None:
         print(f"  ✓  {name}")
     else:
         FAIL_LIST.append(name)
-        print(f"  ✗  {name}" + (f" — {detail}" if detail else ""))
+        print(f"  ✗  {name}" + (f" - {detail}" if detail else ""))
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -178,7 +178,7 @@ def test_deduplication():
     print("\n── 2B Deduplication ──")
     pr, _ = _run_pipeline()
 
-    # S3 public access — acme-prod-logs appears twice (rows 1 and 5 in messy data)
+    # S3 public access - acme-prod-logs appears twice (rows 1 and 5 in messy data)
     s3_all = _all_findings(pr, "s3_bucket_public_access")
     logs_findings = [
         f for f in s3_all
@@ -508,7 +508,7 @@ def test_audit_completeness():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Stage 2 — Deterministic Process  —  Test Suite")
+    print("Stage 2 - Deterministic Process  -  Test Suite")
     print("=" * 60)
 
     test_config_loading()

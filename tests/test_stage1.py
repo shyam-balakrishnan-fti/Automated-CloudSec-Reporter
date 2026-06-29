@@ -1,5 +1,5 @@
 """
-test_stage1.py — Stage 1 ingest & parse test suite.
+test_stage1.py - Stage 1 ingest & parse test suite.
 
 Tests every contract the parser makes:
     - File hash is reproducible
@@ -69,7 +69,7 @@ def test(name: str, condition: bool, detail: str = "") -> None:
         print(f"  ✓  {name}")
     else:
         FAIL.append(name)
-        print(f"  ✗  {name}" + (f" — {detail}" if detail else ""))
+        print(f"  ✗  {name}" + (f" - {detail}" if detail else ""))
 
 
 # ── Tests ──────────────────────────────────────────────────────────────
@@ -152,7 +152,7 @@ def test_muted_reconciliation():
     path = _make_synthetic()
     result = ingest(path)
 
-    # Case 1: STATUS=MUTED(FAIL), MUTED=True → MUTED(FAIL) — no reconciliation needed
+    # Case 1: STATUS=MUTED(FAIL), MUTED=True → MUTED(FAIL) - no reconciliation needed
     muted_findings = _find(result, "s3_bucket_default_encryption")
     test("MUTED(FAIL) finding parsed",
          len(muted_findings) >= 1)
@@ -176,7 +176,7 @@ def test_muted_reconciliation():
         test("Reconciliation audit event recorded",
              any("scanner_status" in e.field for e in f.audit_trail))
 
-    # Case 3: Normal FAIL — no muting
+    # Case 3: Normal FAIL - no muting
     s3_fail = _find(result, "s3_bucket_public_access")
     if s3_fail:
         f = s3_fail[0]
@@ -501,7 +501,7 @@ def test_file_not_found():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Stage 1 — Ingest & Parse  —  Test Suite")
+    print("Stage 1 - Ingest & Parse  -  Test Suite")
     print("=" * 60)
 
     test_file_hash()

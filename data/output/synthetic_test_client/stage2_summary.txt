@@ -1,12 +1,12 @@
 ======================================================================
 STAGE 2 — DETERMINISTIC PROCESS SUMMARY
 ======================================================================
-Run ID              : 836b223a-54ed-4dfb-87f3-7f34c301f66a
-Total findings in   : 30
-Included (working)  : 26
+Run ID              : 54b1a6cf-97c8-4049-9204-042f9fabde84
+Total findings in   : 20
+Included (working)  : 17
 Excluded (filtered) : 2
-Duplicates removed  : 2
-Output groups       : 16
+Duplicates removed  : 1
+Output groups       : 15
 
 EXCLUDED FINDINGS (2) — preserved in canonical JSON:
   s3_bucket_versioning_enabled | acme-prod | PASS
@@ -14,39 +14,36 @@ EXCLUDED FINDINGS (2) — preserved in canonical JSON:
   guardduty_is_enabled | acme-prod | MANUAL
     Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
 
-DUPLICATES (2) — preserved in canonical JSON:
-  s3_bucket_public_access | acme-prod | resource=arn:aws:s3:::acme-prod-logs
-    Duplicate of: 406682f3-ff68-4976-8f6d-5c109d1d1ecd
-  rds_instance_no_public_access | acme-prod | resource=arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres
-    Duplicate of: 27a1ce61-00b0-43af-b1c9-42c47c6397ea
+DUPLICATES (1) — preserved in canonical JSON:
+  rds_instance_no_public_access | acme-prod | resource=arn:aws:rds:ap-southeast-2:123456789012:db:prod-db
+    Duplicate of: 3d9aafed-f54c-47a8-9054-4e1a8a7d9347
 
-OUTPUT GROUPS (16) — one row per check in the final report:
+OUTPUT GROUPS (15) — one row per check in the final report:
   #   Section  Severity       Likelihood   Inst  Check ID
   --- -------- -------------- ------------ ----  ----------------------------------------
-  1   AWS      critical      High           2  ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22
+  1   AWS      critical      High           1  ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22
   2   AWS      critical      High           1  iam_root_mfa_enabled
-  3   AWS      critical      High           4  iam_user_mfa_enabled_console_access
+  3   AWS      critical      High           1  iam_user_mfa_enabled_console_access
   4   AWS      critical      High           1  rds_instance_no_public_access
   5   AWS      high          High           1  cloudtrail_multi_region_enabled
-  6   AWS      high          High           3  ec2_ebs_volume_encryption_enabled
-  7   AWS      high          High           1  ec2_instance_imdsv2_enabled
-  8   AWS      high          High           1  rds_instance_storage_encrypted
-  9   AWS      high          High           4  s3_bucket_public_access
-  10  AWS      medium        Medium         1  config_recorder_all_regions_enabled
-  11  AWS      medium        Medium         1  iam_password_policy_lowercase
-  12  AWS      medium        Medium         1  iam_user_access_key_age_90_days
-  13  AWS      medium        Medium         2  s3_bucket_default_encryption
-  14  AWS      medium        Medium         1  securityhub_enabled
-  15  AWS      medium        High           1  vpc_flow_logs_enabled
-  16  AWS      informational Low            1  cloudwatch_log_group_retention_policy_specific_days_enabled
+  6   AWS      high          High           1  ec2_instance_imdsv2_enabled
+  7   AWS      high          High           1  rds_instance_storage_encrypted
+  8   AWS      high          High           3  s3_bucket_public_access
+  9   AWS      medium        Medium         1  config_recorder_all_regions_enabled
+  10  AWS      medium        Medium         1  iam_user_access_key_age_90_days
+  11  AWS      medium        Medium         1  s3_bucket_default_encryption
+  12  AWS      medium        Medium         1  securityhub_enabled
+  13  AWS      medium        High           1  vpc_flow_logs_enabled
+  14  AWS      low           Low            1  cloudtrail_log_file_validation_enabled
+  15  AWS      informational Low            1  s3_bucket_object_lock
 
 GROUP DETAIL:
   ── ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22 ──
-     Instances       : 2
-     Accounts        : ['acme-prod', 'acme-legacy']
+     Instances       : 1
+     Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : critical
-     Representative  : Sheet:prowler-output Row:15
+     Representative  : Sheet:prowler-output Row:10
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -58,7 +55,7 @@ GROUP DETAIL:
      Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : critical
-     Representative  : Sheet:prowler-output Row:12
+     Representative  : Sheet:prowler-output Row:8
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -67,24 +64,23 @@ GROUP DETAIL:
      Review reason   : No resource identifier (both RESOURCE_UID and RESOURCE_NAME blank)
 
   ── iam_user_mfa_enabled_console_access ──
-     Instances       : 4
-     Accounts        : ['acme-prod', 'acme-legacy']
+     Instances       : 1
+     Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : critical
-     Representative  : Sheet:prowler-output Row:9
-     Completeness    : 3/5
-     Has description : False
-     Has risk        : False
+     Representative  : Sheet:prowler-output Row:7
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
      Has remediation : True
-     Human review    : True
-     Review reason   : Category 2 blank fields: DESCRIPTION, RISK
+     Human review    : False
 
   ── rds_instance_no_public_access ──
      Instances       : 1
      Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : critical
-     Representative  : Sheet:prowler-output Row:21
+     Representative  : Sheet:prowler-output Row:13
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -96,19 +92,7 @@ GROUP DETAIL:
      Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : high
-     Representative  : Sheet:prowler-output Row:24
-     Completeness    : 5/5
-     Has description : True
-     Has risk        : True
-     Has remediation : True
-     Human review    : False
-
-  ── ec2_ebs_volume_encryption_enabled ──
-     Instances       : 3
-     Accounts        : ['acme-prod']
-     Likelihood      : High
-     Severity        : high
-     Representative  : Sheet:prowler-output Row:17
+     Representative  : Sheet:prowler-output Row:16
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -120,7 +104,7 @@ GROUP DETAIL:
      Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : high
-     Representative  : Sheet:prowler-output Row:16
+     Representative  : Sheet:prowler-output Row:11
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -132,7 +116,7 @@ GROUP DETAIL:
      Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : high
-     Representative  : Sheet:prowler-output Row:20
+     Representative  : Sheet:prowler-output Row:12
      Completeness    : 3/5
      Has description : False
      Has risk        : False
@@ -141,8 +125,8 @@ GROUP DETAIL:
      Review reason   : Category 2 blank fields: DESCRIPTION, RISK
 
   ── s3_bucket_public_access ──
-     Instances       : 4
-     Accounts        : ['acme-prod', 'acme-dev', 'acme-legacy']
+     Instances       : 3
+     Accounts        : ['acme-prod', 'acme-dev']
      Likelihood      : High
      Severity        : high
      Representative  : Sheet:prowler-output Row:2
@@ -157,33 +141,19 @@ GROUP DETAIL:
      Accounts        : ['acme-prod']
      Likelihood      : Medium
      Severity        : medium
-     Representative  : Sheet:prowler-output Row:27
+     Representative  : Sheet:prowler-output Row:18
      Completeness    : 5/5
      Has description : True
      Has risk        : True
      Has remediation : True
-     Human review    : True
-     Review reason   : No resource identifier (both RESOURCE_UID and RESOURCE_NAME blank)
-
-  ── iam_password_policy_lowercase ──
-     Instances       : 1
-     Accounts        : ['acme-prod']
-     Likelihood      : Medium
-     Severity        : medium
-     Representative  : Sheet:prowler-output Row:14
-     Completeness    : 3/5
-     Has description : True
-     Has risk        : False
-     Has remediation : False
-     Human review    : True
-     Review reason   : Category 2 blank fields: RISK, REMEDIATION_RECOMMENDATION_TEXT
+     Human review    : False
 
   ── iam_user_access_key_age_90_days ──
      Instances       : 1
      Accounts        : ['acme-prod']
      Likelihood      : Medium
      Severity        : medium
-     Representative  : Sheet:prowler-output Row:13
+     Representative  : Sheet:prowler-output Row:9
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -191,11 +161,11 @@ GROUP DETAIL:
      Human review    : False
 
   ── s3_bucket_default_encryption ──
-     Instances       : 2
-     Accounts        : ['acme-prod', 'acme-legacy']
+     Instances       : 1
+     Accounts        : ['acme-prod']
      Likelihood      : Medium
      Severity        : medium
-     Representative  : Sheet:prowler-output Row:7
+     Representative  : Sheet:prowler-output Row:5
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -207,7 +177,7 @@ GROUP DETAIL:
      Accounts        : ['acme-prod']
      Likelihood      : Medium
      Severity        : medium
-     Representative  : Sheet:prowler-output Row:28
+     Representative  : Sheet:prowler-output Row:20
      Completeness    : 5/5
      Has description : True
      Has risk        : True
@@ -219,19 +189,31 @@ GROUP DETAIL:
      Accounts        : ['acme-prod']
      Likelihood      : High
      Severity        : medium
-     Representative  : Sheet:prowler-output Row:23
+     Representative  : Sheet:prowler-output Row:15
      Completeness    : 5/5
      Has description : True
      Has risk        : True
      Has remediation : True
      Human review    : False
 
-  ── cloudwatch_log_group_retention_policy_specific_days_enabled ──
+  ── cloudtrail_log_file_validation_enabled ──
+     Instances       : 1
+     Accounts        : ['acme-prod']
+     Likelihood      : Low
+     Severity        : low
+     Representative  : Sheet:prowler-output Row:17
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── s3_bucket_object_lock ──
      Instances       : 1
      Accounts        : ['acme-prod']
      Likelihood      : Low
      Severity        : informational
-     Representative  : Sheet:prowler-output Row:25
+     Representative  : Sheet:prowler-output Row:21
      Completeness    : 5/5
      Has description : True
      Has risk        : True

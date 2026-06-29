@@ -28,6 +28,7 @@ from models import BlankCategory, ReportInclusion, ScannerStatus
 from stage1_ingest import IngestResult, ingest
 from stage2_process import OutputGroup, ProcessResult, load_config, process
 from stage2_5_grouping import group_semantically
+from stage2_5_reviewer import apply_approved_grouping, load_approved_grouping, start_review_server
 from stage3_llm import EnrichResult, EnrichWarning, enrich, enrich_grouped
 
 
@@ -332,9 +333,19 @@ def _write_stage2_summary(pr: ProcessResult, path: Path) -> None:
 
 # ── Main runner ───────────────────────────────────────────────────────
 
-def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto", skip_llm: bool = False) -> None:
-    input_path  = Path(input_file)
-    output_path = Path(output_dir)
+def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
+        skip_llm: bool = False, skip_review: bool = False,
+        force_review: bool = False, no_browser: bool = False) -> None:
+    input_path   = Path(input_file)
+    # Load config first so we can use client_name for the output folder
+    cfg          = load_config(config_path)
+    client_slug  = (
+        cfg.get("engagement", {}).get("client_name", "")
+        .lower().strip()
+        .replace(" ", "_")
+        .replace("/", "_")[:40]
+    ) or "default"
+    output_path  = Path(output_dir) / client_slug
     output_path.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'='*70}")
@@ -362,7 +373,6 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto", s
 
     # ── Stage 2 ──────────────────────────────────────────────────────
     print("[ Stage 2 ] Processing (filter → dedup → group → likelihood)...")
-    cfg = load_config(config_path)
     pr  = process(ir, cfg)
 
     print(f"  ✓ Included         : {pr.included_count}")
@@ -470,6 +480,29 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto", s
         print(f"{'='*70}")
     else:
         gr = group_semantically(pr, cfg)
+
+        # ── HTML review (default) or skip-review mode ──────────────
+        approved_path = output_path / "grouping_approved.json"
+        client_name   = cfg.get("engagement", {}).get("client_name", "")
+        if skip_review:
+            print()
+            print("  ℹ --skip-review: using AI grouping directly", flush=True)
+        elif approved_path.exists() and not force_review:
+            print()
+            print(f"  ✓ Found existing grouping_approved.json — applying", flush=True)
+            approved = load_approved_grouping(approved_path)
+            gr = apply_approved_grouping(approved, gr)
+            print(f"  ✓ Applied analyst grouping: {gr.group_count} groups", flush=True)
+        else:
+            approved = start_review_server(
+                grouping_result=gr,
+                output_dir=output_path,
+                client_name=client_name,
+                open_browser=not no_browser,
+            )
+            gr = apply_approved_grouping(approved, gr)
+            print(f"  ✓ Applied analyst grouping: {gr.group_count} groups", flush=True)
+
         er = enrich_grouped(gr, cfg)
 
         # Write enriched_groups.json
@@ -570,6 +603,25 @@ if __name__ == "__main__":
         default=False,
         help="Skip Stage 3 LLM enrichment (Stage 1+2 only)",
     )
+    parser.add_argument(
+        "--skip-review",
+        action="store_true",
+        default=False,
+        help="Skip HTML grouping review — use AI grouping directly",
+    )
+    parser.add_argument(
+        "--force-review",
+        action="store_true",
+        default=False,
+        help="Force review even if grouping_approved.json already exists",
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        default=False,
+        help="Do not auto-open browser (use when running over SSH)",
+    )
 
     args = parser.parse_args()
-    run(args.input, args.output_dir, args.config, args.format, args.skip_llm)
+    run(args.input, args.output_dir, args.config, args.format,
+        args.skip_llm, args.skip_review, args.force_review, args.no_browser)

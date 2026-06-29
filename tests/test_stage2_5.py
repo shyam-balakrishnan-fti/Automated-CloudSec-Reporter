@@ -1,7 +1,7 @@
 """
-test_stage2_5.py — Stage 2.5 semantic grouping test suite.
+test_stage2_5.py - Stage 2.5 semantic grouping test suite.
 
-All LLM calls are mocked — tests run offline without AWS credentials.
+All LLM calls are mocked - tests run offline without AWS credentials.
 
 Tests:
     - Valid proposal merges related check_ids into one GroupedOutputGroup
@@ -32,7 +32,7 @@ import tempfile
 import unittest.mock as mock
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tests"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from generate_synthetic_messy import generate
 from models import ReportInclusion
@@ -52,7 +52,7 @@ CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "config.toml"
 # ── Helpers ───────────────────────────────────────────────────────────
 
 def _run_stage2():
-    tmp = Path(tempfile.mkdtemp()) / "synthetic_prowler_messy.xlsx"
+    tmp = Path(tempfile.mkdtemp()) / "messy.xlsx"
     with contextlib.redirect_stdout(io.StringIO()):
         generate(tmp)
     cfg = load_config(CONFIG_PATH)
@@ -113,7 +113,7 @@ def test(name: str, condition: bool, detail: str = "") -> None:
         print(f"  ✓  {name}")
     else:
         FAIL_LIST.append(name)
-        print(f"  ✗  {name}" + (f" — {detail}" if detail else ""))
+        print(f"  ✗  {name}" + (f" - {detail}" if detail else ""))
 
 
 # ═════════════════════════════════════════════════════════════════════
@@ -208,7 +208,7 @@ def test_merged_group_properties():
     standalone = [g for g in gr.grouped_groups if not g.is_merged]
 
     test("At least one merged group exists", len(merged) >= 1,
-         "No merges occurred — check synthetic data has mergeable checks")
+         "No merges occurred - check synthetic data has mergeable checks")
 
     for g in merged:
         test(f"Merged group '{g.group_name}' has > 1 check_id",
@@ -451,7 +451,7 @@ def test_enrich_grouped_integration():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Stage 2.5 — Semantic Grouping  —  Test Suite")
+    print("Stage 2.5 - Semantic Grouping  -  Test Suite")
     print("=" * 60)
 
     test_validate_grouping()

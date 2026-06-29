@@ -1,11 +1,11 @@
 """
-stage2_5_grouping.py — Stage 2.5: LLM-driven semantic grouping
+stage2_5_grouping.py - Stage 2.5: LLM-driven semantic grouping
 
 Sits between Stage 2 (deterministic processing) and Stage 3 (LLM enrichment).
 
 What it does:
     Takes the OutputGroups from Stage 2 (one per check_id) and asks the LLM
-    to propose semantic merges — which checks share the same root cause or
+    to propose semantic merges - which checks share the same root cause or
     attack vector and should appear as one finding in the report.
 
     Example: iam_root_mfa_enabled + iam_user_mfa_enabled_console_access
@@ -15,15 +15,15 @@ Why LLM (not config-driven):
     The check_id space is large and grows with every Prowler version.
     A manual config list would always be incomplete and become a maintenance
     burden. The LLM sees the actual checks in THIS scan and groups what is
-    present — not what was pre-configured.
+    present - not what was pre-configured.
 
 Two-call design:
-    Call 1 — Grouping proposal
+    Call 1 - Grouping proposal
         Single LLM call. Input: list of all check_ids + titles.
         Output: JSON array of group proposals.
         Deterministic merge follows: OutputGroups are merged per proposal.
 
-    Call 2 — Enrichment (existing Stage 3)
+    Call 2 - Enrichment (existing Stage 3)
         One call per merged group. Input: full merged context.
         Output: narratives + consequence_rating.
 
@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GroupedOutputGroup:
     """
-    A semantically merged output group — one row in the final report.
+    A semantically merged output group - one row in the final report.
 
     May represent one check_id (ungrouped) or multiple check_ids that the
     LLM determined share the same root cause or attack vector.
@@ -82,7 +82,7 @@ class GroupedOutputGroup:
     affected_account_names: list[str] = field(default_factory=list)
     affected_account_uids:  list[str] = field(default_factory=list)
 
-    # Severity — highest among constituent groups
+    # Severity - highest among constituent groups
     severity:           Optional[str] = None
     likelihood_rating:  Optional[str] = None
 
@@ -208,7 +208,7 @@ def _best_representative(groups: list[OutputGroup]) -> CanonicalFinding:
 def _build_grouping_prompt(groups: list[OutputGroup]) -> str:
     """
     Build the grouping proposal prompt.
-    Single LLM call — input is the full list of check_ids and titles.
+    Single LLM call - input is the full list of check_ids and titles.
     """
     check_list = "\n".join(
         f'{i+1:3}. [{g.check_id}] {g.representative.raw_check_title or g.check_id}'
@@ -247,7 +247,7 @@ Respond with ONLY a valid JSON array. No preamble, no explanation.
   {{
     "group_name": "Another finding name",
     "check_ids": ["check_id_3"],
-    "rationale": "Standalone — distinct issue with no related checks in this scan."
+    "rationale": "Standalone - distinct issue with no related checks in this scan."
   }}
 ]"""
 
@@ -289,7 +289,7 @@ def _validate_grouping_response(
         return errors
 
     if len(data) == 0:
-        errors.append("Empty array — at least one group required")
+        errors.append("Empty array - at least one group required")
         return errors
 
     seen_check_ids: set[str] = set()
@@ -487,7 +487,7 @@ def group_semantically(
     all_check_ids      = set(groups_by_check_id.keys())
 
     print(
-        f"\n[ Stage 2.5 ] Semantic grouping — {original_count} groups "
+        f"\n[ Stage 2.5 ] Semantic grouping - {original_count} groups "
         f"(single LLM call)",
         flush=True,
     )
@@ -535,7 +535,7 @@ def group_semantically(
             message=f"{reason}. Falling back to one group per check_id.",
         ))
         print(
-            f"  ⚠ Grouping failed — falling back to "
+            f"  ⚠ Grouping failed - falling back to "
             f"{original_count} individual groups",
             flush=True,
         )
@@ -543,7 +543,7 @@ def group_semantically(
         grouped = [
             GroupedOutputGroup(
                 group_name=g.representative.raw_check_title or g.check_id,
-                group_rationale="Fallback — LLM grouping unavailable",
+                group_rationale="Fallback - LLM grouping unavailable",
                 output_section=g.output_section,
                 is_merged=False,
                 check_ids=[g.check_id],
