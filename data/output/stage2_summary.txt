@@ -1,7 +1,7 @@
 ======================================================================
 STAGE 2 — DETERMINISTIC PROCESS SUMMARY
 ======================================================================
-Run ID              : 797e7e3e-fb61-42ca-b2cc-51a88f3da0ff
+Run ID              : f27bd389-2ed7-48fe-9509-fe295a54e0e6
 Total findings in   : 30
 Included (working)  : 26
 Excluded (filtered) : 2
@@ -16,9 +16,9 @@ EXCLUDED FINDINGS (2) — preserved in canonical JSON:
 
 DUPLICATES (2) — preserved in canonical JSON:
   s3_bucket_public_access | acme-prod | resource=arn:aws:s3:::acme-prod-logs
-    Duplicate of: 96974226-7409-46fd-acee-580ea6981d3a
+    Duplicate of: d3f24688-695b-406a-85a7-893dd3d99789
   rds_instance_no_public_access | acme-prod | resource=arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres
-    Duplicate of: dc6efcb6-6d57-4587-a96a-334d792f56a5
+    Duplicate of: 54026d7c-f19b-4b58-8929-680e20329f04
 
 OUTPUT GROUPS (16) — one row per check in the final report:
   #   Section  Severity       Likelihood   Inst  Check ID

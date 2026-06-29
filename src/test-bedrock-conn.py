@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from stage2_process import load_config
 from stage3_llm import (
     _build_prompt,
-    _call_bedrock_mantle,
+    _call_bedrock_runtime,
     _extract_json,
     _validate_response,
 )

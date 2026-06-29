@@ -267,105 +267,72 @@ def _extract_json(raw: str) -> dict[str, Any]:
 
 # ── LLM clients ───────────────────────────────────────────────────────
 
-def _call_bedrock_mantle(prompt: str, llm_cfg: dict[str, Any]) -> str:
+def _call_bedrock_runtime(prompt: str, llm_cfg: dict[str, Any]) -> str:
     """
-    Call AWS Bedrock via the bedrock-mantle endpoint using the Anthropic
-    Messages API with store=false (zero data retention per request).
+    Call AWS Bedrock using the Converse API via bedrock-runtime.
 
-    Why bedrock-mantle over bedrock-runtime:
-    - Supports explicit per-request store=false — guaranteed zero retention
-      without needing to configure account-level retention policy
-    - Uses a Bedrock API key (not AWS SigV4 credentials) — simpler auth
-    - Endpoint pattern: bedrock-mantle.{region}.api.aws/anthropic/v1/messages
-
-    Zero retention:
-    - Governed by account-level retention policy set via AWS CLI:
-      aws bedrock put-data-retention --mode none --region {region}
-    - The /anthropic/v1/messages endpoint does not accept a per-request
-      store field — retention is enforced at the account level only
-    - Model provider receives nothing when mode=none is set
+    Uses Converse (not InvokeModel) because:
+    - Works with cross-region inference profiles (au.* prefix)
+    - Unified interface across all Claude model versions
+    - No request format changes needed when upgrading model
 
     Auth:
-    - Bedrock API key stored in environment variable named by api_key_env_var
-    - Get your key from: AWS Console → Bedrock → API keys
+    - AWS credentials via environment variables, ~/.aws/credentials,
+      or IAM role — picked up automatically by boto3.
+      Required env vars: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY
+      Or use: aws configure
+
+    Zero data retention:
+    - Governed by account-level policy:
+      aws bedrock put-data-retention --mode none --region {region}
+    - Verify: aws bedrock get-data-retention --region {region}
+    - When mode=none: no data retained, model provider receives nothing.
     """
-    import os
-    import urllib.request
+    try:
+        import boto3
+        from botocore.config import Config
+        from botocore.exceptions import ClientError
+    except ImportError:
+        raise ImportError(
+            "boto3 not installed. Run: pip install boto3"
+        )
 
     model_id   = llm_cfg.get("deployment_name")
     region     = llm_cfg.get("aws_region", "ap-southeast-2")
     max_tokens = llm_cfg.get("max_tokens", 1000)
     timeout    = llm_cfg.get("timeout_seconds", 60)
-    key_env    = llm_cfg.get("api_key_env_var", "BEDROCK_API_KEY")
 
     if not model_id:
         raise ValueError(
             "config.toml [llm] deployment_name is required. "
-            "Example: anthropic.claude-sonnet-4-6"
+            "Example: anthropic.claude-opus-4-8"
         )
 
-    api_key = os.environ.get(key_env)
-    if not api_key:
-        raise EnvironmentError(
-            f"Environment variable '{key_env}' is not set. "
-            "Get your Bedrock API key from: AWS Console → Bedrock → API keys. "
-            f"Then run: export {key_env}=your_key_here"
-        )
-
-    endpoint = f"https://bedrock-mantle.{region}.api.aws/anthropic/v1/messages"
-
-    # Build Anthropic Messages API payload
-    # store=false: zero data retention — no request/response data retained by AWS
-    # Note: store=false is NOT a valid field on the /anthropic/v1/messages endpoint.
-    # Zero data retention on this endpoint is governed by the account-level
-    # retention policy set via: aws bedrock put-data-retention --mode none
-    # The /anthropic/v1/messages path does not accept per-request store flags.
-    payload = json.dumps({
-        "model":      model_id,
-        "max_tokens": max_tokens,
-        "system":     SYSTEM_PROMPT,
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        endpoint,
-        data=payload,
-        headers={
-            "Content-Type":  "application/json",
-            "x-api-key":     api_key,
-            "anthropic-version": "2023-06-01",
-        },
-        method="POST",
+    client = boto3.client(
+        "bedrock-runtime",
+        region_name=region,
+        config=Config(
+            read_timeout=timeout,
+            connect_timeout=10,
+        ),
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        raise RuntimeError(
-            f"Bedrock mantle API error [{e.code}]: {body[:300]}. "
-            f"Model: {model_id}, Region: {region}, Endpoint: {endpoint}"
-        ) from e
-    except urllib.error.URLError as e:
-        raise RuntimeError(
-            f"Bedrock mantle connection error: {e.reason}. "
-            f"Endpoint: {endpoint} — check your network and region setting."
-        ) from e
-
-    # Anthropic Messages API response format
-    # result["content"] is a list of content blocks
-    content_blocks = result.get("content", [])
-    text_blocks = [b["text"] for b in content_blocks if b.get("type") == "text"]
-    if not text_blocks:
-        raise RuntimeError(
-            f"Bedrock mantle returned no text content. "
-            f"Full response: {json.dumps(result)[:300]}"
+        response = client.converse(
+            modelId=model_id,
+            system=[{"text": SYSTEM_PROMPT}],
+            messages=[{"role": "user", "content": [{"text": prompt}]}],
+            inferenceConfig={"maxTokens": max_tokens},
         )
+    except ClientError as e:
+        code = e.response["Error"]["Code"]
+        msg  = e.response["Error"]["Message"]
+        raise RuntimeError(
+            f"Bedrock runtime error [{code}]: {msg}. "
+            f"Model: {model_id}, Region: {region}"
+        ) from e
 
-    return text_blocks[0]
+    return response["output"]["message"]["content"][0]["text"]
 
 
 def _call_ollama(prompt: str, llm_cfg: dict[str, Any]) -> str:
@@ -399,15 +366,15 @@ def _call_ollama(prompt: str, llm_cfg: dict[str, Any]) -> str:
 
 def _call_llm(prompt: str, llm_cfg: dict[str, Any]) -> str:
     """Route to the correct LLM provider."""
-    provider = llm_cfg.get("provider", "bedrock_mantle").lower()
-    if provider == "bedrock_mantle":
-        return _call_bedrock_mantle(prompt, llm_cfg)
+    provider = llm_cfg.get("provider", "bedrock_runtime").lower()
+    if provider in ("bedrock_runtime", "bedrock"):
+        return _call_bedrock_runtime(prompt, llm_cfg)
     elif provider == "local_ollama":
         return _call_ollama(prompt, llm_cfg)
     else:
         raise ValueError(
             f"Unknown LLM provider '{provider}'. "
-            "Valid values: bedrock_mantle | local_ollama"
+            "Valid values: bedrock_runtime | local_ollama"
         )
 
 

@@ -11,17 +11,11 @@ output_filename   = "SecurityReport_Jun2026.xlsx"
 
 # ── LLM (set once at setup) ────────────────────────────────────────
 [llm]
-provider         = "bedrock_mantle"
-# bedrock-mantle endpoint — ap-southeast-2 (Sydney)
-# https://bedrock-mantle.ap-southeast-2.api.aws
-deployment_name  = "anthropic.claude-opus-4-8"
-aws_region      = "ap-northeast-1" 
-api_key_env_var  = "BEDROCK_API_KEY"   # export BEDROCK_API_KEY=your_key
+provider         = "bedrock_runtime"
+deployment_name  = "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/78fidxvdv3nl"
+aws_region       = "ap-southeast-2"
 max_tokens       = 1000
 timeout_seconds  = 60
-# store=false is sent on every request — enforces zero data retention per-call
-# Per AWS docs: "When store is false, Amazon Bedrock does not retain any
-# data from the request or response"
 
 # ── Processing (change occasionally) ──────────────────────────────
 [processing]
@@ -40,7 +34,7 @@ likelihood_high_if_categories = ["internet-exposed"]
 
 # ── Risk matrix (security lead owns this) ─────────────────────────
 [risk_matrix]
-High_Major      = "Critical"
+High_Major      = "High"
 High_Moderate   = "High"
 High_Minor      = "High"
 Medium_Major    = "High"

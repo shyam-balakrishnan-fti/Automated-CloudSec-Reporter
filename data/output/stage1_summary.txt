@@ -1,7 +1,7 @@
 ======================================================================
 STAGE 1 — INGEST & PARSE SUMMARY
 ======================================================================
-Run ID           : 797e7e3e-fb61-42ca-b2cc-51a88f3da0ff
+Run ID           : f27bd389-2ed7-48fe-9509-fe295a54e0e6
 Source file      : data/synthetic/synthetic_prowler_messy.xlsx
 SHA-256          : 40d41253a83672f68cad05de2f9e2b98ef308d77300457c3f84307fd90f0d541
 Scanner          : prowler v4.3.1
@@ -9,7 +9,7 @@ Sheet detected   : prowler-output
 Rows read        : 30
 Findings parsed  : 30
 Unknown columns  : ['FUTURE_PROWLER_COLUMN']
-Ingested at      : 2026-06-29T00:17:49.347577
+Ingested at      : 2026-06-29T01:06:18.632749
 
 STATUS BREAKDOWN:
   FAIL                     : 26
