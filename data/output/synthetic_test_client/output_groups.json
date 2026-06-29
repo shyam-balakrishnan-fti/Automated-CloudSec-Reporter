@@ -1,7 +1,7 @@
 {
-  "run_id": "54b1a6cf-97c8-4049-9204-042f9fabde84",
+  "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
   "group_count": 15,
-  "generated_at": "2026-06-29T04:50:35.642985+00:00",
+  "generated_at": "2026-06-29T06:33:36.957998+00:00",
   "groups": [
     {
       "output_group_key": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22:AWS",
@@ -16,10 +16,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "89abd3ff-a380-4e0b-9329-4ac2a8841a7f"
+        "4e17e484-f068-4821-b777-b5648db6a334"
       ],
       "representative": {
-        "finding_instance_id": "89abd3ff-a380-4e0b-9329-4ac2a8841a7f",
+        "finding_instance_id": "4e17e484-f068-4821-b777-b5648db6a334",
         "source_row_id": "Sheet:prowler-output Row:10",
         "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
         "check_title": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
@@ -88,10 +88,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "7b9b45d6-8ac7-49fa-bf1d-edec1d568922"
+        "16c9f939-dc4c-4851-a1d0-c0a7d8fd8652"
       ],
       "representative": {
-        "finding_instance_id": "7b9b45d6-8ac7-49fa-bf1d-edec1d568922",
+        "finding_instance_id": "16c9f939-dc4c-4851-a1d0-c0a7d8fd8652",
         "source_row_id": "Sheet:prowler-output Row:8",
         "check_id": "iam_root_mfa_enabled",
         "check_title": "Ensure MFA is enabled for the root account",
@@ -157,10 +157,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "0d8f3370-61c9-403d-af22-783c0214b7bf"
+        "cfc13230-f230-47e3-99f2-b19cc209e4f9"
       ],
       "representative": {
-        "finding_instance_id": "0d8f3370-61c9-403d-af22-783c0214b7bf",
+        "finding_instance_id": "cfc13230-f230-47e3-99f2-b19cc209e4f9",
         "source_row_id": "Sheet:prowler-output Row:7",
         "check_id": "iam_user_mfa_enabled_console_access",
         "check_title": "Ensure MFA is enabled for all IAM users with console access",
@@ -228,10 +228,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "3d9aafed-f54c-47a8-9054-4e1a8a7d9347"
+        "7add8665-15cd-4063-a5eb-3fe18370a212"
       ],
       "representative": {
-        "finding_instance_id": "3d9aafed-f54c-47a8-9054-4e1a8a7d9347",
+        "finding_instance_id": "7add8665-15cd-4063-a5eb-3fe18370a212",
         "source_row_id": "Sheet:prowler-output Row:13",
         "check_id": "rds_instance_no_public_access",
         "check_title": "Ensure RDS instances are not publicly accessible",
@@ -299,10 +299,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "45307b58-bd2a-4fd5-bc32-044f924d3314"
+        "6ca4da77-0fc9-4975-81f2-866de1f122b7"
       ],
       "representative": {
-        "finding_instance_id": "45307b58-bd2a-4fd5-bc32-044f924d3314",
+        "finding_instance_id": "6ca4da77-0fc9-4975-81f2-866de1f122b7",
         "source_row_id": "Sheet:prowler-output Row:16",
         "check_id": "cloudtrail_multi_region_enabled",
         "check_title": "=SUM(1,2) CloudTrail multi-region logging check",
@@ -368,10 +368,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "195f6845-cde2-4c09-a302-1055a120e5f2"
+        "17689249-6871-4000-998c-3d9df48e5fca"
       ],
       "representative": {
-        "finding_instance_id": "195f6845-cde2-4c09-a302-1055a120e5f2",
+        "finding_instance_id": "17689249-6871-4000-998c-3d9df48e5fca",
         "source_row_id": "Sheet:prowler-output Row:11",
         "check_id": "ec2_instance_imdsv2_enabled",
         "check_title": "Ensure EC2 instances use IMDSv2",
@@ -439,10 +439,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "b11003ca-fbc6-458d-be25-cadd90543016"
+        "4cf762fc-a76b-48d0-a989-1afa91e60503"
       ],
       "representative": {
-        "finding_instance_id": "b11003ca-fbc6-458d-be25-cadd90543016",
+        "finding_instance_id": "4cf762fc-a76b-48d0-a989-1afa91e60503",
         "source_row_id": "Sheet:prowler-output Row:12",
         "check_id": "rds_instance_storage_encrypted",
         "check_title": "Ensure RDS instances are encrypted at rest",
@@ -510,12 +510,12 @@
         "987654321098"
       ],
       "instance_ids": [
-        "abb38c2d-71d2-482d-a3df-56620372edbe",
-        "4cd982e9-ee84-4d24-9942-3ccefe9e70d0",
-        "f98cb080-8111-402a-9463-07a53980f87c"
+        "b3ff5f1b-a81b-488b-9202-616d047a03e2",
+        "56ccff9f-315c-4373-967d-b7a912e5e4ac",
+        "6cb6f08c-8582-4ec0-88cc-e6f3692bcc46"
       ],
       "representative": {
-        "finding_instance_id": "abb38c2d-71d2-482d-a3df-56620372edbe",
+        "finding_instance_id": "b3ff5f1b-a81b-488b-9202-616d047a03e2",
         "source_row_id": "Sheet:prowler-output Row:2",
         "check_id": "s3_bucket_public_access",
         "check_title": "Ensure S3 bucket does not allow public access",
@@ -585,10 +585,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "b1c586fb-985e-45cd-907c-6ef110329ec8"
+        "85a5b5da-b468-4e7e-ba49-aaa1b8fbe617"
       ],
       "representative": {
-        "finding_instance_id": "b1c586fb-985e-45cd-907c-6ef110329ec8",
+        "finding_instance_id": "85a5b5da-b468-4e7e-ba49-aaa1b8fbe617",
         "source_row_id": "Sheet:prowler-output Row:18",
         "check_id": "config_recorder_all_regions_enabled",
         "check_title": "Ensure AWS Config is enabled in all regions",
@@ -654,10 +654,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "04ec1a61-5e58-40c9-899d-aed0a7917cf7"
+        "3c3254cb-e11b-4b94-b997-d4a761f985cc"
       ],
       "representative": {
-        "finding_instance_id": "04ec1a61-5e58-40c9-899d-aed0a7917cf7",
+        "finding_instance_id": "3c3254cb-e11b-4b94-b997-d4a761f985cc",
         "source_row_id": "Sheet:prowler-output Row:9",
         "check_id": "iam_user_access_key_age_90_days",
         "check_title": "Ensure IAM user access keys are rotated every 90 days",
@@ -725,10 +725,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "263eabed-fe95-407c-9ef9-89bab44c35d2"
+        "d14f412c-f627-40b3-902c-422c75b40977"
       ],
       "representative": {
-        "finding_instance_id": "263eabed-fe95-407c-9ef9-89bab44c35d2",
+        "finding_instance_id": "d14f412c-f627-40b3-902c-422c75b40977",
         "source_row_id": "Sheet:prowler-output Row:5",
         "check_id": "s3_bucket_default_encryption",
         "check_title": "Ensure S3 bucket has default encryption enabled",
@@ -794,10 +794,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "45b0a19d-4602-4564-b06b-9dcdfe601654"
+        "212bacae-a90a-41d3-8074-dc7f191378b1"
       ],
       "representative": {
-        "finding_instance_id": "45b0a19d-4602-4564-b06b-9dcdfe601654",
+        "finding_instance_id": "212bacae-a90a-41d3-8074-dc7f191378b1",
         "source_row_id": "Sheet:prowler-output Row:20",
         "check_id": "securityhub_enabled",
         "check_title": "Ensure AWS Security Hub is enabled",
@@ -865,10 +865,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "ef1af8d7-a802-4385-ba36-5252bfc5325c"
+        "18578172-4aa6-4a45-b9f9-4ed20858f8bb"
       ],
       "representative": {
-        "finding_instance_id": "ef1af8d7-a802-4385-ba36-5252bfc5325c",
+        "finding_instance_id": "18578172-4aa6-4a45-b9f9-4ed20858f8bb",
         "source_row_id": "Sheet:prowler-output Row:15",
         "check_id": "vpc_flow_logs_enabled",
         "check_title": "Ensure VPC flow logging is enabled in all VPCs",
@@ -935,10 +935,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "6c7982c0-bc86-41ba-a52d-944ced6157aa"
+        "415c3de3-d431-4f41-b6f1-5d0d26655e31"
       ],
       "representative": {
-        "finding_instance_id": "6c7982c0-bc86-41ba-a52d-944ced6157aa",
+        "finding_instance_id": "415c3de3-d431-4f41-b6f1-5d0d26655e31",
         "source_row_id": "Sheet:prowler-output Row:17",
         "check_id": "cloudtrail_log_file_validation_enabled",
         "check_title": "Ensure CloudTrail log file validation is enabled",
@@ -1006,10 +1006,10 @@
         "123456789012"
       ],
       "instance_ids": [
-        "87d130a0-7643-4ebd-8bb4-53bc2e8854e4"
+        "bd029207-8ac2-4ddd-bff1-74ab9e0a3436"
       ],
       "representative": {
-        "finding_instance_id": "87d130a0-7643-4ebd-8bb4-53bc2e8854e4",
+        "finding_instance_id": "bd029207-8ac2-4ddd-bff1-74ab9e0a3436",
         "source_row_id": "Sheet:prowler-output Row:21",
         "check_id": "s3_bucket_object_lock",
         "check_title": "Ensure S3 bucket has Object Lock configured",

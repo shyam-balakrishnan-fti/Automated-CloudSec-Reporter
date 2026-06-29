@@ -1,104 +1,76 @@
 {
-  "run_id": "54b1a6cf-97c8-4049-9204-042f9fabde84",
-  "approved_at": "2026-06-29T04:53:10.337Z",
+  "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+  "approved_at": "2026-06-29T06:34:12.574Z",
   "groups": [
     {
-      "group_name": "Ensure MFA is enabled for all IAM users with console access",
+      "group_name": "Multi-Factor Authentication Not Enforced for IAM Principals",
       "check_ids": [
+        "iam_root_mfa_enabled",
         "iam_user_mfa_enabled_console_access"
       ],
-      "rationale": "Fallback - LLM grouping unavailable",
+      "rationale": "Both findings address the same security control of enforcing MFA across IAM identities to prevent unauthorized access.",
       "analyst_note": ""
     },
     {
-      "group_name": "Ensure MFA is enabled for the root account",
+      "group_name": "Publicly Accessible Network Resources",
       "check_ids": [
-        "iam_root_mfa_enabled"
-      ],
-      "rationale": "Fallback - LLM grouping unavailable",
-      "analyst_note": ""
-    },
-    {
-      "group_name": "Ensure RDS instances are not publicly accessible",
-      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
         "rds_instance_no_public_access"
       ],
-      "rationale": "Fallback - LLM grouping unavailable",
+      "rationale": "Both findings expose critical resources to the public internet, sharing the same attack vector of unrestricted network access.",
       "analyst_note": ""
     },
     {
-      "group_name": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+      "group_name": "CloudTrail Logging Configuration Gaps",
       "check_ids": [
-        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+        "cloudtrail_multi_region_enabled",
+        "cloudtrail_log_file_validation_enabled"
       ],
-      "rationale": "Fallback - LLM grouping unavailable",
+      "rationale": "Both findings address CloudTrail logging completeness and integrity, essential for audit trail reliability.",
       "analyst_note": ""
     },
     {
-      "group_name": "Ensure EC2 instances use IMDSv2",
+      "group_name": "EC2 Instance Metadata Service Not Using IMDSv2",
       "check_ids": [
         "ec2_instance_imdsv2_enabled"
       ],
-      "rationale": "Fallback - LLM grouping unavailable",
+      "rationale": "Standalone - distinct EC2 metadata security issue with unique remediation requirements.",
       "analyst_note": ""
     },
     {
-      "group_name": "Ensure RDS instances are encrypted at rest",
+      "group_name": "RDS Instance Encryption at Rest Not Enabled",
       "check_ids": [
         "rds_instance_storage_encrypted"
       ],
-      "rationale": "Fallback - LLM grouping unavailable",
+      "rationale": "Standalone - distinct data protection issue for RDS storage encryption with no related checks in this scan.",
       "analyst_note": ""
     },
     {
-      "group_name": "S3 Misconfiguration",
+      "group_name": "S3 Bucket Security Posture Deficiencies",
       "check_ids": [
         "s3_bucket_public_access",
         "s3_bucket_default_encryption",
         "s3_bucket_object_lock"
       ],
-      "rationale": "Fallback - LLM grouping unavailable",
+      "rationale": "All findings relate to S3 bucket security controls including access restrictions, encryption, and immutability protections.",
       "analyst_note": ""
     },
     {
-      "group_name": "Ensure AWS Config is enabled in all regions",
+      "group_name": "Centralized Security Monitoring Not Fully Enabled",
       "check_ids": [
-        "config_recorder_all_regions_enabled"
-      ],
-      "rationale": "Fallback - LLM grouping unavailable",
-      "analyst_note": ""
-    },
-    {
-      "group_name": "Ensure AWS Security Hub is enabled",
-      "check_ids": [
+        "config_recorder_all_regions_enabled",
         "securityhub_enabled",
-        "cloudtrail_multi_region_enabled"
+        "vpc_flow_logs_enabled"
       ],
-      "rationale": "Split from: Ensure AWS Security Hub is enabled",
+      "rationale": "All findings relate to enabling comprehensive visibility and centralized monitoring across AWS environments.",
       "analyst_note": ""
     },
     {
-      "group_name": "Ensure IAM user access keys are rotated every 90 days",
+      "group_name": "IAM Access Key Rotation Policy Not Enforced",
       "check_ids": [
         "iam_user_access_key_age_90_days"
       ],
-      "rationale": "Fallback - LLM grouping unavailable",
-      "analyst_note": ""
-    },
-    {
-      "group_name": "Ensure VPC flow logging is enabled in all VPCs",
-      "check_ids": [
-        "vpc_flow_logs_enabled"
-      ],
-      "rationale": "Fallback - LLM grouping unavailable",
-      "analyst_note": ""
-    },
-    {
-      "group_name": "Ensure CloudTrail log file validation is enabled",
-      "check_ids": [
-        "cloudtrail_log_file_validation_enabled"
-      ],
-      "rationale": "Fallback - LLM grouping unavailable",
+      "rationale": "Standalone - distinct credential lifecycle management issue separate from MFA enforcement.",
       "analyst_note": ""
     }
   ]

@@ -186,6 +186,22 @@ body {{ font-family: var(--font); background: var(--bg); color: var(--text);
   padding: 20px 18px 14px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }}
+.logo-img-wrap {{
+  margin-bottom: 12px;
+}}
+.logo-img {{
+  height: 36px; width: auto; max-width: 160px;
+  object-fit: contain; display: block;
+}}
+.logo-placeholder {{
+  height: 36px; width: 120px;
+  background: rgba(255,255,255,0.06);
+  border: 1px dashed rgba(255,255,255,0.15);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #4a6080; letter-spacing: 0.04em;
+  font-family: var(--font);
+}}
 .sidebar-logo .product {{ font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; color: #6b8cba; margin-bottom: 4px; font-family: var(--font-heading); }}
 .sidebar-logo .client  {{ font-size: 14px; font-weight: 700; color: #e8edf5; line-height: 1.3; font-family: var(--font-heading); }}
@@ -361,6 +377,8 @@ body {{ font-family: var(--font); background: var(--bg); color: var(--text);
 .unassigned-bar {{
   background: #fffbeb; border: 1px solid #fde68a;
   border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
+  position: sticky; top: 0; z-index: 40;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }}
 .unassigned-bar h4 {{
   font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
@@ -399,6 +417,12 @@ body {{ font-family: var(--font); background: var(--bg); color: var(--text);
 <!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="sidebar-logo">
+    <div class="logo-img-wrap">
+    <img class="logo-img" id="company-logo"
+     src="/static/logo.png"
+     alt="FTI logo"
+     onerror="this.style.display='none';document.getElementById('logo-ph').style.display='flex';" />
+    </div>
     <div class="product">Automated Cloud Security Reporter</div>
     <div class="client">{client_label}</div>
     <div class="runid">Run: {run_id[:16]}...</div>
@@ -600,17 +624,37 @@ function buildChip(cid, groupId) {{
     <span class="chip-cnt">${{cnt?"×"+cnt:""}}</span>
   `;
   chip.ondragstart = e => onDragStart(e, cid, groupId);
-  chip.ondragend   = e => e.currentTarget.classList.remove("dragging");
+  chip.ondragend   = e => {{ e.currentTarget.classList.remove("dragging"); _stopAutoScroll(); document.removeEventListener("dragover", _startAutoScroll); }};
   chip.onmouseenter= e => showTip(e, cid);
   chip.onmouseleave= () => hideTip();
   return chip;
 }}
 
 // ── Drag ──────────────────────────────────────────────────────────────
+// Auto-scroll when dragging near viewport edges
+let _scrollInterval = null;
+function _startAutoScroll(e) {{
+  const content  = document.getElementById("content");
+  const zone     = 80; // px from edge triggers scroll
+  const speed    = 12; // px per tick
+  const rect     = content.getBoundingClientRect();
+  const y        = e.clientY;
+  if (_scrollInterval) {{ clearInterval(_scrollInterval); _scrollInterval = null; }}
+  if (y < rect.top + zone) {{
+    _scrollInterval = setInterval(() => content.scrollBy(0, -speed), 20);
+  }} else if (y > rect.bottom - zone) {{
+    _scrollInterval = setInterval(() => content.scrollBy(0, speed), 20);
+  }}
+}}
+function _stopAutoScroll() {{
+  if (_scrollInterval) {{ clearInterval(_scrollInterval); _scrollInterval = null; }}
+}}
+
 function onDragStart(e, cid, from) {{
   dragCid  = cid; dragFrom = from;
   e.currentTarget.classList.add("dragging");
   e.dataTransfer.effectAllowed = "move";
+  document.addEventListener("dragover", _startAutoScroll);
 }}
 function onDragOver(e, toId) {{
   e.preventDefault();
@@ -638,6 +682,8 @@ function onDrop(e, toId) {{
 
   groups = groups.filter(g=>g.check_ids.length>0);
   dragCid=null; dragFrom=null;
+  _stopAutoScroll();
+  document.removeEventListener("dragover", _startAutoScroll);
   render();
 }}
 
@@ -803,6 +849,24 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", len(body))
             self.end_headers()
             self.wfile.write(body)
+        elif self.path.startswith("/static/"):
+            # Serve logo and other static files
+            static_dir = Path(__file__).resolve().parent / "static"
+            file_path  = static_dir / self.path[8:]  # strip /static/
+            if file_path.exists() and file_path.is_file():
+                ext  = file_path.suffix.lower()
+                mime = {"png": "image/png", "jpg": "image/jpeg",
+                    "jpeg": "image/jpeg", "svg": "image/svg+xml",
+                    "gif": "image/gif", "webp": "image/webp"}.get(ext[1:], "application/octet-stream")
+                body = file_path.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", mime)
+                self.send_header("Content-Length", len(body))
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self.send_response(404)
+                self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()

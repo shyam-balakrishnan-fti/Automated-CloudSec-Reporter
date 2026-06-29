@@ -1,11 +1,11 @@
 {
-  "run_id": "54b1a6cf-97c8-4049-9204-042f9fabde84",
+  "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
   "source_file": "data/synthetic/synthetic_prowler.xlsx",
   "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
   "scanner": "prowler",
   "scanner_version": "4.3.1",
   "schema_version": "1.0.0",
-  "generated_at": "2026-06-29T04:50:35.644974+00:00",
+  "generated_at": "2026-06-29T06:33:36.966792+00:00",
   "config": {
     "include_statuses": [
       "FAIL",

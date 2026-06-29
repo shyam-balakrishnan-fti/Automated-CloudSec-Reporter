@@ -30,6 +30,7 @@ from stage2_process import OutputGroup, ProcessResult, load_config, process
 from stage2_5_grouping import group_semantically
 from stage2_5_reviewer import apply_approved_grouping, load_approved_grouping, start_review_server
 from stage3_llm import EnrichResult, EnrichWarning, enrich, enrich_grouped
+from stage5_render_excel import render_excel
 
 
 # ── Serialisation helpers ─────────────────────────────────────────────
@@ -505,6 +506,25 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
 
         er = enrich_grouped(gr, cfg)
 
+        # ── Resource detail helper ─────────────────────────────────
+        _fmap = {f.finding_instance_id: f for f in er.all_findings}
+        def _res_detail(iids):
+            out = []
+            for fid in iids:
+                f = _fmap.get(fid)
+                if not f:
+                    continue
+                out.append({
+                    "resource_uid":    f.resource_uid_normalised or f.raw_resource_uid or "",
+                    "resource_name":   f.raw_resource_name or "",
+                    "account_uid":     f.raw_account_uid or "",
+                    "account_name":    f.raw_account_name or "",
+                    "region":          f.region_normalised or "",
+                    "resource_type":   f.raw_resource_type or "",
+                    "status_extended": f.raw_status_extended or "",
+                })
+            return out
+
         # Write enriched_groups.json
         enriched_path = output_path / "enriched_groups.json"
         enriched_data = {
@@ -516,9 +536,11 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
             "generated_at":  datetime.now(timezone.utc).isoformat(),
             "groups": [
                 {
-                    "check_id":             g.check_ids,
+                    "group_name":           getattr(g, "group_name", getattr(g, "check_id", "")),
+                    "check_ids":            getattr(g, "check_ids", [getattr(g, "check_id", "")]),
                     "output_section":       g.output_section,
                     "instance_count":       g.instance_count,
+                    "affected_accounts":    g.affected_account_names,
                     "likelihood_rating":    g.likelihood_rating,
                     "risk_rating":          g.representative.risk_rating,
                     "consequence_rating":   g.representative.consequence_rating,
@@ -527,9 +549,11 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
                     "situation_narrative":  g.representative.situation_narrative,
                     "consequence_narrative":g.representative.consequence_narrative,
                     "access_required":      g.representative.access_required,
+                    "recommendations":      g.representative.raw_remediation_recommendation_text,
                     "ai_enriched":          g.representative.ai_enriched,
                     "llm_failed":           g.representative.llm_enrichment_failed,
                     "human_review_required":g.representative.human_review_required,
+                    "affected_resources":   _res_detail(g.instance_ids),
                 }
                 for g in er.output_groups
             ],
@@ -538,8 +562,21 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
             json.dump(enriched_data, fh, indent=2, default=str, ensure_ascii=False)
 
         print()
-        print("[ Writing Stage 3 outputs ]")
+        print("[ Writing outputs ]")
         print(f"  ✓ enriched_groups.json     ({enriched_path.stat().st_size // 1024} KB)")
+
+        # ── Stage 5: Excel renderer ────────────────────────────────
+        print()
+        print("[ Stage 5 ] Rendering Excel report...")
+        _tmpl = None
+        _cfg_tmpl = cfg.get("output", {}).get("template_path", "")
+        if _cfg_tmpl:
+            _p = Path(_cfg_tmpl)
+            if not _p.is_absolute():
+                _p = Path(__file__).resolve().parent.parent / _cfg_tmpl
+            if _p.exists():
+                _tmpl = _p
+        excel_path = render_excel(er, cfg, output_path, template_path=_tmpl)
 
         if er.warnings:
             print(f"  ⚠ LLM failures: {er.failed_count}")

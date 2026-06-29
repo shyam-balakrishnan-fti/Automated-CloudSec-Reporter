@@ -1,234 +1,376 @@
 {
-  "run_id": "54b1a6cf-97c8-4049-9204-042f9fabde84",
-  "group_count": 12,
-  "enriched": 0,
-  "failed": 12,
+  "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+  "group_count": 8,
+  "enriched": 8,
+  "failed": 0,
   "risk_ratings": {
-    "High": 0,
-    "Medium": 0,
+    "High": 7,
+    "Medium": 1,
     "Low": 0,
-    "Unknown": 12
+    "Unknown": 0
   },
-  "generated_at": "2026-06-29T04:53:15.125599+00:00",
+  "generated_at": "2026-06-29T06:35:11.678810+00:00",
   "groups": [
     {
-      "check_id": [
+      "group_name": "Multi-Factor Authentication Not Enforced for IAM Principals",
+      "check_ids": [
+        "iam_root_mfa_enabled",
         "iam_user_mfa_enabled_console_access"
       ],
       "output_section": "AWS",
-      "instance_count": 1,
-      "likelihood_rating": "High",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure MFA is enabled for all IAM users with console access",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
-    },
-    {
-      "check_id": [
-        "iam_root_mfa_enabled"
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod"
       ],
-      "output_section": "AWS",
-      "instance_count": 1,
       "likelihood_rating": "High",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure MFA is enabled for the root account",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Root Account MFA Not Enabled in Production Environment",
+      "root_cause_narrative": "Multi-factor authentication has not been configured for the AWS root account, likely due to incomplete account hardening during initial setup or lack of enforcement in security baseline procedures.",
+      "situation_narrative": "The AWS root account for acme-prod lacks MFA protection, affecting 2 resources across the production environment. This account possesses unrestricted administrative privileges across all AWS services and resources. The finding violates CIS AWS Foundations Benchmark 2.0 control 1.5, a fundamental security control for privileged account protection.",
+      "consequence_narrative": "An attacker who compromises the root account credentials through phishing, credential stuffing, or password reuse could gain complete control over the production AWS environment. This includes the ability to delete resources, exfiltrate data, create backdoor access, and disable security controls without any secondary authentication barrier.",
+      "access_required": "An attacker would need to obtain the root account email address and password through credential theft, social engineering, or data breach.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "",
+          "resource_name": "",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMAccountSummary",
+          "status_extended": "Root account does not have MFA enabled."
+        },
+        {
+          "resource_uid": "arn:aws:iam::123456789012:user/john.smith",
+          "resource_name": "john.smith",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMUser",
+          "status_extended": "IAM user john.smith does not have MFA enabled."
+        }
+      ]
     },
     {
-      "check_id": [
+      "group_name": "Publicly Accessible Network Resources",
+      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
         "rds_instance_no_public_access"
       ],
       "output_section": "AWS",
-      "instance_count": 1,
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod"
+      ],
       "likelihood_rating": "High",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure RDS instances are not publicly accessible",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Security Group Allows Unrestricted SSH Access from Internet (0.0.0.0/0:22)",
+      "root_cause_narrative": "Security group sg-0abc1234 was configured with an overly permissive ingress rule allowing SSH traffic from any source IP address (0.0.0.0/0). This likely resulted from convenience-driven provisioning practices or lack of least-privilege enforcement during infrastructure deployment.",
+      "situation_narrative": "Security group sg-0abc1234 in the acme-prod account (ap-southeast-2) permits unrestricted inbound SSH access on TCP port 22 from the entire internet. This misconfiguration affects 2 resources in the production environment and violates CIS-2.0 section 5.2 and NIST-800-53 SC-7 controls. The security group is tagged as production infrastructure managed by the platform team.",
+      "consequence_narrative": "Unrestricted SSH exposure enables attackers to perform brute-force authentication attacks, credential stuffing, and exploit unpatched SSH vulnerabilities without network-level restrictions. Successful compromise would grant shell access to EC2 instances, potentially leading to data exfiltration, lateral movement, or complete environment takeover.",
+      "access_required": "No existing access required; any internet-connected attacker can attempt SSH authentication against exposed instances.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:123456789012:security-group/sg-0abc1234",
+          "resource_name": "sg-0abc1234",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSEC2SecurityGroup",
+          "status_extended": "Security group sg-0abc1234 allows unrestricted SSH access."
+        },
+        {
+          "resource_uid": "arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
+          "resource_name": "prod-db",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSRDSDBInstance",
+          "status_extended": "RDS instance prod-db is publicly accessible."
+        }
+      ]
     },
     {
-      "check_id": [
-        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+      "group_name": "CloudTrail Logging Configuration Gaps",
+      "check_ids": [
+        "cloudtrail_multi_region_enabled",
+        "cloudtrail_log_file_validation_enabled"
       ],
       "output_section": "AWS",
-      "instance_count": 1,
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod"
+      ],
       "likelihood_rating": "High",
-      "risk_rating": null,
+      "risk_rating": "High",
       "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "finding_title": "CloudTrail Multi-Region Logging Disabled on Production Trail",
+      "root_cause_narrative": "The CloudTrail trail 'management-events' was configured to log events in a single region rather than across all AWS regions. This occurs when the IsMultiRegionTrail property is set to false during trail creation or subsequent modification.",
+      "situation_narrative": "A CloudTrail trail named 'management-events' in the acme-prod account (ap-southeast-2 region) is not configured for multi-region logging. This affects 2 resources across the production environment. The trail currently captures API activity only in its home region, leaving API calls in other regions unmonitored. This configuration violates CIS AWS Foundations Benchmark 2.0 control 3.1.",
+      "consequence_narrative": "Without multi-region logging, unauthorized API activity in regions outside ap-southeast-2 will not be recorded, preventing detection of attacker reconnaissance, privilege escalation, or data exfiltration attempts. During incident response, security teams will lack visibility into the full scope of compromise if attackers operate across multiple regions. This creates a blind spot that sophisticated threat actors commonly exploit.",
+      "access_required": "An attacker with valid AWS credentials or compromised access keys can operate undetected in unmonitored regions.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events",
+          "resource_name": "management-events",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSCloudTrailTrail",
+          "status_extended": "CloudTrail is not enabled in all regions."
+        },
+        {
+          "resource_uid": "arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events",
+          "resource_name": "management-events",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSCloudTrailTrail",
+          "status_extended": "Trail management-events does not have log file validation enabled."
+        }
+      ]
     },
     {
-      "check_id": [
+      "group_name": "EC2 Instance Metadata Service Not Using IMDSv2",
+      "check_ids": [
         "ec2_instance_imdsv2_enabled"
       ],
       "output_section": "AWS",
       "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
       "likelihood_rating": "High",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure EC2 instances use IMDSv2",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "EC2 Instance IMDSv2 Not Enforced in Production Environment",
+      "root_cause_narrative": "Instance i-0abc1234 was launched or configured without requiring IMDSv2, allowing the legacy IMDSv1 protocol which transmits instance metadata without session authentication. This typically occurs when instances are created using default settings or older launch templates that do not enforce the HttpTokens=required parameter.",
+      "situation_narrative": "EC2 instance i-0abc1234 in the acme-prod account (ap-southeast-2 region) permits access to the Instance Metadata Service using IMDSv1. This instance is tagged as a production resource owned by the platform-team. The finding affects a single resource but represents a configuration gap that violates CIS 2.0 (2.1.5) and NIST 800-53 (SC-7) compliance requirements.",
+      "consequence_narrative": "An attacker who achieves server-side request forgery (SSRF) or gains limited code execution on this instance can retrieve IAM credentials, user data, and other sensitive metadata without authentication. These credentials could enable lateral movement, privilege escalation, or unauthorized access to AWS resources within the production account.",
+      "access_required": "An attacker would need the ability to make HTTP requests from within the EC2 instance, typically through SSRF vulnerabilities, command injection, or compromised application code.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "i-0abc1234",
+          "resource_name": "i-0abc1234",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSEC2Instance",
+          "status_extended": "Instance i-0abc1234 does not enforce IMDSv2."
+        }
+      ]
     },
     {
-      "check_id": [
+      "group_name": "RDS Instance Encryption at Rest Not Enabled",
+      "check_ids": [
         "rds_instance_storage_encrypted"
       ],
       "output_section": "AWS",
       "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
       "likelihood_rating": "High",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure RDS instances are encrypted at rest",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "RDS Instance prod-db Lacks Encryption at Rest in Production Environment",
+      "root_cause_narrative": "The RDS instance was provisioned without enabling storage encryption, likely due to missing encryption requirements in infrastructure-as-code templates or manual provisioning without security guardrails enforced at deployment time.",
+      "situation_narrative": "RDS database instance prod-db in account acme-prod (ap-southeast-2) is operating without storage encryption enabled. This production database, tagged under the platform team's ownership, violates CIS AWS Foundations Benchmark 2.0 control 2.3.1. The finding affects a single database instance in the production environment.",
+      "consequence_narrative": "Unencrypted RDS storage exposes database contents to unauthorized access if underlying EBS snapshots, volumes, or backups are compromised through account takeover, insider threats, or AWS infrastructure vulnerabilities. Any sensitive data stored in this database, including customer records, authentication credentials, or business-critical information, would be readable in plaintext from the storage layer.",
+      "access_required": "An attacker would need AWS account access with permissions to create snapshots or access EBS volumes, or physical access to AWS storage infrastructure.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
+          "resource_name": "prod-db",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSRDSDBInstance",
+          "status_extended": "RDS instance prod-db is not encrypted at rest."
+        }
+      ]
     },
     {
-      "check_id": [
+      "group_name": "S3 Bucket Security Posture Deficiencies",
+      "check_ids": [
         "s3_bucket_public_access",
         "s3_bucket_default_encryption",
         "s3_bucket_object_lock"
       ],
       "output_section": "AWS",
       "instance_count": 5,
-      "likelihood_rating": "High",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure S3 bucket does not allow public access",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
-    },
-    {
-      "check_id": [
-        "config_recorder_all_regions_enabled"
+      "affected_accounts": [
+        "acme-prod",
+        "acme-dev"
       ],
-      "output_section": "AWS",
-      "instance_count": 1,
-      "likelihood_rating": "Medium",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure AWS Config is enabled in all regions",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "S3 Bucket Allows Public Access Without Block Public Access Controls",
+      "root_cause_narrative": "The S3 bucket 'acme-logs' was provisioned without enabling Block Public Access settings at the bucket level. This allows bucket policies or ACLs to grant public internet access, overriding account-level security boundaries.",
+      "situation_narrative": "The acme-logs bucket in the acme-prod account is publicly accessible without Block Public Access protections. This finding affects 5 S3 buckets across 2 accounts (acme-prod and acme-dev). The bucket is tagged as production infrastructure owned by the platform team and is subject to CIS 2.0 and NIST 800-53 compliance requirements. Current configuration permits bucket policies or ACLs to expose bucket contents to unauthenticated internet users.",
+      "consequence_narrative": "Unauthorized users can potentially read, list, or download sensitive log data stored in this bucket if any public-granting policies or ACLs are present. This exposure creates a direct path for data exfiltration, compliance violations under data protection regulations, and potential reconnaissance opportunities for attackers to understand infrastructure patterns and application behavior from log contents.",
+      "access_required": "No authentication or AWS credentials required; any internet user can access bucket contents if public policies or ACLs are configured.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:s3:::acme-logs",
+          "resource_name": "acme-logs",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-logs is publicly accessible."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::acme-backups",
+          "resource_name": "acme-backups",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-backups is publicly accessible."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::dev-uploads",
+          "resource_name": "dev-uploads",
+          "account_uid": "987654321098",
+          "account_name": "acme-dev",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket dev-uploads is publicly accessible."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::acme-archive",
+          "resource_name": "acme-archive",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-archive has no default encryption."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::acme-logs",
+          "resource_name": "acme-logs",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-logs does not have Object Lock enabled."
+        }
+      ]
     },
     {
-      "check_id": [
+      "group_name": "Centralized Security Monitoring Not Fully Enabled",
+      "check_ids": [
+        "config_recorder_all_regions_enabled",
         "securityhub_enabled",
-        "cloudtrail_multi_region_enabled"
+        "vpc_flow_logs_enabled"
       ],
       "output_section": "AWS",
-      "instance_count": 2,
+      "instance_count": 3,
+      "affected_accounts": [
+        "acme-prod"
+      ],
       "likelihood_rating": "High",
-      "risk_rating": null,
+      "risk_rating": "High",
       "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] =SUM(1,2) CloudTrail multi-region logging check",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "finding_title": "AWS Config Recorder Not Enabled in All Regions",
+      "root_cause_narrative": "AWS Config recorder has not been configured or activated across all AWS regions in the acme-prod account. This configuration gap prevents continuous monitoring and compliance auditing of resource configurations in regions where the recorder is disabled.",
+      "situation_narrative": "AWS Config is not recording configuration changes in all regions within the acme-prod account, affecting 3 resources across the account. This misconfiguration violates CIS AWS Foundations Benchmark 2.0 control 3.5, which mandates Config recording in all regions to maintain visibility into resource configuration changes. Without Config enabled globally, the organization lacks a complete audit trail of infrastructure modifications and cannot detect configuration drift or unauthorized changes in unmonitored regions.",
+      "consequence_narrative": "Attackers could exploit unmonitored regions to deploy malicious resources, modify security configurations, or exfiltrate data without detection. The organization cannot perform compliance audits, investigate security incidents, or demonstrate configuration baselines in regions where Config is disabled. This gap creates blind spots in the security monitoring infrastructure and prevents automated drift detection for infrastructure-as-code deployments.",
+      "access_required": "Valid AWS credentials with permissions to create or modify resources in unmonitored regions would allow exploitation without detection.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "synthetic-resource-config_rec",
+          "resource_name": "synthetic-resource-config_rec",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSAccount",
+          "status_extended": "AWS Config recorder is not enabled in all regions."
+        },
+        {
+          "resource_uid": "securityhub",
+          "resource_name": "securityhub",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Security Hub is not enabled."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:123456789012:vpc/vpc-0abc1234",
+          "resource_name": "vpc-0abc1234",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSVPC",
+          "status_extended": "VPC vpc-0abc1234 does not have flow logging enabled."
+        }
+      ]
     },
     {
-      "check_id": [
+      "group_name": "IAM Access Key Rotation Policy Not Enforced",
+      "check_ids": [
         "iam_user_access_key_age_90_days"
       ],
       "output_section": "AWS",
       "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
       "likelihood_rating": "Medium",
-      "risk_rating": null,
+      "risk_rating": "Medium",
       "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure IAM user access keys are rotated every 90 days",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
-    },
-    {
-      "check_id": [
-        "vpc_flow_logs_enabled"
-      ],
-      "output_section": "AWS",
-      "instance_count": 1,
-      "likelihood_rating": "High",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure VPC flow logging is enabled in all VPCs",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
-    },
-    {
-      "check_id": [
-        "cloudtrail_log_file_validation_enabled"
-      ],
-      "output_section": "AWS",
-      "instance_count": 1,
-      "likelihood_rating": "Low",
-      "risk_rating": null,
-      "consequence_rating": "Moderate",
-      "finding_title": "[REQUIRES_HUMAN_INPUT] Ensure CloudTrail log file validation is enabled",
-      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
-      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
-      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
-      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
-      "ai_enriched": false,
-      "llm_failed": true,
-      "human_review_required": true
+      "finding_title": "IAM Access Key for jane.doe Exceeds 90-Day Rotation Policy (120 Days Old)",
+      "root_cause_narrative": "The IAM access key AKIAIOSFODNN7EXAMPLE for user jane.doe has not been rotated in 120 days, exceeding the 90-day rotation policy. This typically occurs due to lack of automated key rotation processes or missed operational hygiene tasks.",
+      "situation_narrative": "An active IAM access key for user jane.doe in the acme-prod account (123456789012) is currently 120 days old, violating the 90-day rotation requirement. The affected user is tagged with Environment=prod and Owner=platform-team, indicating this is a production-level service account or operator credential. This finding affects a single IAM user resource.",
+      "consequence_narrative": "Stale access keys increase the window of opportunity for compromised credentials to be exploited. If these credentials were previously exposed through code repositories, logs, or phishing attacks, an attacker could maintain persistent access to AWS resources with whatever permissions jane.doe possesses. The extended age amplifies risk of undetected credential compromise.",
+      "access_required": "An attacker would need to have previously obtained or intercepted the access key and secret key pair through credential exposure, code leaks, or social engineering.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam::123456789012:user/jane.doe",
+          "resource_name": "jane.doe",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMUser",
+          "status_extended": "Access key AKIAIOSFODNN7EXAMPLE for user jane.doe is 120 days old."
+        }
+      ]
     }
   ]
 }
