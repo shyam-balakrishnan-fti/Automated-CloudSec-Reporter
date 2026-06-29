@@ -1,40 +1,32 @@
 {
-  "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
-  "approved_at": "2026-06-29T06:34:12.574Z",
+  "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
+  "approved_at": "2026-06-29T06:53:52.450Z",
   "groups": [
+    {
+      "group_name": "Critical Network Exposure via Public Internet Access",
+      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+        "rds_instance_no_public_access"
+      ],
+      "rationale": "Both findings represent critical public internet exposure of sensitive infrastructure resources requiring immediate network access restrictions.",
+      "analyst_note": ""
+    },
     {
       "group_name": "Multi-Factor Authentication Not Enforced for IAM Principals",
       "check_ids": [
         "iam_root_mfa_enabled",
         "iam_user_mfa_enabled_console_access"
       ],
-      "rationale": "Both findings address the same security control of enforcing MFA across IAM identities to prevent unauthorized access.",
+      "rationale": "Both findings address the absence of MFA enforcement across IAM identities, sharing the same control objective and remediation approach.",
       "analyst_note": ""
     },
     {
-      "group_name": "Publicly Accessible Network Resources",
-      "check_ids": [
-        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
-        "rds_instance_no_public_access"
-      ],
-      "rationale": "Both findings expose critical resources to the public internet, sharing the same attack vector of unrestricted network access.",
-      "analyst_note": ""
-    },
-    {
-      "group_name": "CloudTrail Logging Configuration Gaps",
+      "group_name": "CloudTrail Logging Configuration Weaknesses",
       "check_ids": [
         "cloudtrail_multi_region_enabled",
         "cloudtrail_log_file_validation_enabled"
       ],
-      "rationale": "Both findings address CloudTrail logging completeness and integrity, essential for audit trail reliability.",
-      "analyst_note": ""
-    },
-    {
-      "group_name": "EC2 Instance Metadata Service Not Using IMDSv2",
-      "check_ids": [
-        "ec2_instance_imdsv2_enabled"
-      ],
-      "rationale": "Standalone - distinct EC2 metadata security issue with unique remediation requirements.",
+      "rationale": "Both findings address CloudTrail logging capabilities requiring comprehensive audit trail coverage and integrity validation.",
       "analyst_note": ""
     },
     {
@@ -42,27 +34,34 @@
       "check_ids": [
         "rds_instance_storage_encrypted"
       ],
-      "rationale": "Standalone - distinct data protection issue for RDS storage encryption with no related checks in this scan.",
+      "rationale": "Standalone - distinct data-at-rest encryption requirement for RDS separate from network exposure findings.",
       "analyst_note": ""
     },
     {
-      "group_name": "S3 Bucket Security Posture Deficiencies",
+      "group_name": "S3 Bucket Security Misconfigurations",
       "check_ids": [
         "s3_bucket_public_access",
         "s3_bucket_default_encryption",
         "s3_bucket_object_lock"
       ],
-      "rationale": "All findings relate to S3 bucket security controls including access restrictions, encryption, and immutability protections.",
+      "rationale": "All three findings relate to S3 bucket security controls covering access, encryption, and immutability protections within the same service.",
       "analyst_note": ""
     },
     {
-      "group_name": "Centralized Security Monitoring Not Fully Enabled",
+      "group_name": "Ensure AWS Security Hub is enabled",
       "check_ids": [
-        "config_recorder_all_regions_enabled",
         "securityhub_enabled",
-        "vpc_flow_logs_enabled"
+        "config_recorder_all_regions_enabled"
       ],
-      "rationale": "All findings relate to enabling comprehensive visibility and centralized monitoring across AWS environments.",
+      "rationale": "Split from: Centralized Security Monitoring Services Not Enabled",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Ensure EC2 instances use IMDSv2",
+      "check_ids": [
+        "ec2_instance_imdsv2_enabled"
+      ],
+      "rationale": "Split from: Centralized Security Monitoring Services Not Enabled",
       "analyst_note": ""
     },
     {
@@ -70,7 +69,15 @@
       "check_ids": [
         "iam_user_access_key_age_90_days"
       ],
-      "rationale": "Standalone - distinct credential lifecycle management issue separate from MFA enforcement.",
+      "rationale": "Standalone - distinct credential lifecycle management issue separate from authentication controls.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "VPC Flow Logs Not Enabled for Network Visibility",
+      "check_ids": [
+        "vpc_flow_logs_enabled"
+      ],
+      "rationale": "Standalone - distinct network traffic logging capability separate from CloudTrail audit logging.",
       "analyst_note": ""
     }
   ]

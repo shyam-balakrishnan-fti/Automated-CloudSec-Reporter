@@ -1,21 +1,21 @@
 {
-  "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+  "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
   "source_file": "data/synthetic/synthetic_prowler.xlsx",
   "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
   "scanner": "prowler",
   "scanner_version": "4.3.1",
-  "generated_at": "2026-06-29T06:33:36.948850+00:00",
+  "generated_at": "2026-06-29T06:52:43.824855+00:00",
   "total_findings": 20,
   "included": 17,
   "excluded": 2,
   "duplicates": 1,
   "findings": [
     {
-      "finding_instance_id": "b3ff5f1b-a81b-488b-9202-616d047a03e2",
+      "finding_instance_id": "c2d5c770-0cb4-4544-ad72-824cc82a99e3",
       "stable_finding_key": "aws:acme-prod:s3:s3_bucket_public_access:arn:aws:s3:::acme-logs",
       "dedup_key": "123456789012:s3_bucket_public_access:arn:aws:s3:::acme-logs:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:2",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -54,7 +54,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 3,
-      "representative_instance_id": "b3ff5f1b-a81b-488b-9202-616d047a03e2",
+      "representative_instance_id": "c2d5c770-0cb4-4544-ad72-824cc82a99e3",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -103,7 +103,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943152",
+          "timestamp": "2026-06-29T06:52:43.820874",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -112,7 +112,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943360",
+          "timestamp": "2026-06-29T06:52:43.821029",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -121,7 +121,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944639",
+          "timestamp": "2026-06-29T06:52:43.824358",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -132,11 +132,11 @@
       ]
     },
     {
-      "finding_instance_id": "56ccff9f-315c-4373-967d-b7a912e5e4ac",
+      "finding_instance_id": "9ede9189-8f03-4890-8638-b57a8980abee",
       "stable_finding_key": "aws:acme-prod:s3:s3_bucket_public_access:arn:aws:s3:::acme-backups",
       "dedup_key": "123456789012:s3_bucket_public_access:arn:aws:s3:::acme-backups:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:3",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -224,7 +224,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943173",
+          "timestamp": "2026-06-29T06:52:43.820883",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -235,11 +235,11 @@
       ]
     },
     {
-      "finding_instance_id": "6cb6f08c-8582-4ec0-88cc-e6f3692bcc46",
+      "finding_instance_id": "ad7d35b3-9f61-4394-9f6e-d5dab205deff",
       "stable_finding_key": "aws:acme-dev:s3:s3_bucket_public_access:arn:aws:s3:::dev-uploads",
       "dedup_key": "987654321098:s3_bucket_public_access:arn:aws:s3:::dev-uploads:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:4",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -327,7 +327,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943181",
+          "timestamp": "2026-06-29T06:52:43.820890",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -338,11 +338,11 @@
       ]
     },
     {
-      "finding_instance_id": "d14f412c-f627-40b3-902c-422c75b40977",
+      "finding_instance_id": "2efb9e4d-5ff0-4303-970d-ab765cb87681",
       "stable_finding_key": "aws:acme-prod:s3:s3_bucket_default_encryption:arn:aws:s3:::acme-archive",
       "dedup_key": "123456789012:s3_bucket_default_encryption:arn:aws:s3:::acme-archive:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:5",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "MUTED(FAIL)",
       "report_inclusion": "INCLUDED",
@@ -378,7 +378,7 @@
       "output_section": "AWS",
       "likelihood_rating": "Medium",
       "instance_count": 1,
-      "representative_instance_id": "d14f412c-f627-40b3-902c-422c75b40977",
+      "representative_instance_id": "2efb9e4d-5ff0-4303-970d-ab765cb87681",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -427,7 +427,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943187",
+          "timestamp": "2026-06-29T06:52:43.820896",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -436,7 +436,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943391",
+          "timestamp": "2026-06-29T06:52:43.821060",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -445,7 +445,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944662",
+          "timestamp": "2026-06-29T06:52:43.824401",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -456,11 +456,11 @@
       ]
     },
     {
-      "finding_instance_id": "4c02e6e4-4591-4f2a-add9-93df09093dbe",
+      "finding_instance_id": "20b41943-e5c5-4c7d-b42f-8ffc864ee23a",
       "stable_finding_key": "aws:acme-prod:s3:s3_bucket_versioning_enabled:arn:aws:s3:::acme-logs",
       "dedup_key": "123456789012:s3_bucket_versioning_enabled:arn:aws:s3:::acme-logs:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:6",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "PASS",
       "report_inclusion": "EXCLUDED",
@@ -547,7 +547,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.942975",
+          "timestamp": "2026-06-29T06:52:43.820741",
           "stage": "stage2_status_filter",
           "field": "report_inclusion",
           "old_value": "INCLUDED",
@@ -558,11 +558,11 @@
       ]
     },
     {
-      "finding_instance_id": "cfc13230-f230-47e3-99f2-b19cc209e4f9",
+      "finding_instance_id": "e40d4bdb-77c0-41cb-a65a-cc4e0e8df1e9",
       "stable_finding_key": "aws:acme-prod:iam:iam_user_mfa_enabled_console_access:arn:aws:iam::123456789012:user/john.smith",
       "dedup_key": "123456789012:iam_user_mfa_enabled_console_access:arn:aws:iam::123456789012:user/john.smith:global",
       "source_row_id": "Sheet:prowler-output Row:7",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -600,7 +600,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "cfc13230-f230-47e3-99f2-b19cc209e4f9",
+      "representative_instance_id": "e40d4bdb-77c0-41cb-a65a-cc4e0e8df1e9",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -649,7 +649,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943194",
+          "timestamp": "2026-06-29T06:52:43.820903",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -658,7 +658,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943412",
+          "timestamp": "2026-06-29T06:52:43.821073",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -667,7 +667,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944581",
+          "timestamp": "2026-06-29T06:52:43.824247",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -678,11 +678,11 @@
       ]
     },
     {
-      "finding_instance_id": "16c9f939-dc4c-4851-a1d0-c0a7d8fd8652",
+      "finding_instance_id": "cdbbb338-7c21-48fb-8cf4-c50eb3bda7ec",
       "stable_finding_key": "aws:acme-prod:iam:iam_root_mfa_enabled:no_resource",
       "dedup_key": "123456789012:iam_root_mfa_enabled",
       "source_row_id": "Sheet:prowler-output Row:8",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -718,7 +718,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "16c9f939-dc4c-4851-a1d0-c0a7d8fd8652",
+      "representative_instance_id": "cdbbb338-7c21-48fb-8cf4-c50eb3bda7ec",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -767,7 +767,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.933955",
+          "timestamp": "2026-06-29T06:52:43.809616",
           "stage": "stage1_ingest",
           "field": "human_review_required",
           "old_value": false,
@@ -776,7 +776,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943201",
+          "timestamp": "2026-06-29T06:52:43.820910",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -785,7 +785,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943423",
+          "timestamp": "2026-06-29T06:52:43.821083",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -794,7 +794,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944571",
+          "timestamp": "2026-06-29T06:52:43.824231",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -805,11 +805,11 @@
       ]
     },
     {
-      "finding_instance_id": "3c3254cb-e11b-4b94-b997-d4a761f985cc",
+      "finding_instance_id": "9735e17a-6707-46d7-a08b-280f686fccc5",
       "stable_finding_key": "aws:acme-prod:iam:iam_user_access_key_age_90_days:arn:aws:iam::123456789012:user/jane.doe",
       "dedup_key": "123456789012:iam_user_access_key_age_90_days:arn:aws:iam::123456789012:user/jane.doe:global",
       "source_row_id": "Sheet:prowler-output Row:9",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "MUTED(FAIL)",
       "report_inclusion": "INCLUDED",
@@ -847,7 +847,7 @@
       "output_section": "AWS",
       "likelihood_rating": "Medium",
       "instance_count": 1,
-      "representative_instance_id": "3c3254cb-e11b-4b94-b997-d4a761f985cc",
+      "representative_instance_id": "9735e17a-6707-46d7-a08b-280f686fccc5",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -896,7 +896,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.934123",
+          "timestamp": "2026-06-29T06:52:43.809849",
           "stage": "stage1_ingest",
           "field": "scanner_status",
           "old_value": "FAIL",
@@ -905,7 +905,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943211",
+          "timestamp": "2026-06-29T06:52:43.820921",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -914,7 +914,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943436",
+          "timestamp": "2026-06-29T06:52:43.821095",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -923,7 +923,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944655",
+          "timestamp": "2026-06-29T06:52:43.824389",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -934,11 +934,11 @@
       ]
     },
     {
-      "finding_instance_id": "4e17e484-f068-4821-b777-b5648db6a334",
+      "finding_instance_id": "aa4f4821-34b5-4d87-9855-341af3963a31",
       "stable_finding_key": "aws:acme-prod:ec2:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22:arn:aws:ec2:ap-southeast-2:123456789012:security-group/sg-0abc1234",
       "dedup_key": "123456789012:ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22:arn:aws:ec2:ap-southeast-2:123456789012:security-group/sg-0abc1234:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:10",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -977,7 +977,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "4e17e484-f068-4821-b777-b5648db6a334",
+      "representative_instance_id": "aa4f4821-34b5-4d87-9855-341af3963a31",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1026,7 +1026,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943220",
+          "timestamp": "2026-06-29T06:52:43.820930",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1035,7 +1035,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943445",
+          "timestamp": "2026-06-29T06:52:43.821104",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1044,7 +1044,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944554",
+          "timestamp": "2026-06-29T06:52:43.824179",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -1055,11 +1055,11 @@
       ]
     },
     {
-      "finding_instance_id": "17689249-6871-4000-998c-3d9df48e5fca",
+      "finding_instance_id": "5029a161-255f-4a72-bc4e-8e6cd8a19c20",
       "stable_finding_key": "aws:acme-prod:ec2:ec2_instance_imdsv2_enabled:i-0abc1234",
       "dedup_key": "123456789012:ec2_instance_imdsv2_enabled:i-0abc1234:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:11",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -1097,7 +1097,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "17689249-6871-4000-998c-3d9df48e5fca",
+      "representative_instance_id": "5029a161-255f-4a72-bc4e-8e6cd8a19c20",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1146,7 +1146,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943228",
+          "timestamp": "2026-06-29T06:52:43.820936",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1155,7 +1155,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943968",
+          "timestamp": "2026-06-29T06:52:43.821113",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1164,7 +1164,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944624",
+          "timestamp": "2026-06-29T06:52:43.824331",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -1175,11 +1175,11 @@
       ]
     },
     {
-      "finding_instance_id": "4cf762fc-a76b-48d0-a989-1afa91e60503",
+      "finding_instance_id": "37feb9d4-fbb8-413a-b279-99ae05882991",
       "stable_finding_key": "aws:acme-prod:rds:rds_instance_storage_encrypted:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
       "dedup_key": "123456789012:rds_instance_storage_encrypted:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:12",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -1215,7 +1215,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "4cf762fc-a76b-48d0-a989-1afa91e60503",
+      "representative_instance_id": "37feb9d4-fbb8-413a-b279-99ae05882991",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1264,7 +1264,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.934611",
+          "timestamp": "2026-06-29T06:52:43.811542",
           "stage": "stage1_ingest",
           "field": "human_review_required",
           "old_value": false,
@@ -1273,7 +1273,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943236",
+          "timestamp": "2026-06-29T06:52:43.820941",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1282,7 +1282,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944063",
+          "timestamp": "2026-06-29T06:52:43.821129",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1291,7 +1291,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944631",
+          "timestamp": "2026-06-29T06:52:43.824343",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -1302,11 +1302,11 @@
       ]
     },
     {
-      "finding_instance_id": "7add8665-15cd-4063-a5eb-3fe18370a212",
+      "finding_instance_id": "58f74d31-dde9-4661-8ac4-0cc75da0f957",
       "stable_finding_key": "aws:acme-prod:rds:rds_instance_no_public_access:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
       "dedup_key": "123456789012:rds_instance_no_public_access:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:13",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -1344,7 +1344,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "7add8665-15cd-4063-a5eb-3fe18370a212",
+      "representative_instance_id": "58f74d31-dde9-4661-8ac4-0cc75da0f957",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1393,7 +1393,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943243",
+          "timestamp": "2026-06-29T06:52:43.820947",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1402,7 +1402,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944076",
+          "timestamp": "2026-06-29T06:52:43.821139",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1411,7 +1411,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944589",
+          "timestamp": "2026-06-29T06:52:43.824281",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -1422,16 +1422,16 @@
       ]
     },
     {
-      "finding_instance_id": "759c68f0-281e-4c46-8702-617d0c698fd8",
+      "finding_instance_id": "cc6bff49-0009-4e7f-8813-07a8fd8f9339",
       "stable_finding_key": "aws:acme-prod:rds:rds_instance_no_public_access:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
       "dedup_key": "123456789012:rds_instance_no_public_access:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:14",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "EXCLUDED",
       "is_duplicate": true,
-      "duplicate_of": "7add8665-15cd-4063-a5eb-3fe18370a212",
+      "duplicate_of": "58f74d31-dde9-4661-8ac4-0cc75da0f957",
       "human_review_required": false,
       "review_reason": null,
       "muted_reconciled": false,
@@ -1513,31 +1513,31 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943117",
+          "timestamp": "2026-06-29T06:52:43.820823",
           "stage": "stage2_dedup",
           "field": "report_inclusion",
           "old_value": "INCLUDED",
           "new_value": "EXCLUDED",
-          "reason": "Duplicate of finding_instance_id=7add8665-15cd-4063-a5eb-3fe18370a212 (same dedup_key)",
+          "reason": "Duplicate of finding_instance_id=58f74d31-dde9-4661-8ac4-0cc75da0f957 (same dedup_key)",
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943122",
+          "timestamp": "2026-06-29T06:52:43.820828",
           "stage": "stage2_dedup",
           "field": "is_duplicate",
           "old_value": false,
           "new_value": true,
-          "reason": "dedup_key='123456789012:rds_instance_no_public_access:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db:ap-southeast-2' already seen; primary=7add8665-15cd-4063-a5eb-3fe18370a212",
+          "reason": "dedup_key='123456789012:rds_instance_no_public_access:arn:aws:rds:ap-southeast-2:123456789012:db:prod-db:ap-southeast-2' already seen; primary=58f74d31-dde9-4661-8ac4-0cc75da0f957",
           "actor": "pipeline"
         }
       ]
     },
     {
-      "finding_instance_id": "18578172-4aa6-4a45-b9f9-4ed20858f8bb",
+      "finding_instance_id": "df85be91-3593-4e3f-85ed-0196ccfc52ff",
       "stable_finding_key": "aws:acme-prod:vpc:vpc_flow_logs_enabled:arn:aws:ec2:ap-southeast-2:123456789012:vpc/vpc-0abc1234",
       "dedup_key": "123456789012:vpc_flow_logs_enabled:arn:aws:ec2:ap-southeast-2:123456789012:vpc/vpc-0abc1234:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:15",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -1574,7 +1574,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "18578172-4aa6-4a45-b9f9-4ed20858f8bb",
+      "representative_instance_id": "df85be91-3593-4e3f-85ed-0196ccfc52ff",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1623,7 +1623,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943250",
+          "timestamp": "2026-06-29T06:52:43.820953",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1632,7 +1632,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944292",
+          "timestamp": "2026-06-29T06:52:43.821174",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1641,7 +1641,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944835",
+          "timestamp": "2026-06-29T06:52:43.824428",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -1652,11 +1652,11 @@
       ]
     },
     {
-      "finding_instance_id": "6ca4da77-0fc9-4975-81f2-866de1f122b7",
+      "finding_instance_id": "a9d56ce3-71c7-4d1d-8be3-bc4b3a471aea",
       "stable_finding_key": "aws:acme-prod:cloudtrail:cloudtrail_multi_region_enabled:arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events",
       "dedup_key": "123456789012:cloudtrail_multi_region_enabled:arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:16",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -1692,7 +1692,7 @@
       "output_section": "AWS",
       "likelihood_rating": "High",
       "instance_count": 1,
-      "representative_instance_id": "6ca4da77-0fc9-4975-81f2-866de1f122b7",
+      "representative_instance_id": "a9d56ce3-71c7-4d1d-8be3-bc4b3a471aea",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1741,7 +1741,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943257",
+          "timestamp": "2026-06-29T06:52:43.820959",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1750,7 +1750,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944322",
+          "timestamp": "2026-06-29T06:52:43.821510",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1759,7 +1759,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944596",
+          "timestamp": "2026-06-29T06:52:43.824316",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -1770,11 +1770,11 @@
       ]
     },
     {
-      "finding_instance_id": "415c3de3-d431-4f41-b6f1-5d0d26655e31",
+      "finding_instance_id": "b9f96106-51a7-4b2a-adc7-3f1c3eff438b",
       "stable_finding_key": "aws:acme-prod:cloudtrail:cloudtrail_log_file_validation_enabled:arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events",
       "dedup_key": "123456789012:cloudtrail_log_file_validation_enabled:arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:17",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -1812,7 +1812,7 @@
       "output_section": "AWS",
       "likelihood_rating": "Low",
       "instance_count": 1,
-      "representative_instance_id": "415c3de3-d431-4f41-b6f1-5d0d26655e31",
+      "representative_instance_id": "b9f96106-51a7-4b2a-adc7-3f1c3eff438b",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1861,7 +1861,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943281",
+          "timestamp": "2026-06-29T06:52:43.820967",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1870,7 +1870,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944335",
+          "timestamp": "2026-06-29T06:52:43.821529",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1879,7 +1879,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944848",
+          "timestamp": "2026-06-29T06:52:43.824439",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -1890,11 +1890,11 @@
       ]
     },
     {
-      "finding_instance_id": "85a5b5da-b468-4e7e-ba49-aaa1b8fbe617",
+      "finding_instance_id": "ae2913a0-a351-4ee3-908c-e8846827a3f9",
       "stable_finding_key": "aws:acme-prod:account:config_recorder_all_regions_enabled:synthetic-resource-config_rec",
       "dedup_key": "123456789012:config_recorder_all_regions_enabled:synthetic-resource-config_rec:global",
       "source_row_id": "Sheet:prowler-output Row:18",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -1930,7 +1930,7 @@
       "output_section": "AWS",
       "likelihood_rating": "Medium",
       "instance_count": 1,
-      "representative_instance_id": "85a5b5da-b468-4e7e-ba49-aaa1b8fbe617",
+      "representative_instance_id": "ae2913a0-a351-4ee3-908c-e8846827a3f9",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -1979,7 +1979,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943290",
+          "timestamp": "2026-06-29T06:52:43.820973",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -1988,7 +1988,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944350",
+          "timestamp": "2026-06-29T06:52:43.822051",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -1997,7 +1997,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944648",
+          "timestamp": "2026-06-29T06:52:43.824377",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -2008,11 +2008,11 @@
       ]
     },
     {
-      "finding_instance_id": "0b638f87-b2c3-4496-b933-fbaf1c39a1a8",
+      "finding_instance_id": "85b13de5-a361-4923-be35-3246e9d948bc",
       "stable_finding_key": "aws:acme-prod:guardduty:guardduty_is_enabled:guardduty-detector",
       "dedup_key": "123456789012:guardduty_is_enabled:guardduty-detector:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:19",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "MANUAL",
       "report_inclusion": "EXCLUDED",
@@ -2099,7 +2099,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.937630",
+          "timestamp": "2026-06-29T06:52:43.818287",
           "stage": "stage1_ingest",
           "field": "human_review_required",
           "old_value": false,
@@ -2108,7 +2108,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.943057",
+          "timestamp": "2026-06-29T06:52:43.820770",
           "stage": "stage2_status_filter",
           "field": "report_inclusion",
           "old_value": "INCLUDED",
@@ -2119,11 +2119,11 @@
       ]
     },
     {
-      "finding_instance_id": "212bacae-a90a-41d3-8074-dc7f191378b1",
+      "finding_instance_id": "bdc6ea03-c7b5-49fa-88a3-6a7151af8cb9",
       "stable_finding_key": "aws:acme-prod:securityhub:securityhub_enabled:securityhub",
       "dedup_key": "123456789012:securityhub_enabled:securityhub:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:20",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -2161,7 +2161,7 @@
       "output_section": "AWS",
       "likelihood_rating": "Medium",
       "instance_count": 1,
-      "representative_instance_id": "212bacae-a90a-41d3-8074-dc7f191378b1",
+      "representative_instance_id": "bdc6ea03-c7b5-49fa-88a3-6a7151af8cb9",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -2210,7 +2210,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943301",
+          "timestamp": "2026-06-29T06:52:43.820979",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -2219,7 +2219,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944362",
+          "timestamp": "2026-06-29T06:52:43.822328",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -2228,7 +2228,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944667",
+          "timestamp": "2026-06-29T06:52:43.824414",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,
@@ -2239,11 +2239,11 @@
       ]
     },
     {
-      "finding_instance_id": "bd029207-8ac2-4ddd-bff1-74ab9e0a3436",
+      "finding_instance_id": "f990c896-2969-45ba-b99b-02dec4933d81",
       "stable_finding_key": "aws:acme-prod:s3:s3_bucket_object_lock:arn:aws:s3:::acme-logs",
       "dedup_key": "123456789012:s3_bucket_object_lock:arn:aws:s3:::acme-logs:ap-southeast-2",
       "source_row_id": "Sheet:prowler-output Row:21",
-      "run_id": "9bab4323-7cae-4eff-8a6b-d6b6b5cede92",
+      "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
       "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
       "scanner_status": "FAIL",
       "report_inclusion": "INCLUDED",
@@ -2281,7 +2281,7 @@
       "output_section": "AWS",
       "likelihood_rating": "Low",
       "instance_count": 1,
-      "representative_instance_id": "bd029207-8ac2-4ddd-bff1-74ab9e0a3436",
+      "representative_instance_id": "f990c896-2969-45ba-b99b-02dec4933d81",
       "raw": {
         "auth_method": "profile:None",
         "timestamp": "2026-06-25T13:47:24Z",
@@ -2330,7 +2330,7 @@
       },
       "audit_trail": [
         {
-          "timestamp": "2026-06-29T06:33:36.943307",
+          "timestamp": "2026-06-29T06:52:43.820984",
           "stage": "stage2_grouping",
           "field": "output_section",
           "old_value": "",
@@ -2339,7 +2339,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944375",
+          "timestamp": "2026-06-29T06:52:43.822506",
           "stage": "stage2_grouping",
           "field": "instance_count",
           "old_value": 1,
@@ -2348,7 +2348,7 @@
           "actor": "pipeline"
         },
         {
-          "timestamp": "2026-06-29T06:33:36.944856",
+          "timestamp": "2026-06-29T06:52:43.824451",
           "stage": "stage2_likelihood",
           "field": "likelihood_rating",
           "old_value": null,

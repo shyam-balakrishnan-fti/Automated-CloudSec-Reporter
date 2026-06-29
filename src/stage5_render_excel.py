@@ -273,6 +273,38 @@ def _write_resource_row(
 
 # ── Finding row ───────────────────────────────────────────────────────
 
+def _build_recommendations(group) -> str:
+    source_groups = getattr(group, "source_groups", None)
+    if source_groups and len(source_groups) > 1:
+        parts = []
+        for sg in source_groups:
+            rep   = sg.representative
+            title = rep.raw_check_title or sg.check_id
+            remed = (rep.raw_remediation_recommendation_text or "").strip()
+            cli   = (rep.raw_remediation_code_cli or "").strip()
+            tf    = (rep.raw_remediation_code_terraform or "").strip()
+            body  = remed if remed else "[See vendor documentation]"
+            if cli:
+                body = body + "\n  CLI: " + cli
+            if tf:
+                body = body + "\n  Terraform: " + tf
+            parts.append(title + ":\n" + body)
+        return "\n\n".join(parts)
+    else:
+        rep   = group.representative
+        remed = (rep.raw_remediation_recommendation_text or "").strip()
+        cli   = (rep.raw_remediation_code_cli or "").strip()
+        tf    = (rep.raw_remediation_code_terraform or "").strip()
+        lines = []
+        if remed:
+            lines.append(remed)
+        if cli:
+            lines.append("CLI: " + cli)
+        if tf:
+            lines.append("Terraform: " + tf)
+        return "\n".join(lines)
+
+
 def _write_finding_row(
     ws,
     row:         int,
@@ -281,16 +313,10 @@ def _write_finding_row(
     all_findings: list[CanonicalFinding],
 ) -> None:
     """Write one finding row from a GroupedOutputGroup."""
-    rep         = group.representative
-    risk_rating = rep.risk_rating or "Medium"
-    risk_colour = RISK_COLOURS.get(risk_rating, "FFFFFFFF")
-
-    # Recommendations: prefer raw remediation text, fall back to LLM access_required
-    recommendations = (
-        rep.raw_remediation_recommendation_text
-        or rep.access_required
-        or ""
-    )
+    rep             = group.representative
+    risk_rating     = rep.risk_rating or "Medium"
+    risk_colour     = RISK_COLOURS.get(risk_rating, "FFFFFFFF")
+    recommendations = _build_recommendations(group)
 
     _write(ws, row, COL_REF,          ref,                       bold=False, halign="center", valign="center")
     _write(ws, row, COL_FINDING,      rep.finding_title          or group.group_name)
@@ -303,8 +329,8 @@ def _write_finding_row(
     _write(ws, row, COL_CONSEQUENCE_NARRATIVE, rep.consequence_narrative or "")
     _write(ws, row, COL_RECOMMENDATIONS, recommendations)
 
-    # Row height — generous for narrative content
-    ws.row_dimensions[row].height = 80
+    remed_lines = recommendations.count("\n") + 1
+    ws.row_dimensions[row].height = max(80, min(remed_lines * 15, 200))
 
 
 # ── Column widths ─────────────────────────────────────────────────────
