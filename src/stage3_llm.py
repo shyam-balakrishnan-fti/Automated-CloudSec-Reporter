@@ -456,7 +456,7 @@ def _compute_risk_rating(
 # ── Single group enrichment ───────────────────────────────────────────
 
 def _enrich_group(
-    group: OutputGroup,
+    group: "GroupedOutputGroup | OutputGroup",
     llm_cfg: dict[str, Any],
     risk_matrix: dict[str, str],
     warnings: list["EnrichWarning"],
@@ -464,9 +464,14 @@ def _enrich_group(
     total_groups: int,
 ) -> None:
     """Enrich one OutputGroup. Mutates group.representative in-place."""
-    rep      = group.representative
-    check_id = group.check_id
-    ctx      = group.to_llm_context()
+    rep = group.representative
+    # GroupedOutputGroup uses check_ids (list); OutputGroup uses check_id (str)
+    from stage2_5_grouping import GroupedOutputGroup as _GOG
+    if isinstance(group, _GOG):
+        check_id = group.group_name
+    else:
+        check_id = group.check_id
+    ctx = group.to_llm_context()
 
     print(
         f"  [{group_num}/{total_groups}] {check_id} "
@@ -600,7 +605,7 @@ class EnrichWarning:
 class EnrichResult:
     """Output of Stage 3."""
     run_id:         str
-    output_groups:  list[OutputGroup]
+    output_groups:  list["GroupedOutputGroup | OutputGroup"]
     all_findings:   list[CanonicalFinding]
     warnings:       list[EnrichWarning]
     config:         dict[str, Any]
@@ -622,20 +627,13 @@ class EnrichResult:
 
 # ── Main entry point ──────────────────────────────────────────────────
 
-def enrich(
-    process_result: ProcessResult,
+def _run_enrichment(
+    groups: list,
+    all_findings: list,
+    run_id: str,
     config: dict[str, Any],
 ) -> EnrichResult:
-    """
-    Stage 3 entry point.
-
-    Enriches every OutputGroup with LLM-generated narratives and computes
-    risk_rating from the likelihood × consequence matrix.
-
-    On LLM failure for a group: placeholder text is written and the group
-    is flagged for human review. The pipeline always continues — the quality
-    gate (Stage 4) blocks final mode if placeholders remain.
-    """
+    """Shared enrichment loop — works on OutputGroup or GroupedOutputGroup."""
     llm_cfg     = config.get("llm", {})
     risk_matrix = config.get("risk_matrix", {})
     warnings: list[EnrichWarning] = []
@@ -646,7 +644,10 @@ def enrich(
             "Cannot run Stage 3 without LLM configuration."
         )
 
-    total = len(process_result.output_groups)
+    total    = len(groups)
+    enriched = 0
+    failed   = 0
+
     print(
         f"\n[ Stage 3 ] LLM enrichment — {total} groups "
         f"(provider={llm_cfg.get('provider')}, "
@@ -654,10 +655,7 @@ def enrich(
         flush=True,
     )
 
-    enriched = 0
-    failed   = 0
-
-    for i, group in enumerate(process_result.output_groups, 1):
+    for i, group in enumerate(groups, 1):
         _enrich_group(
             group=group,
             llm_cfg=llm_cfg,
@@ -671,6 +669,18 @@ def enrich(
         else:
             enriched += 1
 
+        # Write enrichment results to GroupedOutputGroup fields too
+        from stage2_5_grouping import GroupedOutputGroup as GOG
+        if isinstance(group, GOG):
+            rep = group.representative
+            group.risk_rating          = rep.risk_rating
+            group.consequence_rating   = rep.consequence_rating
+            group.finding_title        = rep.finding_title
+            group.root_cause_narrative = rep.root_cause_narrative
+            group.situation_narrative  = rep.situation_narrative
+            group.consequence_narrative= rep.consequence_narrative
+            group.access_required      = rep.access_required
+
     print(
         f"\n  ✓ Enrichment complete: "
         f"{enriched} succeeded, {failed} failed",
@@ -678,11 +688,43 @@ def enrich(
     )
 
     return EnrichResult(
-        run_id=process_result.run_id,
-        output_groups=process_result.output_groups,
-        all_findings=process_result.all_findings,
+        run_id=run_id,
+        output_groups=groups,
+        all_findings=all_findings,
         warnings=warnings,
         config=config,
         enriched_count=enriched,
         failed_count=failed,
+    )
+
+
+def enrich(
+    process_result: ProcessResult,
+    config: dict[str, Any],
+) -> EnrichResult:
+    """
+    Stage 3 entry point (direct from Stage 2, no semantic grouping).
+    Use enrich_grouped() if Stage 2.5 has run.
+    """
+    return _run_enrichment(
+        groups=process_result.output_groups,
+        all_findings=process_result.all_findings,
+        run_id=process_result.run_id,
+        config=config,
+    )
+
+
+def enrich_grouped(
+    grouping_result: "Any",  # GroupingResult — local import avoids circular dependency
+    config: dict[str, Any],
+) -> EnrichResult:
+    """
+    Stage 3 entry point when Stage 2.5 (semantic grouping) has run.
+    Enriches GroupedOutputGroups with full merged context.
+    """
+    return _run_enrichment(
+        groups=grouping_result.grouped_groups,
+        all_findings=grouping_result.all_findings,
+        run_id=grouping_result.run_id,
+        config=config,
     )

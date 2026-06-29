@@ -27,6 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from models import BlankCategory, ReportInclusion, ScannerStatus
 from stage1_ingest import IngestResult, ingest
 from stage2_process import OutputGroup, ProcessResult, load_config, process
+from stage2_5_grouping import group_semantically
+from stage3_llm import EnrichResult, EnrichWarning, enrich, enrich_grouped
 
 
 # ── Serialisation helpers ─────────────────────────────────────────────
@@ -330,7 +332,7 @@ def _write_stage2_summary(pr: ProcessResult, path: Path) -> None:
 
 # ── Main runner ───────────────────────────────────────────────────────
 
-def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto") -> None:
+def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto", skip_llm: bool = False) -> None:
     input_path  = Path(input_file)
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -458,24 +460,75 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto") -
     _write_stage2_summary(pr, s2_path)
     print(f"  ✓ stage2_summary.txt")
 
+    # ── Stage 3: LLM enrichment (optional, skippable) ────────────────
+    er = None
+    if skip_llm:
+        print()
+        print(f"{'='*70}")
+        print("STAGE 3 SKIPPED (--skip-llm flag set)")
+        print(f"  Output groups ready for LLM: {pr.group_count}")
+        print(f"{'='*70}")
+    else:
+        gr = group_semantically(pr, cfg)
+        er = enrich_grouped(gr, cfg)
+
+        # Write enriched_groups.json
+        enriched_path = output_path / "enriched_groups.json"
+        enriched_data = {
+            "run_id":        er.run_id,
+            "group_count":   er.group_count,
+            "enriched":      er.enriched_count,
+            "failed":        er.failed_count,
+            "risk_ratings":  er.risk_rating_counts,
+            "generated_at":  datetime.now(timezone.utc).isoformat(),
+            "groups": [
+                {
+                    "check_id":             g.check_ids,
+                    "output_section":       g.output_section,
+                    "instance_count":       g.instance_count,
+                    "likelihood_rating":    g.likelihood_rating,
+                    "risk_rating":          g.representative.risk_rating,
+                    "consequence_rating":   g.representative.consequence_rating,
+                    "finding_title":        g.representative.finding_title,
+                    "root_cause_narrative": g.representative.root_cause_narrative,
+                    "situation_narrative":  g.representative.situation_narrative,
+                    "consequence_narrative":g.representative.consequence_narrative,
+                    "access_required":      g.representative.access_required,
+                    "ai_enriched":          g.representative.ai_enriched,
+                    "llm_failed":           g.representative.llm_enrichment_failed,
+                    "human_review_required":g.representative.human_review_required,
+                }
+                for g in er.output_groups
+            ],
+        }
+        with open(enriched_path, "w", encoding="utf-8") as fh:
+            json.dump(enriched_data, fh, indent=2, default=str, ensure_ascii=False)
+
+        print()
+        print("[ Writing Stage 3 outputs ]")
+        print(f"  ✓ enriched_groups.json     ({enriched_path.stat().st_size // 1024} KB)")
+
+        if er.warnings:
+            print(f"  ⚠ LLM failures: {er.failed_count}")
+            for w in er.warnings:
+                print(f"      [{w.code}] {w.message[:80]}")
+
     # ── Final summary ─────────────────────────────────────────────────
     print()
     print(f"{'='*70}")
-    print("PIPELINE READY FOR STAGE 3 (LLM ENRICHMENT)")
-    print(f"{'='*70}")
-    print(f"  Output groups waiting for LLM : {pr.group_count}")
-    print()
-    print("  Findings needing human review before final output:")
-    review_needed = [
-        g for g in pr.output_groups
-        if g.representative.human_review_required
-    ]
-    if review_needed:
-        for g in review_needed:
-            print(f"    ⚠  {g.check_id}")
-            print(f"       {g.representative.review_reason}")
+    if er:
+        from collections import Counter
+        rc = er.risk_rating_counts
+        print("PIPELINE COMPLETE — READY FOR STAGE 4 (QUALITY GATE + RENDERER)")
+        print(f"{'='*70}")
+        print(f"  Groups enriched   : {er.enriched_count}/{er.group_count}")
+        print(f"  Risk distribution : High={rc.get('High',0)}  Medium={rc.get('Medium',0)}  Low={rc.get('Low',0)}")
+        if er.failed_count:
+            print(f"  ⚠ LLM failures    : {er.failed_count} — needs human review before final output")
     else:
-        print("    ✓  None flagged")
+        print("STAGES 1+2 COMPLETE — STAGE 3 SKIPPED")
+        print(f"{'='*70}")
+        print(f"  Output groups ready for LLM : {pr.group_count}")
     print()
     print(f"  Output written to: {output_path.resolve()}")
     print()
@@ -511,5 +564,12 @@ if __name__ == "__main__":
         help="Force input format (default: auto-detect from extension)",
     )
 
+    parser.add_argument(
+        "--skip-llm",
+        action="store_true",
+        default=False,
+        help="Skip Stage 3 LLM enrichment (Stage 1+2 only)",
+    )
+
     args = parser.parse_args()
-    run(args.input, args.output_dir, args.config, args.format)
+    run(args.input, args.output_dir, args.config, args.format, args.skip_llm)
