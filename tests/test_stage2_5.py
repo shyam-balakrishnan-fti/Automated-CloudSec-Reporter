@@ -1,25 +1,21 @@
 """
-test_stage2_5.py - Stage 2.5 semantic grouping test suite.
+test_stage2_5.py — Stage 2.5 chunked semantic grouping test suite.
 
-All LLM calls are mocked - tests run offline without AWS credentials.
+All LLM calls are mocked — tests run offline without AWS credentials.
 
 Tests:
-    - Valid proposal merges related check_ids into one GroupedOutputGroup
-    - Standalone checks produce GroupedOutputGroup with is_merged=False
-    - Every check_id from Stage 2 appears in exactly one group
-    - instance_count is summed correctly across merged groups
-    - affected_account_names merged with no duplicates
-    - Highest severity and likelihood selected across merged group
-    - Best representative selected by completeness score
-    - Merge audit event recorded on representative
-    - Invalid JSON triggers retry
-    - Missing check_id triggers retry
-    - Duplicate check_id triggers retry
-    - Both failures → fallback (one group per check_id, no crash)
-    - GroupingResult counts correct
-    - Sort order: section → severity → group_name
-    - to_llm_context includes merged_checks for merged groups
-    - enrich_grouped() wires correctly into Stage 3
+    - Sorting by category then service clusters related checks correctly
+    - Chunk size selection: small scans = 1 chunk, large scans = multiple
+    - Single-chunk path produces correct GroupedOutputGroups (16 checks)
+    - Multi-chunk path: running group-name list passed to later chunks
+    - Multi-chunk path: consolidation pass merges cross-chunk duplicates
+    - Consolidation pass is skipped gracefully when it fails (no crash)
+    - Every check_id appears in exactly one final group, multi-chunk or not
+    - Chunk-level fallback: one chunk failing doesn't block other chunks
+    - GroupedOutputGroup.affected_resources() returns correct raw data
+    - to_llm_context() includes merged_checks + affected_resources
+    - GroupingResult counts (chunks_used, consolidation_applied) correct
+    - Sort order of final groups: section → severity → group_name
 """
 
 from __future__ import annotations
@@ -37,15 +33,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from generate_synthetic_messy import generate
 from models import ReportInclusion
 from stage1_ingest import ingest
-from stage2_process import load_config, process
+from stage2_process import OutputGroup, load_config, process
 from stage2_5_grouping import (
     GroupedOutputGroup,
     GroupingResult,
-    _build_grouping_prompt,
-    _validate_grouping_response,
+    _build_chunk_prompt,
+    _chunk_size_for,
+    _make_chunks,
+    _sort_for_chunking,
+    _validate_chunk_response,
     group_semantically,
 )
-from stage3_llm import EnrichResult, enrich_grouped
 
 CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "config.toml"
 
@@ -65,40 +63,30 @@ def _all_check_ids(pr):
     return {g.check_id for g in pr.output_groups}
 
 
-def _valid_proposal(pr):
-    """Build a valid grouping proposal from the actual Stage 2 groups."""
-    groups = pr.output_groups
-    check_ids = [g.check_id for g in groups]
+def _standalone_proposal(check_ids: list[str]) -> list[dict]:
+    return [
+        {"group_name": cid, "check_ids": [cid],
+         "rationale": "Standalone test rationale, two sentences minimum here."}
+        for cid in check_ids
+    ]
 
-    # Merge the two IAM MFA checks if both present, else standalone
-    mfa_checks = [c for c in check_ids if "mfa" in c.lower()]
-    s3_checks  = [c for c in check_ids if c.startswith("s3_")]
-    rest       = [c for c in check_ids if c not in mfa_checks and c not in s3_checks]
 
+def _merge_some(check_ids: list[str], merge_pairs: list[tuple]) -> list[dict]:
+    merged_ids = {cid for group in merge_pairs for cid in group}
     proposal = []
-    if len(mfa_checks) > 1:
+    for i, group in enumerate(merge_pairs):
         proposal.append({
-            "group_name": "MFA Not Enforced",
-            "check_ids": mfa_checks,
-            "rationale": "Both checks relate to MFA enforcement across different account types.",
+            "group_name": f"Merged Group {i}",
+            "check_ids": list(group),
+            "rationale": "These share a common root cause across two sentences of explanation.",
         })
-    elif mfa_checks:
-        for c in mfa_checks:
-            proposal.append({"group_name": c, "check_ids": [c], "rationale": "Standalone."})
-
-    if len(s3_checks) > 1:
-        proposal.append({
-            "group_name": "S3 Security Controls",
-            "check_ids": s3_checks,
-            "rationale": "S3 checks covering encryption and access controls.",
-        })
-    elif s3_checks:
-        for c in s3_checks:
-            proposal.append({"group_name": c, "check_ids": [c], "rationale": "Standalone."})
-
-    for c in rest:
-        proposal.append({"group_name": c, "check_ids": [c], "rationale": "Standalone."})
-
+    for cid in check_ids:
+        if cid not in merged_ids:
+            proposal.append({
+                "group_name": cid,
+                "check_ids": [cid],
+                "rationale": "Standalone test rationale, two sentences minimum here.",
+            })
     return proposal
 
 
@@ -113,271 +101,318 @@ def test(name: str, condition: bool, detail: str = "") -> None:
         print(f"  ✓  {name}")
     else:
         FAIL_LIST.append(name)
-        print(f"  ✗  {name}" + (f" - {detail}" if detail else ""))
+        print(f"  ✗  {name}" + (f" — {detail}" if detail else ""))
 
 
 # ═════════════════════════════════════════════════════════════════════
 
-def test_validate_grouping():
-    print("\n── Grouping response validator ──")
-
+def test_sort_by_category_then_service():
+    print("\n── Sort by category then service ──")
     pr, _ = _run_stage2()
-    all_ids = _all_check_ids(pr)
+    sorted_groups = _sort_for_chunking(pr.output_groups)
 
-    # Valid proposal
-    valid = _valid_proposal(pr)
-    errors = _validate_grouping_response(valid, all_ids)
-    test("Valid proposal has no errors", errors == [], str(errors))
+    test("Sort returns same count as input",
+         len(sorted_groups) == len(pr.output_groups))
 
-    # Missing check_id
-    missing = [g for g in valid if len(g["check_ids"]) > 0]
-    missing[0] = {**missing[0], "check_ids": []}
-    errors = _validate_grouping_response(missing, all_ids)
-    test("Empty check_ids caught", any("empty" in e.lower() for e in errors))
+    ids_in_order = [g.check_id for g in sorted_groups]
+    mfa_idx = [i for i, cid in enumerate(ids_in_order) if "mfa" in cid.lower()]
+    test("MFA-related checks are adjacent after category sort",
+         len(mfa_idx) >= 2 and max(mfa_idx) - min(mfa_idx) <= 2,
+         f"indices: {mfa_idx}")
 
-    # Duplicate check_id across groups
-    dup_id = valid[0]["check_ids"][0]
-    dup = valid + [{"group_name": "dup", "check_ids": [dup_id], "rationale": "dup"}]
-    errors = _validate_grouping_response(dup, all_ids)
-    test("Duplicate check_id caught", any("more than one" in e for e in errors))
+    sorted_again = _sort_for_chunking(pr.output_groups)
+    test("Sort is deterministic across repeated calls",
+         [g.check_id for g in sorted_groups] == [g.check_id for g in sorted_again])
 
-    # Missing check_id from scan
-    short = [g for g in valid[:-1]]  # drop last group
-    if short:
-        errors = _validate_grouping_response(short, all_ids)
-        test("Missing check_id caught", any("Missing" in e for e in errors))
 
-    # Unknown check_id
-    unknown = valid + [{"group_name": "x", "check_ids": ["nonexistent_check"], "rationale": "x"}]
-    errors = _validate_grouping_response(unknown, all_ids)
-    test("Unknown check_id caught", any("Unknown" in e for e in errors))
+def test_chunk_size_selection():
+    print("\n── Chunk size selection ──")
+    test("16 checks → single chunk (no overhead for small scans)",
+         _chunk_size_for(16) == 16)
+    test("20 checks → single chunk (at MAX_CHUNK_SIZE boundary)",
+         _chunk_size_for(20) == 20)
+    test("21 checks → default chunk size (just over boundary)",
+         _chunk_size_for(21) == 15)
+    test("101 checks → default chunk size",
+         _chunk_size_for(101) == 15)
 
-    # Not a list
-    errors = _validate_grouping_response({"bad": "type"}, all_ids)
+
+def test_make_chunks():
+    print("\n── Chunk construction ──")
+    pr, _ = _run_stage2()
+    chunks = _make_chunks(pr.output_groups, 5)
+    test("Chunking 16 items into size-5 chunks produces 4 chunks",
+         len(chunks) == 4, f"got {len(chunks)}")
+    test("All chunks except last have exactly 5 items",
+         all(len(c) == 5 for c in chunks[:-1]))
+    test("Last chunk has the remainder",
+         len(chunks[-1]) == 1, f"got {len(chunks[-1])}")
+    total_in_chunks = sum(len(c) for c in chunks)
+    test("No items lost during chunking",
+         total_in_chunks == 16, f"got {total_in_chunks}")
+
+
+def test_build_chunk_prompt():
+    print("\n── Chunk prompt builder ──")
+    pr, _ = _run_stage2()
+    chunk = pr.output_groups[:5]
+
+    prompt_no_existing = _build_chunk_prompt(chunk, 1, 3, [])
+    test("Prompt mentions chunk number and total",
+         "chunk 1 of 3" in prompt_no_existing)
+    test("Prompt contains check_ids from the chunk",
+         all(g.check_id in prompt_no_existing for g in chunk))
+    test("No existing-groups block when list is empty",
+         "GROUPS ALREADY PROPOSED" not in prompt_no_existing)
+    test("Prompt instructs generic naming for cross-chunk mergeability",
+         "GENERICALLY" in prompt_no_existing or "generically" in prompt_no_existing.lower())
+
+    prompt_with_existing = _build_chunk_prompt(chunk, 2, 3, ["MFA Not Enforced", "S3 Encryption"])
+    test("Existing-groups block appears when list is non-empty",
+         "GROUPS ALREADY PROPOSED" in prompt_with_existing)
+    test("Existing group names are listed in the prompt",
+         "MFA Not Enforced" in prompt_with_existing and "S3 Encryption" in prompt_with_existing)
+
+
+def test_validate_chunk_response():
+    print("\n── Chunk response validator ──")
+    ids = {"a", "b", "c"}
+
+    valid = [{"group_name": "G1", "check_ids": ["a", "b"], "rationale": "Two sentences here. Explaining why."},
+             {"group_name": "c", "check_ids": ["c"], "rationale": "Standalone reasoning across two full sentences."}]
+    test("Valid response has no errors",
+         _validate_chunk_response(valid, ids) == [])
+
+    missing = [{"group_name": "G1", "check_ids": ["a"], "rationale": "x. y."}]
+    errors = _validate_chunk_response(missing, ids)
+    test("Missing check_ids caught", any("Missing" in e for e in errors))
+
+    dup = [{"group_name": "G1", "check_ids": ["a"], "rationale": "x. y."},
+           {"group_name": "G2", "check_ids": ["a", "b"], "rationale": "x. y."},
+           {"group_name": "G3", "check_ids": ["c"], "rationale": "x. y."}]
+    errors = _validate_chunk_response(dup, ids)
+    test("Duplicate check_id across groups caught",
+         any("more than one" in e for e in errors))
+
+    not_list = {"bad": "shape"}
+    errors = _validate_chunk_response(not_list, ids)
     test("Non-list response caught", any("array" in e.lower() for e in errors))
 
 
-def test_build_grouping_prompt():
-    print("\n── Grouping prompt builder ──")
-
-    pr, _ = _run_stage2()
-    prompt = _build_grouping_prompt(pr.output_groups)
-
-    test("Prompt is a non-empty string", isinstance(prompt, str) and len(prompt) > 200)
-    test("Prompt contains check_ids", "s3_bucket_public_access" in prompt)
-    test("Prompt contains OUTPUT FORMAT", "OUTPUT FORMAT" in prompt)
-    test("Prompt contains group_name instruction", "group_name" in prompt)
-    test("Prompt contains rationale instruction", "rationale" in prompt)
-    test("Prompt mentions every group once",
-         all(g.check_id in prompt for g in pr.output_groups))
-
-
-def test_successful_grouping():
-    print("\n── Successful grouping ──")
-
+def test_single_chunk_grouping_end_to_end():
+    print("\n── Single-chunk grouping (16 checks, fits in one chunk) ──")
     pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
+    all_ids = [g.check_id for g in pr.output_groups]
+
+    mfa_ids = [c for c in all_ids if "mfa" in c.lower()]
+    proposal = _merge_some(all_ids, [tuple(mfa_ids)] if len(mfa_ids) > 1 else [])
 
     with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
         with contextlib.redirect_stdout(io.StringIO()):
             gr = group_semantically(pr, cfg)
 
     test("GroupingResult returned", isinstance(gr, GroupingResult))
-    test("original_count matches Stage 2 groups",
-         gr.original_count == pr.group_count,
-         f"{gr.original_count} vs {pr.group_count}")
-    test("merged_count <= original_count",
-         gr.merged_count <= gr.original_count)
-    test("Every check_id appears in exactly one GroupedOutputGroup",
+    test("chunks_used == 1 for a 16-check scan",
+         gr.chunks_used == 1, f"got {gr.chunks_used}")
+    test("Every check_id appears in exactly one final group",
          _all_check_ids(pr) == {cid for g in gr.grouped_groups for cid in g.check_ids})
-    test("No warnings on successful grouping",
-         len(gr.warnings) == 0, str(gr.warnings))
+    test("consolidation_applied is True (1 group from chunk → trivial consolidation skip)",
+         gr.consolidation_applied is True)
 
 
-def test_merged_group_properties():
-    print("\n── Merged group properties ──")
-
+def test_multi_chunk_grouping_with_running_list():
+    print("\n── Multi-chunk grouping with running group-name list ──")
     pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
+    all_ids = [g.check_id for g in pr.output_groups]
 
-    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
-        with contextlib.redirect_stdout(io.StringIO()):
-            gr = group_semantically(pr, cfg)
+    call_log = []
 
-    merged = [g for g in gr.grouped_groups if g.is_merged]
-    standalone = [g for g in gr.grouped_groups if not g.is_merged]
+    def mock_llm(prompt, llm_cfg):
+        call_log.append(prompt)
+        ids_in_prompt = [cid for cid in all_ids if f"[{cid}]" in prompt]
+        if "CURRENT GROUPS" in prompt:
+            return json.dumps(_standalone_proposal(all_ids))
+        return json.dumps(_standalone_proposal(ids_in_prompt))
 
-    test("At least one merged group exists", len(merged) >= 1,
-         "No merges occurred - check synthetic data has mergeable checks")
+    import stage2_5_grouping as sg
+    original_chunk_size_for = sg._chunk_size_for
+    sg._chunk_size_for = lambda total: 4
 
-    for g in merged:
-        test(f"Merged group '{g.group_name}' has > 1 check_id",
-             len(g.check_ids) > 1, f"check_ids: {g.check_ids}")
-        test(f"Merged group '{g.group_name}' has summed instance_count",
-             g.instance_count >= len(g.check_ids),
-             f"instance_count={g.instance_count}")
-        test(f"Merged group '{g.group_name}' has representative",
-             g.representative is not None)
-        test(f"Merged group '{g.group_name}' has group_rationale",
-             bool(g.group_rationale))
-        test(f"Merged group '{g.group_name}' has instance_ids",
-             len(g.instance_ids) >= g.instance_count)
+    try:
+        with mock.patch("stage3_llm._call_llm", side_effect=mock_llm):
+            with contextlib.redirect_stdout(io.StringIO()):
+                gr = group_semantically(pr, cfg)
+    finally:
+        sg._chunk_size_for = original_chunk_size_for
 
-    for g in standalone:
-        test(f"Standalone group '{g.group_name}' has exactly 1 check_id",
-             len(g.check_ids) == 1, f"check_ids: {g.check_ids}")
-        test(f"Standalone group '{g.group_name}' is_merged=False",
-             g.is_merged is False)
+    test("Multiple chunks were used (16 checks / chunk_size=4)",
+         gr.chunks_used > 1, f"got {gr.chunks_used}")
+    test("Every check_id still appears in exactly one final group after multi-chunk",
+         _all_check_ids(pr) == {cid for g in gr.grouped_groups for cid in g.check_ids})
+    test("At least one LLM call included the consolidation-style prompt",
+         any("CURRENT GROUPS" in p for p in call_log))
 
 
-def test_account_names_merged():
-    print("\n── Account name merging ──")
-
+def test_chunk_fallback_does_not_block_others():
+    print("\n── Chunk-level failure fallback ──")
     pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
+    all_ids = [g.check_id for g in pr.output_groups]
 
-    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
-        with contextlib.redirect_stdout(io.StringIO()):
-            gr = group_semantically(pr, cfg)
+    import stage2_5_grouping as sg
+    original_chunk_size_for = sg._chunk_size_for
+    sg._chunk_size_for = lambda total: 4
 
-    for g in gr.grouped_groups:
-        test(f"No duplicate account names in '{g.group_name}'",
-             len(g.affected_account_names) == len(set(g.affected_account_names)),
-             f"accounts: {g.affected_account_names}")
-
-
-def test_audit_trail():
-    print("\n── Merge audit trail ──")
-
-    pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
-
-    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
-        with contextlib.redirect_stdout(io.StringIO()):
-            gr = group_semantically(pr, cfg)
-
-    merged = [g for g in gr.grouped_groups if g.is_merged]
-    for g in merged:
-        rep = g.representative
-        merge_events = [
-            e for e in rep.audit_trail
-            if e.stage == "stage2_5_grouping" and e.field == "semantic_group"
-        ]
-        test(f"Merge audit event on representative of '{g.group_name}'",
-             len(merge_events) >= 1,
-             f"audit trail fields: {[e.field for e in rep.audit_trail]}")
-        if merge_events:
-            test(f"Merge audit actor is 'llm' for '{g.group_name}'",
-                 merge_events[0].actor == "llm")
-
-
-def test_to_llm_context_merged():
-    print("\n── LLM context for merged groups ──")
-
-    pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
-
-    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
-        with contextlib.redirect_stdout(io.StringIO()):
-            gr = group_semantically(pr, cfg)
-
-    for g in gr.grouped_groups:
-        ctx = g.to_llm_context()
-        test(f"LLM context is a dict for '{g.group_name}'",
-             isinstance(ctx, dict))
-        test(f"LLM context has instance_count for '{g.group_name}'",
-             "instance_count" in ctx)
-        test(f"LLM context has group_name for '{g.group_name}'",
-             ctx.get("group_name") == g.group_name)
-
-        if g.is_merged:
-            test(f"Merged group '{g.group_name}' has merged_checks in context",
-                 "merged_checks" in ctx,
-                 f"keys: {list(ctx.keys())}")
-            test(f"merged_checks count matches check_ids for '{g.group_name}'",
-                 len(ctx.get("merged_checks", [])) == len(g.check_ids))
-        else:
-            test(f"Standalone group '{g.group_name}' has no merged_checks",
-                 "merged_checks" not in ctx)
-
-
-def test_retry_on_first_failure():
-    print("\n── Retry on invalid JSON ──")
-
-    pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
     call_count = {"n": 0}
 
     def mock_llm(prompt, llm_cfg):
         call_count["n"] += 1
-        if call_count["n"] == 1:
-            return "this is not json"
-        return json.dumps(proposal)
+        if "CURRENT GROUPS" in prompt:
+            return json.dumps(_standalone_proposal(all_ids))
+        ids_in_prompt = [cid for cid in all_ids if f"[{cid}]" in prompt]
+        if call_count["n"] <= 2:
+            raise RuntimeError("Simulated Bedrock failure for first chunk")
+        return json.dumps(_standalone_proposal(ids_in_prompt))
+
+    try:
+        with mock.patch("stage3_llm._call_llm", side_effect=mock_llm):
+            with contextlib.redirect_stdout(io.StringIO()):
+                gr = group_semantically(pr, cfg)
+    finally:
+        sg._chunk_size_for = original_chunk_size_for
+
+    test("Pipeline does not crash when one chunk fails entirely",
+         gr is not None)
+    test("CHUNK_GROUPING_FAILED warning emitted for the failed chunk",
+         any(w.code == "CHUNK_GROUPING_FAILED" for w in gr.warnings),
+         f"warnings: {[w.code for w in gr.warnings]}")
+    test("Every check_id still present despite one chunk failing",
+         _all_check_ids(pr) == {cid for g in gr.grouped_groups for cid in g.check_ids})
+
+
+def test_consolidation_failure_is_non_blocking():
+    print("\n── Consolidation pass failure handling ──")
+    pr, cfg = _run_stage2()
+    all_ids = [g.check_id for g in pr.output_groups]
+
+    def mock_llm(prompt, llm_cfg):
+        if "CURRENT GROUPS" in prompt:
+            raise RuntimeError("Simulated consolidation failure")
+        return json.dumps(_standalone_proposal(all_ids))
 
     with mock.patch("stage3_llm._call_llm", side_effect=mock_llm):
         with contextlib.redirect_stdout(io.StringIO()):
             gr = group_semantically(pr, cfg)
 
-    test("LLM called twice (retry triggered)",
-         call_count["n"] == 2, f"calls={call_count['n']}")
-    test("Grouping succeeded after retry",
-         len(gr.grouped_groups) > 0)
-    test("No GROUPING_FAILED warning after retry",
-         not any(w.code == "GROUPING_FAILED" for w in gr.warnings))
+    test("Pipeline completes even when consolidation pass fails",
+         gr is not None)
+    test("consolidation_applied is False on failure",
+         gr.consolidation_applied is False)
+    test("CONSOLIDATION_FAILED warning emitted",
+         any(w.code == "CONSOLIDATION_FAILED" for w in gr.warnings))
+    test("Groups still built correctly from un-consolidated proposals",
+         _all_check_ids(pr) == {cid for g in gr.grouped_groups for cid in g.check_ids})
 
 
-def test_fallback_on_both_failures():
-    print("\n── Fallback on both failures ──")
-
+def test_consolidation_merges_cross_chunk_duplicates():
+    print("\n── Consolidation merges near-duplicate groups ──")
     pr, cfg = _run_stage2()
+    all_ids = [g.check_id for g in pr.output_groups]
 
-    with mock.patch("stage3_llm._call_llm", side_effect=RuntimeError("LLM down")):
+    s3_ids = [c for c in all_ids if c.startswith("s3_")]
+    test("Synthetic data has at least 2 S3 checks to test merging", len(s3_ids) >= 2)
+    if len(s3_ids) < 2:
+        return
+
+    def mock_llm(prompt, llm_cfg):
+        if "CURRENT GROUPS" in prompt:
+            merged = _merge_some(all_ids, [tuple(s3_ids)])
+            return json.dumps(merged)
+        ids_in_prompt = [cid for cid in all_ids if f"[{cid}]" in prompt]
+        return json.dumps(_standalone_proposal(ids_in_prompt))
+
+    with mock.patch("stage3_llm._call_llm", side_effect=mock_llm):
         with contextlib.redirect_stdout(io.StringIO()):
             gr = group_semantically(pr, cfg)
 
-    test("GROUPING_FAILED warning emitted",
-         any(w.code == "GROUPING_FAILED" for w in gr.warnings))
-    test("Fallback: merged_count == original_count (no merges)",
-         gr.merged_count == gr.original_count,
-         f"merged={gr.merged_count} original={gr.original_count}")
-    test("Fallback: every check_id still present",
-         _all_check_ids(pr) == {cid for g in gr.grouped_groups for cid in g.check_ids})
-    test("Fallback: all groups have is_merged=False",
-         all(not g.is_merged for g in gr.grouped_groups))
-    test("Pipeline does not crash on fallback",
-         len(gr.grouped_groups) == gr.original_count)
+    s3_group = next((g for g in gr.grouped_groups if set(s3_ids).issubset(set(g.check_ids))), None)
+    test("Consolidation successfully merged the two S3 checks into one group",
+         s3_group is not None,
+         f"groups: {[(g.group_name, g.check_ids) for g in gr.grouped_groups]}")
+    if s3_group:
+        test("Merged S3 group has is_merged=True",
+             s3_group.is_merged is True)
+
+
+def test_affected_resources():
+    print("\n── affected_resources() ──")
+    pr, cfg = _run_stage2()
+    all_ids = [g.check_id for g in pr.output_groups]
+
+    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(_standalone_proposal(all_ids))):
+        with contextlib.redirect_stdout(io.StringIO()):
+            gr = group_semantically(pr, cfg)
+
+    s3_group = next((g for g in gr.grouped_groups if g.check_ids[0].startswith("s3_")), None)
+    test("Found an S3 group to inspect", s3_group is not None)
+    if s3_group:
+        resources = s3_group.affected_resources()
+        test("affected_resources() returns a list", isinstance(resources, list))
+        test("affected_resources() entries have expected keys",
+             all({"resource","resource_name","account_name","region","check_id"}.issubset(r.keys()) for r in resources))
+        test("affected_resources() has at least one entry",
+             len(resources) >= 1, f"got {resources}")
+
+
+def test_to_llm_context():
+    print("\n── to_llm_context() includes resource context ──")
+    pr, cfg = _run_stage2()
+    all_ids = [g.check_id for g in pr.output_groups]
+    mfa_ids = [c for c in all_ids if "mfa" in c.lower()]
+
+    proposal = _merge_some(all_ids, [tuple(mfa_ids)] if len(mfa_ids) > 1 else [])
+
+    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
+        with contextlib.redirect_stdout(io.StringIO()):
+            gr = group_semantically(pr, cfg)
+
+    merged_group = next((g for g in gr.grouped_groups if g.is_merged), None)
+    test("At least one merged group exists for context test",
+         merged_group is not None)
+    if merged_group:
+        ctx = merged_group.to_llm_context()
+        test("to_llm_context includes affected_resources",
+             "affected_resources" in ctx)
+        test("to_llm_context includes merged_checks for merged groups",
+             "merged_checks" in ctx)
+        test("to_llm_context includes group_rationale",
+             "group_rationale" in ctx)
 
 
 def test_grouping_result_counts():
     print("\n── GroupingResult counts ──")
-
     pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
-    merges_in_proposal = sum(1 for g in proposal if len(g["check_ids"]) > 1)
+    all_ids = [g.check_id for g in pr.output_groups]
 
-    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
+    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(_standalone_proposal(all_ids))):
         with contextlib.redirect_stdout(io.StringIO()):
             gr = group_semantically(pr, cfg)
 
     test("original_count == Stage 2 group_count",
          gr.original_count == pr.group_count)
-    test("merged_count == len(proposal)",
-         gr.merged_count == len(proposal),
-         f"merged={gr.merged_count} proposal={len(proposal)}")
-    test("merges_applied == groups with >1 check_id",
-         gr.merges_applied == merges_in_proposal,
-         f"applied={gr.merges_applied} expected={merges_in_proposal}")
-    test("reduction == original - merged",
-         gr.reduction == gr.original_count - gr.merged_count)
+    test("merged_count == 16 (all standalone)",
+         gr.merged_count == 16, f"got {gr.merged_count}")
+    test("merges_applied == 0 (no merges in this proposal)",
+         gr.merges_applied == 0)
+    test("chunks_used >= 1",
+         gr.chunks_used >= 1)
 
 
-def test_sort_order():
-    print("\n── Sort order ──")
-
+def test_sort_order_of_final_groups():
+    print("\n── Final group sort order ──")
     pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
+    all_ids = [g.check_id for g in pr.output_groups]
 
-    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(proposal)):
+    with mock.patch("stage3_llm._call_llm", return_value=json.dumps(_standalone_proposal(all_ids))):
         with contextlib.redirect_stdout(io.StringIO()):
             gr = group_semantically(pr, cfg)
 
@@ -392,80 +427,45 @@ def test_sort_order():
         else:
             valid = a.output_section <= b.output_section
         if not valid:
-            test(f"Sort: '{a.group_name}' before '{b.group_name}'", False,
-                 f"sev={a.severity} vs sev={b.severity}")
+            test(f"Sort: '{a.group_name}' before '{b.group_name}'", False)
             return
-    test("All grouped groups correctly sorted (section → severity → name)", True)
+    test("All final groups correctly sorted (section → severity → name)", True)
 
 
-def test_enrich_grouped_integration():
-    print("\n── enrich_grouped() integration ──")
-
+def test_empty_input():
+    print("\n── Empty input handling ──")
     pr, cfg = _run_stage2()
-    proposal = _valid_proposal(pr)
+    pr.output_groups = []
 
-    VALID_ENRICH = {
-        "finding_title":        "Test Finding",
-        "root_cause_narrative": "Root cause text.",
-        "situation_narrative":  "Situation text.",
-        "consequence_narrative":"Consequence text.",
-        "consequence_rating":   "Major",
-        "access_required":      "No authentication required.",
-        "needs_human_review":   False,
-    }
-
-    call_count = {"n": 0}
-    def mock_llm(prompt, llm_cfg):
-        call_count["n"] += 1
-        # First call = grouping proposal, rest = enrichment
-        if call_count["n"] == 1:
-            return json.dumps(proposal)
-        return json.dumps(VALID_ENRICH)
-
-    with mock.patch("stage3_llm._call_llm", side_effect=mock_llm):
-        with contextlib.redirect_stdout(io.StringIO()):
-            gr = group_semantically(pr, cfg)
-            er = enrich_grouped(gr, cfg)
-
-    test("EnrichResult returned", isinstance(er, EnrichResult))
-    test("enriched_count == group_count",
-         er.enriched_count == er.group_count,
-         f"enriched={er.enriched_count} groups={er.group_count}")
-    test("LLM called once for grouping + once per group for enrichment",
-         call_count["n"] == 1 + gr.group_count,
-         f"calls={call_count['n']} expected={1 + gr.group_count}")
-
-    # GroupedOutputGroup fields populated from enrichment
-    for g in er.output_groups:
-        from stage2_5_grouping import GroupedOutputGroup as GOG
-        if isinstance(g, GOG):
-            test(f"GroupedOutputGroup.finding_title set for '{g.group_name}'",
-                 g.finding_title == "Test Finding")
-            test(f"GroupedOutputGroup.risk_rating set for '{g.group_name}'",
-                 g.risk_rating in ("High", "Medium", "Low"),
-                 f"got {g.risk_rating}")
-            break
+    gr = group_semantically(pr, cfg)
+    test("Empty input returns valid GroupingResult", gr is not None)
+    test("Empty input produces zero groups", gr.group_count == 0)
+    test("No LLM call attempted for empty input (no crash, no warnings)",
+         len(gr.warnings) == 0)
 
 
 # ── Entry point ───────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Stage 2.5 - Semantic Grouping  -  Test Suite")
+    print("Stage 2.5 — Chunked Semantic Grouping  —  Test Suite")
     print("=" * 60)
 
-    test_validate_grouping()
-    test_build_grouping_prompt()
-    test_successful_grouping()
-    test_merged_group_properties()
-    test_account_names_merged()
-    test_audit_trail()
-    test_to_llm_context_merged()
-    test_retry_on_first_failure()
-    test_fallback_on_both_failures()
+    test_sort_by_category_then_service()
+    test_chunk_size_selection()
+    test_make_chunks()
+    test_build_chunk_prompt()
+    test_validate_chunk_response()
+    test_single_chunk_grouping_end_to_end()
+    test_multi_chunk_grouping_with_running_list()
+    test_chunk_fallback_does_not_block_others()
+    test_consolidation_failure_is_non_blocking()
+    test_consolidation_merges_cross_chunk_duplicates()
+    test_affected_resources()
+    test_to_llm_context()
     test_grouping_result_counts()
-    test_sort_order()
-    test_enrich_grouped_integration()
+    test_sort_order_of_final_groups()
+    test_empty_input()
 
     print("\n" + "=" * 60)
     print(f"Results: {len(PASS_LIST)} passed  /  {len(FAIL_LIST)} failed")

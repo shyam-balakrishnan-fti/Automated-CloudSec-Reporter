@@ -1,0 +1,1001 @@
+{
+  "run_id": "2cd1eb73-9a1d-4ada-b9de-5af6bb93e8c0",
+  "original_count": 101,
+  "merged_count": 21,
+  "merges_applied": 16,
+  "chunks_used": 7,
+  "consolidation_applied": true,
+  "warnings": [],
+  "groups": [
+    {
+      "group_name": "Public Access to Sensitive Resources",
+      "check_ids": [
+        "cloudtrail_logs_s3_bucket_is_not_publicly_accessible",
+        "cloudwatch_log_group_not_publicly_accessible",
+        "ec2_ebs_snapshot_account_block_public_access",
+        "awslambda_function_not_publicly_accessible",
+        "s3_bucket_policy_public_write_access",
+        "s3_bucket_public_access",
+        "s3_bucket_public_list_acl",
+        "s3_bucket_public_write_acl",
+        "sns_topics_not_publicly_accessible",
+        "s3_account_level_public_access_blocks",
+        "s3_bucket_level_public_access_block",
+        "s3_bucket_acl_prohibited"
+      ],
+      "rationale": "These checks identify resources that are exposed to the public internet or any AWS principal, creating severe data exfiltration and unauthorized access risks. This includes audit logs, application logs, storage volumes, serverless functions, messaging infrastructure, and object storage across multiple access control mechanisms (policies, ACLs, and account-level blocks).",
+      "is_merged": true,
+      "instance_count": 43,
+      "affected_accounts": [
+        "Omico-Log-Archive",
+        "Omico-Security",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:cloudtrail:ap-southeast-2:845299699535:trail/aws-controltower-BaselineCloudTrail",
+          "resource_name": "aws-controltower-BaselineCloudTrail",
+          "resource_type": "AwsCloudTrailTrail",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudtrail_logs_s3_bucket_is_not_publicly_accessible"
+        },
+        {
+          "resource": "arn:aws:logs:ap-southeast-2:149536488970:log-group:/aws/lambda/aws-controltower-NotificationForwarder:*",
+          "resource_name": "/aws/lambda/aws-controltower-NotificationForwarder",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudwatch_log_group_not_publicly_accessible"
+        },
+        {
+          "resource": "arn:aws:ec2:us-east-1:396608773615:account",
+          "resource_name": "396608773615",
+          "resource_type": "Other",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_ebs_snapshot_account_block_public_access"
+        },
+        {
+          "resource": "arn:aws:lambda:ap-southeast-2:149536488970:function:aws-controltower-NotificationForwarder",
+          "resource_name": "aws-controltower-NotificationForwarder",
+          "resource_type": "AwsLambdaFunction",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "awslambda_function_not_publicly_accessible"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_policy_public_write_access"
+        },
+        {
+          "resource": "arn:aws:sns:ap-southeast-2:257394454167:aws-controltower-SecurityNotifications",
+          "resource_name": "aws-controltower-SecurityNotifications",
+          "resource_type": "AwsSnsTopic",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "sns_topics_not_publicly_accessible"
+        },
+        {
+          "resource": "arn:aws:s3:us-east-1:202533523672:account",
+          "resource_name": "202533523672",
+          "resource_type": "AwsS3AccountPublicAccessBlock",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "us-east-1",
+          "check_id": "s3_account_level_public_access_blocks"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_level_public_access_block"
+        }
+      ]
+    },
+    {
+      "group_name": "Root Account Protection and MFA Enforcement",
+      "check_ids": [
+        "iam_root_credentials_management_enabled",
+        "iam_root_hardware_mfa_enabled",
+        "iam_root_mfa_enabled"
+      ],
+      "rationale": "These checks collectively address the security posture of the root account, which has unrestricted access to all AWS resources and represents the highest-value target for attackers. They ensure proper credential management and enforce multi-factor authentication (preferably hardware-based) to prevent unauthorized access to this privileged account.",
+      "is_merged": true,
+      "instance_count": 15,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::257394454167:root",
+          "resource_name": "257394454167",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_root_credentials_management_enabled"
+        },
+        {
+          "resource": "arn:aws:iam:us-east-1:396608773615:mfa",
+          "resource_name": "<root_account>",
+          "resource_type": "AwsIamUser",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_root_hardware_mfa_enabled"
+        },
+        {
+          "resource": "arn:aws:iam::396608773615:root",
+          "resource_name": "<root_account>",
+          "resource_type": "AwsIamUser",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_root_mfa_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Secrets Management and Exposure Prevention",
+      "check_ids": [
+        "cloudformation_stack_outputs_find_secrets",
+        "cloudwatch_log_group_no_secrets_in_logs",
+        "awslambda_function_no_secrets_in_code",
+        "awslambda_function_no_secrets_in_variables"
+      ],
+      "rationale": "These checks identify hardcoded or exposed secrets across multiple service layers including infrastructure-as-code outputs, application logs, and Lambda function code and environment variables. Exposed credentials in these locations can be easily discovered by attackers and lead to unauthorized access to sensitive systems and data.",
+      "is_merged": true,
+      "instance_count": 59,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:cloudformation:ap-southeast-2:149536488970:stack/StackSet-AWSControlTowerBP-BASELINE-ROLES-0f5a235d-20c8-4161-a786-d016b1d8cc83/a4f4a050-9675-11ef-84f4-02bc32ce0547",
+          "resource_name": "StackSet-AWSControlTowerBP-BASELINE-ROLES-0f5a235d-20c8-4161-a786-d016b1d8cc83",
+          "resource_type": "AwsCloudFormationStack",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudformation_stack_outputs_find_secrets"
+        },
+        {
+          "resource": "arn:aws:logs:ap-southeast-2:149536488970:log-group:/aws/lambda/aws-controltower-NotificationForwarder:*",
+          "resource_name": "/aws/lambda/aws-controltower-NotificationForwarder",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudwatch_log_group_no_secrets_in_logs"
+        },
+        {
+          "resource": "arn:aws:lambda:ap-southeast-2:396608773615:function:aws-controltower-NotificationForwarder",
+          "resource_name": "aws-controltower-NotificationForwarder",
+          "resource_type": "AwsLambdaFunction",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "awslambda_function_no_secrets_in_code"
+        },
+        {
+          "resource": "arn:aws:lambda:ap-southeast-2:149536488970:function:aws-controltower-NotificationForwarder",
+          "resource_name": "aws-controltower-NotificationForwarder",
+          "resource_type": "AwsLambdaFunction",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "awslambda_function_no_secrets_in_variables"
+        }
+      ]
+    },
+    {
+      "group_name": "Comprehensive Activity Logging Coverage",
+      "check_ids": [
+        "bedrock_model_invocation_logging_enabled",
+        "cloudtrail_multi_region_enabled",
+        "config_recorder_all_regions_enabled",
+        "guardduty_is_enabled",
+        "s3_bucket_server_access_logging_enabled",
+        "rds_cluster_integration_cloudwatch_logs",
+        "rds_instance_integration_cloudwatch_logs",
+        "wafv2_webacl_rule_logging_enabled",
+        "rds_instance_event_subscription_security_groups",
+        "s3_bucket_event_notifications_enabled"
+      ],
+      "rationale": "These checks all address the fundamental requirement for comprehensive visibility and audit capability across cloud infrastructure. This includes multi-region coverage for API activity tracking, configuration change recording, threat detection, service-specific access and event logging for databases, storage, web application firewalls, and AI/ML services, ensuring complete forensic and compliance audit trails.",
+      "is_merged": true,
+      "instance_count": 427,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:bedrock:eu-central-1:149536488970:model-invocation-logging",
+          "resource_name": "model-invocation-logging",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "eu-central-1",
+          "check_id": "bedrock_model_invocation_logging_enabled"
+        },
+        {
+          "resource": "arn:aws:cloudtrail:ap-southeast-2:845299699535:trail/aws-controltower-BaselineCloudTrail",
+          "resource_name": "aws-controltower-BaselineCloudTrail",
+          "resource_type": "AwsCloudTrailTrail",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-northeast-1",
+          "check_id": "cloudtrail_multi_region_enabled"
+        },
+        {
+          "resource": "arn:aws:config:sa-east-1:149536488970:recorder",
+          "resource_name": "149536488970",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "sa-east-1",
+          "check_id": "config_recorder_all_regions_enabled"
+        },
+        {
+          "resource": "arn:aws:guardduty:sa-east-1:257394454167:detector/unknown",
+          "resource_name": "detector/unknown",
+          "resource_type": "AwsGuardDutyDetector",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "sa-east-1",
+          "check_id": "guardduty_is_enabled"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_server_access_logging_enabled"
+        },
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:202533523672:cluster:omico-test-db",
+          "resource_name": "omico-test-db",
+          "resource_type": "AwsRdsDbCluster",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "rds_cluster_integration_cloudwatch_logs"
+        },
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:202533523672:db:omico-test-db-one",
+          "resource_name": "omico-test-db-one",
+          "resource_type": "AwsRdsDbInstance",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_integration_cloudwatch_logs"
+        },
+        {
+          "resource": "arn:aws:wafv2:ap-southeast-2:202533523672:regional/webacl/public-alb/4de9059b-83e6-47ad-a28d-e5c93b6d73cd",
+          "resource_name": "4de9059b-83e6-47ad-a28d-e5c93b6d73cd",
+          "resource_type": "AwsWafv2RuleGroup",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "wafv2_webacl_rule_logging_enabled"
+        },
+        {
+          "resource": "arn:aws:rds:ap-northeast-1:202533523672:account",
+          "resource_name": "202533523672",
+          "resource_type": "AwsRdsEventSubscription",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-northeast-1",
+          "check_id": "rds_instance_event_subscription_security_groups"
+        }
+      ]
+    },
+    {
+      "group_name": "Encryption at Rest with Customer-Managed Keys",
+      "check_ids": [
+        "cloudtrail_kms_encryption_enabled",
+        "cloudwatch_log_group_kms_encryption_enabled",
+        "s3_bucket_kms_encryption",
+        "sns_topics_kms_encryption_at_rest_enabled",
+        "glue_data_catalogs_connection_passwords_encryption_enabled",
+        "glue_data_catalogs_metadata_encryption_enabled",
+        "firehose_stream_encrypted_at_rest"
+      ],
+      "rationale": "These checks all verify that data at rest across various AWS services is encrypted using customer-managed KMS keys rather than AWS-managed keys or no encryption. This includes audit logs, streaming data, object storage, messaging infrastructure, and data catalog components, ensuring consistent cryptographic protection with customer-controlled key policies and rotation.",
+      "is_merged": true,
+      "instance_count": 57,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:cloudtrail:ap-southeast-2:845299699535:trail/aws-controltower-BaselineCloudTrail",
+          "resource_name": "aws-controltower-BaselineCloudTrail",
+          "resource_type": "AwsCloudTrailTrail",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudtrail_kms_encryption_enabled"
+        },
+        {
+          "resource": "arn:aws:logs:ap-southeast-2:257394454167:log-group:/aws/lambda/aws-controltower-NotificationForwarder:*",
+          "resource_name": "/aws/lambda/aws-controltower-NotificationForwarder",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudwatch_log_group_kms_encryption_enabled"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_kms_encryption"
+        },
+        {
+          "resource": "arn:aws:sns:ap-southeast-2:257394454167:aws-controltower-SecurityNotifications",
+          "resource_name": "aws-controltower-SecurityNotifications",
+          "resource_type": "AwsSnsTopic",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "sns_topics_kms_encryption_at_rest_enabled"
+        },
+        {
+          "resource": "arn:aws:glue:ap-southeast-2:396608773615:data-catalog",
+          "resource_name": "396608773615",
+          "resource_type": "Other",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "glue_data_catalogs_connection_passwords_encryption_enabled"
+        },
+        {
+          "resource": "arn:aws:firehose:ap-southeast-2:845299699535:deliverystream/NewRelic-Delivery-Stream",
+          "resource_name": "NewRelic-Delivery-Stream",
+          "resource_type": "AwsKinesisFirehoseDeliveryStream",
+          "account_name": "omico.org.au",
+          "account_uid": "845299699535 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "firehose_stream_encrypted_at_rest"
+        }
+      ]
+    },
+    {
+      "group_name": "Encryption in Transit Enforcement",
+      "check_ids": [
+        "rds_instance_transport_encrypted",
+        "s3_bucket_secure_transport_policy"
+      ],
+      "rationale": "These checks ensure that data is protected during transmission by requiring encrypted connections (TLS/SSL) to AWS services. Both findings address the risk of network eavesdropping and man-in-the-middle attacks by enforcing encrypted channels for data in motion.",
+      "is_merged": true,
+      "instance_count": 24,
+      "affected_accounts": [
+        "Omico-Log-Archive",
+        "Omico-Security",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:202533523672:cluster:omico-test-db",
+          "resource_name": "omico-test-db",
+          "resource_type": "AwsRdsDbInstance",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_transport_encrypted"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_secure_transport_policy"
+        }
+      ]
+    },
+    {
+      "group_name": "Excessive IAM Privilege and Trust Boundary Violations",
+      "check_ids": [
+        "iam_role_administratoraccess_policy",
+        "iam_role_cross_account_readonlyaccess_policy",
+        "iam_role_cross_service_confused_deputy_prevention",
+        "vpc_endpoint_connections_trust_boundaries",
+        "iam_aws_attached_policy_no_administrative_privileges",
+        "iam_inline_policy_allows_privilege_escalation",
+        "iam_inline_policy_no_administrative_privileges",
+        "iam_inline_policy_no_full_access_to_kms",
+        "iam_policy_allows_privilege_escalation",
+        "s3_bucket_cross_account_access"
+      ],
+      "rationale": "These checks address overly permissive access patterns and trust boundary violations across identity and network layers. They identify excessive IAM permissions including administrative access, privilege escalation paths, full KMS access, cross-account trust relationships without proper conditions, and resource-level cross-account access that could be exploited for unauthorized lateral movement or data exfiltration.",
+      "is_merged": true,
+      "instance_count": 103,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::149536488970:role/aws-controltower-ReadOnlyExecutionRole",
+          "resource_name": "aws-controltower-ReadOnlyExecutionRole",
+          "resource_type": "AwsIamRole",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_role_administratoraccess_policy"
+        },
+        {
+          "resource": "arn:aws:iam::257394454167:role/aws-controltower-AdministratorExecutionRole",
+          "resource_name": "aws-controltower-AdministratorExecutionRole",
+          "resource_type": "AwsIamRole",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_role_cross_account_readonlyaccess_policy"
+        },
+        {
+          "resource": "arn:aws:iam::528757821808:role/AWSControlTowerExecution",
+          "resource_name": "AWSControlTowerExecution",
+          "resource_type": "AwsIamRole",
+          "account_name": "Omico-Security",
+          "account_uid": "528757821808 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_role_cross_service_confused_deputy_prevention"
+        },
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:202533523672:vpc-endpoint/vpce-0bb798db9b3870912",
+          "resource_name": "vpce-0bb798db9b3870912",
+          "resource_type": "AwsEc2VpcEndpointService",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "vpc_endpoint_connections_trust_boundaries"
+        },
+        {
+          "resource": "arn:aws:iam::aws:policy/aws-service-role/AWSControlTowerAccountServiceRolePolicy",
+          "resource_name": "AWSControlTowerAccountServiceRolePolicy",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_aws_attached_policy_no_administrative_privileges"
+        },
+        {
+          "resource": "arn:aws:iam::202533523672:role/TerraformCustomRoleforBackup",
+          "resource_name": "TerraformCustomRoleforBackup/terraform-20241110073558173600000001",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_inline_policy_allows_privilege_escalation"
+        },
+        {
+          "resource": "arn:aws:iam::257394454167:role/aws-controltower-ForwardSnsNotificationRole",
+          "resource_name": "aws-controltower-ForwardSnsNotificationRole/sns",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_inline_policy_no_administrative_privileges"
+        },
+        {
+          "resource": "arn:aws:iam::202533523672:policy/patch_manager_policy",
+          "resource_name": "patch_manager_policy",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_policy_allows_privilege_escalation"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_cross_account_access"
+        }
+      ]
+    },
+    {
+      "group_name": "Governance and Organizational Trust Boundaries",
+      "check_ids": [
+        "organizations_delegated_administrators",
+        "organizations_tags_policies_enabled_and_attached"
+      ],
+      "rationale": "These checks evaluate the configuration and trust model within AWS Organizations for multi-account governance. Delegated administrators introduce potential privilege escalation risks if not properly constrained, while tag policies enable consistent resource classification and access controls across organizational units to enforce security boundaries.",
+      "is_merged": true,
+      "instance_count": 6,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:organizations::845299699535:organization/o-zv1nsn18gy",
+          "resource_name": "o-zv1nsn18gy",
+          "resource_type": "Other",
+          "account_name": "Omico-Security",
+          "account_uid": "528757821808 - AWS",
+          "region": "us-east-1",
+          "check_id": "organizations_delegated_administrators"
+        }
+      ]
+    },
+    {
+      "group_name": "Unrestricted Network Perimeter Controls",
+      "check_ids": [
+        "ec2_networkacl_allow_ingress_any_port",
+        "ec2_networkacl_allow_ingress_tcp_port_22",
+        "ec2_networkacl_allow_ingress_tcp_port_3389",
+        "ec2_transitgateway_auto_accept_vpc_attachments"
+      ],
+      "rationale": "These checks all identify network boundary control weaknesses including Network ACLs with overly permissive ingress rules from the internet (0.0.0.0/0) and Transit Gateways that automatically accept VPC attachment requests without proper authorization. Both violate the principle of least privilege and create unnecessary attack surface for network-based threats.",
+      "is_merged": true,
+      "instance_count": 5,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:202533523672:network-acl/acl-092354cea032a5d81",
+          "resource_name": "acl-092354cea032a5d81",
+          "resource_type": "AwsEc2NetworkAcl",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_networkacl_allow_ingress_any_port"
+        },
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:640168431890:transit-gateway/tgw-020ce6c6dd38ba853",
+          "resource_name": "tgw-020ce6c6dd38ba853",
+          "resource_type": "AwsEc2TransitGateway",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_transitgateway_auto_accept_vpc_attachments"
+        }
+      ]
+    },
+    {
+      "group_name": "Advanced Network Traffic Inspection and Filtering",
+      "check_ids": [
+        "networkfirewall_in_all_vpc"
+      ],
+      "rationale": "This check evaluates the deployment of AWS Network Firewall for deep packet inspection and stateful traffic filtering at the VPC level. While related to network controls, Network Firewall provides advanced threat detection and prevention capabilities beyond basic security groups and NACLs, enabling signature-based intrusion detection and domain filtering.",
+      "is_merged": false,
+      "instance_count": 3,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:257394454167:vpc/vpc-047a68e70a85a1366",
+          "resource_name": "vpc-047a68e70a85a1366",
+          "resource_type": "AwsEc2Vpc",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "networkfirewall_in_all_vpc"
+        }
+      ]
+    },
+    {
+      "group_name": "Audit Trail Integrity and Protection",
+      "check_ids": [
+        "cloudtrail_log_file_validation_enabled",
+        "cloudtrail_bucket_requires_mfa_delete",
+        "cloudtrail_logs_s3_bucket_access_logging_enabled"
+      ],
+      "rationale": "These checks ensure the integrity and tamper-resistance of audit logs by enabling validation, requiring multi-factor authentication for deletion, and maintaining access logs to the bucket storing CloudTrail logs. Together they prevent unauthorized modification or destruction of audit evidence.",
+      "is_merged": true,
+      "instance_count": 17,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:cloudtrail:ap-southeast-2:845299699535:trail/aws-controltower-BaselineCloudTrail",
+          "resource_name": "aws-controltower-BaselineCloudTrail",
+          "resource_type": "AwsCloudTrailTrail",
+          "account_name": "Omico-Security",
+          "account_uid": "528757821808 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudtrail_log_file_validation_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Data Lifecycle and Recovery Preparedness",
+      "check_ids": [
+        "dlm_ebs_snapshot_lifecycle_policy_exists",
+        "cloudformation_stacks_termination_protection_enabled",
+        "cloudwatch_log_group_retention_policy_specific_days_enabled",
+        "drs_job_exist",
+        "rds_cluster_backtrack_enabled",
+        "rds_cluster_protected_by_backup_plan",
+        "s3_bucket_object_versioning",
+        "s3_bucket_no_mfa_delete"
+      ],
+      "rationale": "These checks address the organization's preparedness for data lifecycle management, disaster recovery, and protection against accidental or malicious data loss. This includes backup policies for compute volumes and databases, infrastructure protection mechanisms, log retention policies, disaster recovery job configurations, point-in-time recovery capabilities, object versioning, and MFA-protected deletion controls.",
+      "is_merged": true,
+      "instance_count": 213,
+      "affected_accounts": [
+        "Omico-Log-Archive",
+        "Omico-Security",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:dlm:ap-southeast-2:396608773615:policy",
+          "resource_name": "396608773615",
+          "resource_type": "Other",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "dlm_ebs_snapshot_lifecycle_policy_exists"
+        },
+        {
+          "resource": "arn:aws:cloudformation:ap-southeast-2:396608773615:stack/StackSet-AWSControlTowerGuardrailAWS-GR-DETECT-CLOUDTRAIL-ENABLED-ON-SHARED-ACCOUNTS-a18c384c-71f3-4213-9d41-1c953e9ca133/1ad0d870-950e-11ef-91af-0a2b57754ccf",
+          "resource_name": "StackSet-AWSControlTowerGuardrailAWS-GR-DETECT-CLOUDTRAIL-ENABLED-ON-SHARED-ACCOUNTS-a18c384c-71f3-4213-9d41-1c953e9ca133",
+          "resource_type": "AwsCloudFormationStack",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudformation_stacks_termination_protection_enabled"
+        },
+        {
+          "resource": "arn:aws:logs:ap-southeast-2:257394454167:log-group:/aws/lambda/aws-controltower-NotificationForwarder:*",
+          "resource_name": "/aws/lambda/aws-controltower-NotificationForwarder",
+          "resource_type": "AwsLogsLogGroup",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "cloudwatch_log_group_retention_policy_specific_days_enabled"
+        },
+        {
+          "resource": "arn:aws:drs:us-east-2:149536488970:recovery-job",
+          "resource_name": "149536488970",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "us-east-2",
+          "check_id": "drs_job_exist"
+        },
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:202533523672:cluster:omico-test-db",
+          "resource_name": "omico-test-db",
+          "resource_type": "AwsRdsDbCluster",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "rds_cluster_backtrack_enabled"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_object_versioning"
+        },
+        {
+          "resource": "arn:aws:s3:::aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_no_mfa_delete"
+        }
+      ]
+    },
+    {
+      "group_name": "Database Authentication and Access Control Hardening",
+      "check_ids": [
+        "rds_cluster_default_admin",
+        "rds_cluster_iam_authentication_enabled",
+        "rds_instance_default_admin",
+        "rds_instance_iam_authentication_enabled"
+      ],
+      "rationale": "These checks collectively address weaknesses in database authentication mechanisms that could facilitate unauthorized access. Using default administrator usernames makes brute-force attacks easier, while enabling IAM-based authentication instead of traditional database passwords provides centralized credential management, automatic rotation, and integration with broader identity governance controls.",
+      "is_merged": true,
+      "instance_count": 6,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:202533523672:cluster:omico-test-db",
+          "resource_name": "omico-test-db",
+          "resource_type": "AwsRdsDbCluster",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "rds_cluster_default_admin"
+        },
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:202533523672:db:omico-test-db-one",
+          "resource_name": "omico-test-db-one",
+          "resource_type": "AwsRdsDbInstance",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_default_admin"
+        }
+      ]
+    },
+    {
+      "group_name": "Default Encryption Configuration",
+      "check_ids": [
+        "s3_bucket_default_encryption"
+      ],
+      "rationale": "This check verifies that S3 buckets have default encryption enabled to ensure all objects are encrypted automatically upon upload. While related to encryption at rest, this focuses specifically on the default behavior to prevent unencrypted data from being inadvertently stored.",
+      "is_merged": false,
+      "instance_count": 2,
+      "affected_accounts": [
+        "Omico-Log-Archive"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:s3:::aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_name": "aws-controltower-s3-access-logs-396608773615-ap-southeast-2",
+          "resource_type": "AwsS3Bucket",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_default_encryption"
+        }
+      ]
+    },
+    {
+      "group_name": "Detection of Critical Security Events and Configuration Changes",
+      "check_ids": [
+        "cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk",
+        "cloudwatch_changes_to_network_acls_alarm_configured",
+        "cloudwatch_changes_to_network_gateways_alarm_configured",
+        "cloudwatch_changes_to_network_route_tables_alarm_configured",
+        "cloudwatch_changes_to_vpcs_alarm_configured",
+        "cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_authentication_failures",
+        "cloudwatch_log_metric_filter_aws_organizations_changes",
+        "cloudwatch_log_metric_filter_for_s3_bucket_policy_changes",
+        "cloudwatch_log_metric_filter_policy_changes",
+        "cloudwatch_log_metric_filter_root_usage",
+        "cloudwatch_log_metric_filter_security_group_changes",
+        "cloudwatch_log_metric_filter_sign_in_without_mfa",
+        "cloudwatch_log_metric_filter_unauthorized_api_calls"
+      ],
+      "rationale": "These checks all verify that CloudWatch metric filters and alarms are configured to detect security-critical events and configuration changes across the AWS environment. This includes monitoring for changes to encryption keys, network controls, identity policies, audit configurations, and authentication failures, ensuring timely alerting for potentially malicious or inadvertent modifications that could compromise security posture.",
+      "is_merged": true,
+      "instance_count": 90,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:logs:us-east-1:149536488970:log-group",
+          "resource_name": "149536488970",
+          "resource_type": "AwsCloudWatchAlarm",
+          "account_name": "",
+          "account_uid": "149536488970 - AWS",
+          "region": "us-east-1",
+          "check_id": "cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Password Policy Controls",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "These checks collectively address the configuration of IAM password policy requirements to ensure strong authentication credentials and resistance to brute-force attacks. This includes password complexity requirements (length, character types), expiration periods, and reuse prevention to maintain credential hygiene over time.",
+      "is_merged": true,
+      "instance_count": 42,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:us-east-1:257394454167:password-policy",
+          "resource_name": "257394454167",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_password_policy_expires_passwords_within_90_days_or_less"
+        }
+      ]
+    },
+    {
+      "group_name": "Operational Contact Segmentation",
+      "check_ids": [
+        "account_maintain_different_contact_details_to_security_billing_and_operations"
+      ],
+      "rationale": "This check ensures proper separation of duties by requiring distinct contact information for security, billing, and operational concerns. Consolidating contacts increases the risk of single points of failure in incident response and may allow inappropriate access to sensitive communications.",
+      "is_merged": false,
+      "instance_count": 6,
+      "affected_accounts": [
+        "Omico-Log-Archive",
+        "Omico-Security",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::396608773615:root",
+          "resource_name": "396608773615",
+          "resource_type": "Other",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "us-east-1",
+          "check_id": "account_maintain_different_contact_details_to_security_billing_and_operations"
+        }
+      ]
+    },
+    {
+      "group_name": "Operational Support and Incident Response Preparedness",
+      "check_ids": [
+        "iam_support_role_created",
+        "vpc_different_regions"
+      ],
+      "rationale": "These checks address organizational readiness for operational incidents and disaster scenarios. The support role enables proper engagement with AWS Support channels for security incident management, while multi-region VPC deployment ensures geographic redundancy and business continuity capabilities during regional service disruptions.",
+      "is_merged": true,
+      "instance_count": 12,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::aws:policy/AWSSupportAccess",
+          "resource_name": "257394454167",
+          "resource_type": "AwsIamRole",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "us-east-1",
+          "check_id": "iam_support_role_created"
+        },
+        {
+          "resource": "arn:aws:ec2:us-east-1:257394454167:vpc",
+          "resource_name": "257394454167",
+          "resource_type": "AwsEc2Vpc",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "us-east-1",
+          "check_id": "vpc_different_regions"
+        }
+      ]
+    },
+    {
+      "group_name": "Serverless Runtime Security and Maintenance",
+      "check_ids": [
+        "awslambda_function_using_supported_runtimes"
+      ],
+      "rationale": "This check identifies Lambda functions running on deprecated or end-of-life runtimes that no longer receive security patches. Obsolete runtimes represent a significant vulnerability vector as newly discovered exploits will remain unpatched, allowing potential code execution or data compromise.",
+      "is_merged": false,
+      "instance_count": 5,
+      "affected_accounts": [
+        "Omico-Log-Archive",
+        "Omico-Security"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:lambda:ap-southeast-2:396608773615:function:aws-controltower-NotificationForwarder",
+          "resource_name": "aws-controltower-NotificationForwarder",
+          "resource_type": "AwsLambdaFunction",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "awslambda_function_using_supported_runtimes"
+        }
+      ]
+    },
+    {
+      "group_name": "VPC Endpoint Configuration for Service Isolation",
+      "check_ids": [
+        "vpc_endpoint_for_ec2_enabled"
+      ],
+      "rationale": "This check addresses the absence of VPC endpoints for EC2 service access, which forces traffic to traverse the public internet rather than remaining within the AWS network backbone. VPC endpoints improve security posture by keeping service API calls private and reducing exposure to internet-based threats.",
+      "is_merged": false,
+      "instance_count": 3,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:257394454167:vpc/vpc-047a68e70a85a1366",
+          "resource_name": "vpc-047a68e70a85a1366",
+          "resource_type": "AwsEc2VpcEndpointService",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "vpc_endpoint_for_ec2_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Vulnerability Detection and Assessment Coverage",
+      "check_ids": [
+        "inspector2_active_findings_exist",
+        "inspector2_is_enabled",
+        "securityhub_enabled"
+      ],
+      "rationale": "These checks address the deployment and effectiveness of continuous vulnerability scanning and security findings aggregation across compute resources and AWS services. Inspector2 provides runtime vulnerability detection while Security Hub centralizes security findings and automated compliance checking, together ensuring comprehensive visibility into security weaknesses across the environment.",
+      "is_merged": true,
+      "instance_count": 130,
+      "affected_accounts": [
+        "Omico-Security",
+        "Omico-Log-Archive",
+        "omico.org.au"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:inspector2:ap-southeast-2:202533523672:inspector2",
+          "resource_name": "Inspector2",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "202533523672 - AWS",
+          "region": "ap-southeast-2",
+          "check_id": "inspector2_active_findings_exist"
+        },
+        {
+          "resource": "arn:aws:inspector2:eu-west-2:257394454167:inspector2",
+          "resource_name": "Inspector2",
+          "resource_type": "AwsAccount",
+          "account_name": "",
+          "account_uid": "257394454167 - AWS",
+          "region": "eu-west-2",
+          "check_id": "inspector2_is_enabled"
+        },
+        {
+          "resource": "arn:aws:securityhub:eu-north-1:396608773615:hub/unknown",
+          "resource_name": "hub/unknown",
+          "resource_type": "Other",
+          "account_name": "Omico-Log-Archive",
+          "account_uid": "396608773615 - AWS",
+          "region": "eu-north-1",
+          "check_id": "securityhub_enabled"
+        }
+      ]
+    }
+  ]
+}

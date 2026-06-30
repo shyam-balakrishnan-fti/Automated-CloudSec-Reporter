@@ -1,0 +1,235 @@
+{
+  "run_id": "bce7f3f2-497d-4189-b2b7-20a9fdd305c4",
+  "original_count": 15,
+  "merged_count": 7,
+  "merges_applied": 4,
+  "chunks_used": 1,
+  "consolidation_applied": true,
+  "warnings": [],
+  "groups": [
+    {
+      "group_name": "Multi-Factor Authentication Gaps",
+      "check_ids": [
+        "iam_root_mfa_enabled",
+        "iam_user_mfa_enabled_console_access"
+      ],
+      "rationale": "Both checks address the absence of multi-factor authentication on accounts with console access, which represents a critical identity verification weakness that could allow attackers to compromise accounts using stolen or weak passwords alone.",
+      "is_merged": true,
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::123456789012:user/john.smith",
+          "resource_name": "john.smith",
+          "resource_type": "AWSIAMUser",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "global",
+          "check_id": "iam_user_mfa_enabled_console_access"
+        }
+      ]
+    },
+    {
+      "group_name": "Public Network Exposure",
+      "check_ids": [
+        "s3_bucket_public_access",
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+        "rds_instance_no_public_access"
+      ],
+      "rationale": "These checks identify resources that are directly exposed to the public internet, creating immediate attack surface for unauthorized access. All three checks address the critical security principle of minimizing public accessibility to sensitive cloud resources.",
+      "is_merged": true,
+      "instance_count": 5,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-dev"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:s3:::acme-logs",
+          "resource_name": "acme-logs",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_public_access"
+        },
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:123456789012:security-group/sg-0abc1234",
+          "resource_name": "sg-0abc1234",
+          "resource_type": "AWSEC2SecurityGroup",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+        },
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
+          "resource_name": "prod-db",
+          "resource_type": "AWSRDSDBInstance",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_no_public_access"
+        }
+      ]
+    },
+    {
+      "group_name": "Centralized Logging and Monitoring Configuration",
+      "check_ids": [
+        "cloudtrail_multi_region_enabled",
+        "cloudtrail_log_file_validation_enabled",
+        "vpc_flow_logs_enabled",
+        "config_recorder_all_regions_enabled",
+        "securityhub_enabled"
+      ],
+      "rationale": "These checks ensure comprehensive audit trails, network visibility, continuous compliance monitoring, and centralized security findings across the AWS environment. Together they establish foundational observability and security monitoring capabilities necessary for detecting threats, investigating incidents, and maintaining compliance posture.",
+      "is_merged": true,
+      "instance_count": 5,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events",
+          "resource_name": "management-events",
+          "resource_type": "AWSCloudTrailTrail",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "cloudtrail_multi_region_enabled"
+        },
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:123456789012:vpc/vpc-0abc1234",
+          "resource_name": "vpc-0abc1234",
+          "resource_type": "AWSVPC",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "vpc_flow_logs_enabled"
+        },
+        {
+          "resource": "synthetic-resource-config_rec",
+          "resource_name": "synthetic-resource-config_rec",
+          "resource_type": "AWSAccount",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "global",
+          "check_id": "config_recorder_all_regions_enabled"
+        },
+        {
+          "resource": "securityhub",
+          "resource_name": "securityhub",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "securityhub_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Data Encryption at Rest",
+      "check_ids": [
+        "rds_instance_storage_encrypted",
+        "s3_bucket_default_encryption"
+      ],
+      "rationale": "Both checks identify unencrypted data stores that expose sensitive information to unauthorized access if storage media is compromised or accessed improperly. Enabling encryption at rest is a fundamental control for protecting data confidentiality.",
+      "is_merged": true,
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
+          "resource_name": "prod-db",
+          "resource_type": "AWSRDSDBInstance",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_storage_encrypted"
+        },
+        {
+          "resource": "arn:aws:s3:::acme-archive",
+          "resource_name": "acme-archive",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_default_encryption"
+        }
+      ]
+    },
+    {
+      "group_name": "EC2 Metadata Service Security",
+      "check_ids": [
+        "ec2_instance_imdsv2_enabled"
+      ],
+      "rationale": "This check specifically addresses the vulnerability of EC2 instances to SSRF attacks and credential theft through the metadata service, requiring migration to IMDSv2 which provides session-oriented request protection that prevents unauthorized access to instance metadata and temporary credentials.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "i-0abc1234",
+          "resource_name": "i-0abc1234",
+          "resource_type": "AWSEC2Instance",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_instance_imdsv2_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Credential Lifecycle Management",
+      "check_ids": [
+        "iam_user_access_key_age_90_days"
+      ],
+      "rationale": "This check addresses the risk of long-lived credentials that increase exposure window if compromised, representing a distinct identity security practice that requires regular credential rotation to limit the lifetime of potentially compromised authentication material.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::123456789012:user/jane.doe",
+          "resource_name": "jane.doe",
+          "resource_type": "AWSIAMUser",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "global",
+          "check_id": "iam_user_access_key_age_90_days"
+        }
+      ]
+    },
+    {
+      "group_name": "Data Immutability and Retention Controls",
+      "check_ids": [
+        "s3_bucket_object_lock"
+      ],
+      "rationale": "This check ensures protection against accidental or malicious deletion or modification of critical data through immutability controls, addressing compliance requirements and data integrity concerns by enforcing write-once-read-many (WORM) policies on S3 objects.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:s3:::acme-logs",
+          "resource_name": "acme-logs",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "123456789012",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_object_lock"
+        }
+      ]
+    }
+  ]
+}

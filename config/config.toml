@@ -4,25 +4,28 @@
 
 # ── Engagement (change every run) ──────────────────────────────────
 [engagement]
-client_name       = "Synthetic Test Client"
+client_name       = "Omico2"
 assessment_period = "June 2026"
 analyst           = "analyst"
-output_filename   = "SecurityReport_Jun2026.xlsx"
+output_filename   = "SecurityReport_Omico.xlsx"
 
 # ── LLM (set once at setup) ────────────────────────────────────────
 [llm]
 provider         = "bedrock_runtime"
 deployment_name  = "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh" # "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/78fidxvdv3nl"
 aws_region       = "ap-southeast-2"
-max_tokens       = 1000
+max_tokens       =  1500
 timeout_seconds  = 60
+# Zero data retention is enforced at the account level.
+# Verify: aws bedrock get-account-data-retention --region ap-southeast-2
+# Set:    aws bedrock put-account-data-retention --mode none --region ap-southeast-2
+
 
 # ── Processing (change occasionally) ──────────────────────────────
 [processing]
 include_statuses = ["FAIL", "MUTED(FAIL)"]
 preserve_passing = false
-
-
+ 
 # ── Severity rules (security lead owns this) ──────────────────────
 [severity_rules]
 critical      = "High"

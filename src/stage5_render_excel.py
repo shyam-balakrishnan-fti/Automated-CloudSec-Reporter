@@ -206,18 +206,14 @@ def _write_section_header(ws, row: int, label: str) -> None:
 
 # ── Resource detail row ───────────────────────────────────────────────
 
-def _write_resource_row(
-    ws,
-    row: int,
+def _build_resource_text(
     all_findings: list[CanonicalFinding],
     instance_ids: list[str],
-    ref: str,
-) -> None:
+) -> str:
     """
-    Write a sub-row listing all affected resource identifiers.
-    This addresses Question 1 — resource IDs are visible in the report.
+    Build the affected-resources text block for embedding inside the
+    Situation column (not a separate row).
     """
-    # Look up all findings that belong to this group
     findings_map = {f.finding_instance_id: f for f in all_findings}
     resources: list[str] = []
 
@@ -225,50 +221,27 @@ def _write_resource_row(
         f = findings_map.get(fid)
         if not f:
             continue
-        # Prefer ARN, fall back to name, fall back to check_id
         res = (
             f.resource_uid_normalised
             or f.raw_resource_name
             or f.raw_resource_uid
             or ""
         )
-        # Add account context for multi-account findings
         acct = f.raw_account_name or f.raw_account_uid or ""
         if res and res not in ("", "no_resource"):
-            entry = f"{res}"
+            entry = res
             if acct:
-                entry += f" ({acct})"
+                entry = entry + " (" + acct + ")"
             if entry not in resources:
                 resources.append(entry)
 
     if not resources:
-        return
+        return ""
 
-    resource_text = "Affected resources:\n" + "\n".join(
-        f"  • {r}" for r in resources
-    )
-
-    # Write across columns B–J (leave A empty, or put ref)
-    cell_a = ws.cell(row=row, column=COL_REF, value="")
-    cell_a.fill   = _fill("FFFAFAFA")
-    cell_a.border = _thin_border()
-
-    cell = ws.cell(row=row, column=COL_FINDING, value=_safe(resource_text))
-    cell.font      = Font(
-        name=FONT_NAME, size=9, italic=True, color="FF666666"
-    )
-    cell.alignment = _align(horizontal="left", vertical="top", wrap=True)
-    cell.fill      = _fill("FFFAFAFA")
-    cell.border    = _thin_border()
-
-    # Merge B through J for the resource list
-    ws.merge_cells(
-        start_row=row, start_column=COL_FINDING,
-        end_row=row,   end_column=TOTAL_COLS,
-    )
-
-    # Set a reasonable height based on number of resources
-    ws.row_dimensions[row].height = max(18, min(15 * (len(resources) + 1), 120))
+    lines = ["Affected resources:"]
+    for r in resources:
+        lines.append("  \u2022 " + r)
+    return "\n".join(lines)
 
 
 # ── Finding row ───────────────────────────────────────────────────────
@@ -318,6 +291,12 @@ def _write_finding_row(
     risk_colour     = RISK_COLOURS.get(risk_rating, "FFFFFFFF")
     recommendations = _build_recommendations(group)
 
+    # Embed affected resources into the Situation narrative
+    resource_text = _build_resource_text(all_findings, group.instance_ids)
+    situation = rep.situation_narrative or ""
+    if resource_text:
+        situation = situation.rstrip() + "\n\n" + resource_text
+
     _write(ws, row, COL_REF,          ref,                       bold=False, halign="center", valign="center")
     _write(ws, row, COL_FINDING,      rep.finding_title          or group.group_name)
     _write(ws, row, COL_RISK,         risk_rating,               bold=True,  halign="center", valign="center", fill=risk_colour, font_color="FFFFFFFF")
@@ -325,12 +304,13 @@ def _write_finding_row(
     _write(ws, row, COL_LIKELIHOOD,   group.likelihood_rating    or "")
     _write(ws, row, COL_CONSEQUENCE,  rep.consequence_rating     or "")
     _write(ws, row, COL_ACCESS,       rep.access_required        or "")
-    _write(ws, row, COL_SITUATION,    rep.situation_narrative    or "")
+    _write(ws, row, COL_SITUATION,    situation)
     _write(ws, row, COL_CONSEQUENCE_NARRATIVE, rep.consequence_narrative or "")
     _write(ws, row, COL_RECOMMENDATIONS, recommendations)
 
     remed_lines = recommendations.count("\n") + 1
-    ws.row_dimensions[row].height = max(80, min(remed_lines * 15, 200))
+    sit_lines   = situation.count("\n") + 1
+    ws.row_dimensions[row].height = max(80, min(max(remed_lines, sit_lines) * 15, 220))
 
 
 # ── Column widths ─────────────────────────────────────────────────────
@@ -429,17 +409,8 @@ def render_excel(
             ref = f"{ref_prefix}{ref_counter}"
             ref_counter += 1
 
-            # Finding row
+            # Finding row — resources are embedded in the Situation column
             _write_finding_row(ws, current_row, ref, group, enrich_result.all_findings)
-            current_row += 1
-
-            # Resource detail sub-row
-            _write_resource_row(
-                ws, current_row,
-                enrich_result.all_findings,
-                group.instance_ids,
-                ref,
-            )
             current_row += 1
 
     # ── Run info in a note at the top of a metadata sheet ──
@@ -467,7 +438,7 @@ def render_excel(
     wb.save(str(output_path))
 
     print(
-        f"  ✓ Excel report written: {output_path.name} "
+        f"  Excel report written: {output_path.name} "
         f"({output_path.stat().st_size // 1024} KB)",
         flush=True,
     )

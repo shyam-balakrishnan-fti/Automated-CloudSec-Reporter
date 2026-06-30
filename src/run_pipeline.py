@@ -1,17 +1,31 @@
 """
-run_pipeline.py — Stage 1 + Stage 2 runner with full output
+run_pipeline.py — Full pipeline runner
+
+Flow:
+    Stage 1   Ingest & parse raw Prowler output
+    Stage 2   Deterministic filter → dedup → group → likelihood
+    Stage 2.5 Chunked + auto-consolidated semantic grouping (LLM)
+    Review    Analyst reviews/edits grouping in browser UI — drag chips,
+              per-group AI instructions, global AI instructions. NO
+              individual enrichment happens before this step.
+    Stage 3   Enrich ONLY the final approved groups (not every individual
+              check) — situation/consequence/root-cause narratives.
+    Stage 5   Render the client-facing Excel report.
 
 Usage (from your project root):
     python src/run_pipeline.py --input data/synthetic/synthetic_prowler_messy.xlsx
-    python src/run_pipeline.py --input data/synthetic/synthetic_prowler_messy.xlsx --output-dir data/output
-    python src/run_pipeline.py --input your_real_prowler_file.xlsx
+    python src/run_pipeline.py --input your_real_prowler_file.json --format json
 
-Outputs written to --output-dir (default: data/output/):
+Outputs written to --output-dir/{client_name}/ :
     canonical_findings.json     — every finding, full fields, all audit events
-    output_groups.json          — what Stage 3 (LLM) will receive
+    output_groups.json          — Stage 2 output (pre-grouping)
+    grouping_proposal.json      — AI's chunked + consolidated grouping proposal
+    grouping_approved.json      — analyst's final approved grouping
+    enriched_groups.json        — final groups with LLM narratives
     run_manifest.json           — run metadata, counts, warnings
     stage1_summary.txt          — human-readable Stage 1 summary
     stage2_summary.txt          — human-readable Stage 2 summary
+    SecurityReport_*.xlsx       — final client-facing report
 """
 
 from __future__ import annotations
@@ -28,8 +42,13 @@ from models import BlankCategory, ReportInclusion, ScannerStatus
 from stage1_ingest import IngestResult, ingest
 from stage2_process import OutputGroup, ProcessResult, load_config, process
 from stage2_5_grouping import group_semantically
-from stage_reviewer import ReviewApproval, load_review_approval, start_review_server
-from stage3_llm import EnrichResult, EnrichWarning, enrich, enrich_grouped
+from stage_reviewer import (
+    ApprovedGrouping,
+    apply_approved_grouping,
+    load_approved_grouping,
+    start_review_server,
+)
+from stage3_llm import EnrichResult, EnrichWarning, enrich_grouped
 from stage5_render_excel import render_excel
 
 
@@ -338,7 +357,6 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
         skip_llm: bool = False, skip_review: bool = False,
         force_review: bool = False, no_browser: bool = False) -> None:
     input_path   = Path(input_file)
-    # Load config first so we can use client_name for the output folder
     cfg          = load_config(config_path)
     client_slug  = (
         cfg.get("engagement", {}).get("client_name", "")
@@ -350,7 +368,7 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
     output_path.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'='*70}")
-    print("SECURITY SCANNER PIPELINE — STAGE 1 + STAGE 2")
+    print("SECURITY SCANNER PIPELINE")
     print(f"{'='*70}")
     print(f"Input  : {input_path}")
     print(f"Config : {config_path}")
@@ -374,14 +392,13 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
 
     # ── Stage 2 ──────────────────────────────────────────────────────
     print("[ Stage 2 ] Processing (filter → dedup → group → likelihood)...")
-    pr  = process(ir, cfg)
+    pr = process(ir, cfg)
 
     print(f"  ✓ Included         : {pr.included_count}")
     print(f"  ✓ Excluded         : {pr.excluded_count}")
     print(f"  ✓ Duplicates       : {pr.duplicate_count}")
     print(f"  ✓ Output groups    : {pr.group_count}")
 
-    # Quick risk distribution preview
     from collections import Counter
     lik_counts = Counter(g.likelihood_rating for g in pr.output_groups)
     print(f"  ✓ Likelihood dist  : High={lik_counts.get('High',0)}  Medium={lik_counts.get('Medium',0)}  Low={lik_counts.get('Low',0)}")
@@ -391,10 +408,9 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
             print(f"      [{w.code}] {w.message[:80]}")
     print()
 
-    # ── Write outputs ─────────────────────────────────────────────────
-    print("[ Writing outputs ]")
+    # ── Write Stage 1+2 outputs ────────────────────────────────────────
+    print("[ Writing Stage 1+2 outputs ]")
 
-    # 1. canonical_findings.json
     canon_path = output_path / "canonical_findings.json"
     canon_data = {
         "run_id":           pr.run_id,
@@ -413,7 +429,6 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
         json.dump(canon_data, fh, indent=2, default=str, ensure_ascii=False)
     print(f"  ✓ canonical_findings.json  ({canon_path.stat().st_size // 1024} KB)")
 
-    # 2. output_groups.json
     groups_path = output_path / "output_groups.json"
     groups_data = {
         "run_id":       pr.run_id,
@@ -425,7 +440,6 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
         json.dump(groups_data, fh, indent=2, default=str, ensure_ascii=False)
     print(f"  ✓ output_groups.json       ({groups_path.stat().st_size // 1024} KB)")
 
-    # 3. run_manifest.json
     manifest_path = output_path / "run_manifest.json"
     manifest = {
         "run_id":               pr.run_id,
@@ -448,284 +462,177 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
             "duplicates":       pr.duplicate_count,
             "output_groups":    pr.group_count,
         },
-        "stage1_warnings": [
-            {"code": w.code, "message": w.message}
-            for w in ir.warnings
-        ],
-        "stage2_warnings": [
-            {"code": w.code, "message": w.message, "check_id": w.check_id}
-            for w in pr.warnings
-        ],
+        "stage1_warnings": [{"code": w.code, "message": w.message} for w in ir.warnings],
+        "stage2_warnings": [{"code": w.code, "message": w.message, "check_id": w.check_id} for w in pr.warnings],
     }
     with open(manifest_path, "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, indent=2, default=str, ensure_ascii=False)
     print(f"  ✓ run_manifest.json        ({manifest_path.stat().st_size // 1024} KB)")
 
-    # 4. stage1_summary.txt
     s1_path = output_path / "stage1_summary.txt"
     _write_stage1_summary(ir, s1_path)
     print(f"  ✓ stage1_summary.txt")
 
-    # 5. stage2_summary.txt
     s2_path = output_path / "stage2_summary.txt"
     _write_stage2_summary(pr, s2_path)
     print(f"  ✓ stage2_summary.txt")
 
-    # ── Stage 3: LLM enrichment (optional, skippable) ────────────────
-    er = None
     if skip_llm:
         print()
         print(f"{'='*70}")
-        print("STAGE 3 SKIPPED (--skip-llm flag set)")
-        print(f"  Output groups ready for LLM: {pr.group_count}")
+        print("STAGE 2.5 + 3 SKIPPED (--skip-llm flag set)")
+        print(f"  Output groups ready: {pr.group_count}")
         print(f"{'='*70}")
-    else:
-        # ── Stage 2.5: LLM proposes groups (suggestion only) ────────
-        gr = group_semantically(pr, cfg)
-        # Build proposed groups as a plain list for the review UI
-        ai_proposed_groups = [
-            {
-                "group_name": g.group_name,
-                "check_ids":  g.check_ids,
-                "rationale":  g.group_rationale,
-            }
-            for g in gr.grouped_groups
-        ]
+        print()
+        print(f"  Output written to: {output_path.resolve()}")
+        print()
+        return
 
-        # ── Stage 3: Enrich individual findings (not merged) ─────────
-        # Pass original Stage 2 output_groups so each check gets its own enrichment
-        from stage3_llm import ProcessResult as _PR
-        _pr_individual = _PR(
-            run_id=pr.run_id,
-            all_findings=pr.all_findings,
-            output_groups=pr.output_groups,   # individual check_id groups
-            warnings=pr.warnings,
-            config=cfg,
-        )
-        er_individual = enrich(_pr_individual, cfg)
+    # ── Stage 2.5: chunked + auto-consolidated grouping ────────────────
+    gr = group_semantically(pr, cfg)
 
-        # ── Review UI ─────────────────────────────────────────────────
-        approved_path = output_path / "review_approved.json"
-        client_name   = cfg.get("engagement", {}).get("client_name", "")
-
-        if skip_review:
-            print()
-            print("  ℹ --skip-review: skipping review UI", flush=True)
-            # Build a minimal approval from current enrichment state
-            approval_data = {
-                "run_id":       pr.run_id,
-                "approved_at":  "",
-                "findings": [
-                    {
-                        "check_id":              g.check_id,
-                        "group_name":            g.check_id,
-                        "finding_title":         g.representative.finding_title or "",
-                        "root_cause_narrative":  g.representative.root_cause_narrative or "",
-                        "situation_narrative":   g.representative.situation_narrative or "",
-                        "consequence_narrative": g.representative.consequence_narrative or "",
-                        "consequence_rating":    g.representative.consequence_rating or "Moderate",
-                        "access_required":       g.representative.access_required or "",
-                        "likelihood_rating":     g.likelihood_rating or "Medium",
-                        "risk_rating":           g.representative.risk_rating or "Medium",
-                        "instance_count":        g.instance_count,
-                        "affected_accounts":     g.affected_account_names,
-                        "analyst_comment":       "",
-                        "analyst_edited":        False,
-                        "ai_regenerated":        False,
-                    }
-                    for g in er_individual.output_groups
-                ],
-                "groups": ai_proposed_groups,
-            }
-        elif approved_path.exists() and not force_review:
-            print()
-            print(f"  ✓ Found existing review_approved.json — applying", flush=True)
-            approval_data = json.loads(approved_path.read_text(encoding="utf-8"))
-        else:
-            approval_data = start_review_server(
-                enrich_result=er_individual,
-                output_dir=output_path,
-                ai_proposed_groups=ai_proposed_groups,
-                config=cfg,
-                client_name=client_name,
-                open_browser=not no_browser,
-            )
-
-        print(f"  ✓ Review complete: {len(approval_data.get('findings',[]))} findings, {len(approval_data.get('groups',[]))} groups", flush=True)
-
-        # ── Apply approved state to EnrichResult for renderer ─────────
-        # Update each representative finding with analyst-approved values
-        findings_by_check = {
-            g.check_id: g for g in er_individual.output_groups
-        }
-        for fd in approval_data.get("findings", []):
-            cid = fd.get("check_id")
-            g   = findings_by_check.get(cid)
-            if not g:
-                continue
-            rep = g.representative
-            rep.finding_title         = fd.get("finding_title")         or rep.finding_title
-            rep.root_cause_narrative  = fd.get("root_cause_narrative")  or rep.root_cause_narrative
-            rep.situation_narrative   = fd.get("situation_narrative")   or rep.situation_narrative
-            rep.consequence_narrative = fd.get("consequence_narrative") or rep.consequence_narrative
-            rep.consequence_rating    = fd.get("consequence_rating")    or rep.consequence_rating
-            rep.access_required       = fd.get("access_required")       or rep.access_required
-            rep.risk_rating           = fd.get("risk_rating")           or rep.risk_rating
-            rep.likelihood_rating     = fd.get("likelihood_rating")     or rep.likelihood_rating
-            g.likelihood_rating       = rep.likelihood_rating
-
-            if fd.get("analyst_edited") or fd.get("ai_regenerated"):
-                rep.add_audit(
-                    stage="analyst_review",
-                    field="narratives",
-                    old_value="llm_generated",
-                    new_value="analyst_approved",
-                    reason=(
-                        "AI regenerated with comment: " + fd.get("analyst_comment","")
-                        if fd.get("ai_regenerated")
-                        else "Edited inline by analyst"
-                    ),
-                    actor="human",
-                )
-
-        # ── Merge groups per analyst approval ─────────────────────────
-        from stage2_5_grouping import GroupedOutputGroup, GroupingResult
-        new_groups = []
-        for grp in approval_data.get("groups", []):
-            src_groups = [findings_by_check[cid] for cid in grp.get("check_ids", []) if cid in findings_by_check]
-            if not src_groups:
-                continue
-            best_rep = max(src_groups, key=lambda x: x.representative.completeness_score())
-            rep      = best_rep.representative
-            total_inst = sum(g.instance_count for g in src_groups)
-            all_accounts = []
-            all_instance_ids = []
-            for sg in src_groups:
-                all_instance_ids.extend(sg.instance_ids)
-                for a in sg.affected_account_names:
-                    if a not in all_accounts:
-                        all_accounts.append(a)
-            rep.instance_count = total_inst
-
-            new_groups.append(GroupedOutputGroup(
-                group_name=grp["group_name"],
-                group_rationale=grp.get("rationale",""),
-                output_section="AWS",
-                is_merged=len(src_groups) > 1,
-                check_ids=grp.get("check_ids",[]),
-                representative=rep,
-                instance_ids=all_instance_ids,
-                instance_count=total_inst,
-                affected_account_names=all_accounts,
-                affected_account_uids=[],
-                severity=src_groups[0].representative.raw_severity,
-                likelihood_rating=src_groups[0].likelihood_rating,
-                source_groups=src_groups,
-            ))
-
-        er = EnrichResult(
-            run_id=pr.run_id,
-            output_groups=new_groups,
-            all_findings=pr.all_findings,
-            warnings=er_individual.warnings,
-            config=cfg,
-            enriched_count=len([g for g in new_groups if not g.representative.llm_enrichment_failed]),
-            failed_count=len([g for g in new_groups if g.representative.llm_enrichment_failed]),
-        )
-
-        # ── Resource detail helper ─────────────────────────────────
-        _fmap = {f.finding_instance_id: f for f in er.all_findings}
-        def _res_detail(iids):
-            out = []
-            for fid in iids:
-                f = _fmap.get(fid)
-                if not f:
-                    continue
-                out.append({
-                    "resource_uid":    f.resource_uid_normalised or f.raw_resource_uid or "",
-                    "resource_name":   f.raw_resource_name or "",
-                    "account_uid":     f.raw_account_uid or "",
-                    "account_name":    f.raw_account_name or "",
-                    "region":          f.region_normalised or "",
-                    "resource_type":   f.raw_resource_type or "",
-                    "status_extended": f.raw_status_extended or "",
-                })
-            return out
-
-        # Write enriched_groups.json
-        enriched_path = output_path / "enriched_groups.json"
-        enriched_data = {
-            "run_id":        er.run_id,
-            "group_count":   er.group_count,
-            "enriched":      er.enriched_count,
-            "failed":        er.failed_count,
-            "risk_ratings":  er.risk_rating_counts,
-            "generated_at":  datetime.now(timezone.utc).isoformat(),
+    grouping_path = output_path / "grouping_proposal.json"
+    with open(grouping_path, "w", encoding="utf-8") as fh:
+        json.dump({
+            "run_id":           gr.run_id,
+            "original_count":   gr.original_count,
+            "merged_count":     gr.merged_count,
+            "merges_applied":   gr.merges_applied,
+            "chunks_used":      gr.chunks_used,
+            "consolidation_applied": gr.consolidation_applied,
+            "warnings":         [{"code": w.code, "message": w.message} for w in gr.warnings],
             "groups": [
                 {
-                    "group_name":           getattr(g, "group_name", getattr(g, "check_id", "")),
-                    "check_ids":            getattr(g, "check_ids", [getattr(g, "check_id", "")]),
-                    "output_section":       g.output_section,
-                    "instance_count":       g.instance_count,
-                    "affected_accounts":    g.affected_account_names,
-                    "likelihood_rating":    g.likelihood_rating,
-                    "risk_rating":          g.representative.risk_rating,
-                    "consequence_rating":   g.representative.consequence_rating,
-                    "finding_title":        g.representative.finding_title,
-                    "root_cause_narrative": g.representative.root_cause_narrative,
-                    "situation_narrative":  g.representative.situation_narrative,
-                    "consequence_narrative":g.representative.consequence_narrative,
-                    "access_required":      g.representative.access_required,
-                    "recommendations":      g.representative.raw_remediation_recommendation_text,
-                    "ai_enriched":          g.representative.ai_enriched,
-                    "llm_failed":           g.representative.llm_enrichment_failed,
-                    "human_review_required":g.representative.human_review_required,
-                    "affected_resources":   _res_detail(g.instance_ids),
+                    "group_name": g.group_name,
+                    "check_ids":  g.check_ids,
+                    "rationale":  g.group_rationale,
+                    "is_merged":  g.is_merged,
+                    "instance_count": g.instance_count,
+                    "affected_accounts": g.affected_account_names,
+                    "affected_resources": g.affected_resources(),
                 }
-                for g in er.output_groups
+                for g in gr.grouped_groups
             ],
-        }
-        with open(enriched_path, "w", encoding="utf-8") as fh:
-            json.dump(enriched_data, fh, indent=2, default=str, ensure_ascii=False)
+        }, fh, indent=2, default=str, ensure_ascii=False)
+    print(f"  ✓ grouping_proposal.json   ({grouping_path.stat().st_size // 1024} KB)")
 
+    # ── Review UI — grouping only, no individual enrichment ────────────
+    approved_path = output_path / "grouping_approved.json"
+    client_name   = cfg.get("engagement", {}).get("client_name", "")
+
+    if skip_review:
         print()
-        print("[ Writing outputs ]")
-        print(f"  ✓ enriched_groups.json     ({enriched_path.stat().st_size // 1024} KB)")
-
-        # ── Stage 5: Excel renderer ────────────────────────────────
+        print("  ℹ --skip-review: using AI grouping proposal directly", flush=True)
+    elif approved_path.exists() and not force_review:
         print()
-        print("[ Stage 5 ] Rendering Excel report...")
-        _tmpl = None
-        _cfg_tmpl = cfg.get("output", {}).get("template_path", "")
-        if _cfg_tmpl:
-            _p = Path(_cfg_tmpl)
-            if not _p.is_absolute():
-                _p = Path(__file__).resolve().parent.parent / _cfg_tmpl
-            if _p.exists():
-                _tmpl = _p
-        excel_path = render_excel(er, cfg, output_path, template_path=_tmpl)
+        print(f"  ✓ Found existing grouping_approved.json — applying", flush=True)
+        approved = load_approved_grouping(approved_path)
+        gr = apply_approved_grouping(approved, gr)
+        print(f"  ✓ Applied analyst grouping: {gr.group_count} groups", flush=True)
+    else:
+        approved = start_review_server(
+            grouping_result=gr,
+            output_dir=output_path,
+            config=cfg,
+            client_name=client_name,
+            open_browser=not no_browser,
+        )
+        gr = apply_approved_grouping(approved, gr)
+        print(f"  ✓ Applied analyst grouping: {gr.group_count} groups", flush=True)
 
-        if er.warnings:
-            print(f"  ⚠ LLM failures: {er.failed_count}")
-            for w in er.warnings:
-                print(f"      [{w.code}] {w.message[:80]}")
+    # ── Stage 3: enrich ONLY the final approved groups ──────────────────
+    print()
+    print(f"[ Stage 3 ] Enriching {gr.group_count} final group(s) "
+          f"(not {gr.original_count} individual checks)...")
+    er = enrich_grouped(gr, cfg)
 
-    # ── Final summary ─────────────────────────────────────────────────
+    # ── Resource detail for output JSON ─────────────────────────────────
+    fmap = {f.finding_instance_id: f for f in er.all_findings}
+    def _res_detail(iids):
+        out = []
+        for fid in iids:
+            f = fmap.get(fid)
+            if not f:
+                continue
+            out.append({
+                "resource_uid":    f.resource_uid_normalised or f.raw_resource_uid or "",
+                "resource_name":   f.raw_resource_name or "",
+                "account_uid":     f.raw_account_uid or "",
+                "account_name":    f.raw_account_name or "",
+                "region":          f.region_normalised or "",
+                "resource_type":   f.raw_resource_type or "",
+                "status_extended": f.raw_status_extended or "",
+            })
+        return out
+
+    enriched_path = output_path / "enriched_groups.json"
+    enriched_data = {
+        "run_id":        er.run_id,
+        "group_count":   er.group_count,
+        "enriched":      er.enriched_count,
+        "failed":        er.failed_count,
+        "risk_ratings":  er.risk_rating_counts,
+        "generated_at":  datetime.now(timezone.utc).isoformat(),
+        "groups": [
+            {
+                "group_name":           getattr(g, "group_name", getattr(g, "check_id", "")),
+                "check_ids":            getattr(g, "check_ids", [getattr(g, "check_id", "")]),
+                "output_section":       g.output_section,
+                "instance_count":       g.instance_count,
+                "affected_accounts":    g.affected_account_names,
+                "likelihood_rating":    g.likelihood_rating,
+                "risk_rating":          g.representative.risk_rating,
+                "consequence_rating":   g.representative.consequence_rating,
+                "finding_title":        g.representative.finding_title,
+                "root_cause_narrative": g.representative.root_cause_narrative,
+                "situation_narrative":  g.representative.situation_narrative,
+                "consequence_narrative":g.representative.consequence_narrative,
+                "access_required":      g.representative.access_required,
+                "recommendations":      g.representative.raw_remediation_recommendation_text,
+                "ai_enriched":          g.representative.ai_enriched,
+                "llm_failed":           g.representative.llm_enrichment_failed,
+                "human_review_required":g.representative.human_review_required,
+                "affected_resources":   _res_detail(g.instance_ids),
+            }
+            for g in er.output_groups
+        ],
+    }
+    with open(enriched_path, "w", encoding="utf-8") as fh:
+        json.dump(enriched_data, fh, indent=2, default=str, ensure_ascii=False)
+
+    print()
+    print("[ Writing Stage 3 outputs ]")
+    print(f"  ✓ enriched_groups.json     ({enriched_path.stat().st_size // 1024} KB)")
+    if er.warnings:
+        print(f"  ⚠ LLM failures: {er.failed_count}")
+        for w in er.warnings:
+            print(f"      [{w.code}] {w.message[:80]}")
+
+    # ── Stage 5: Excel renderer ────────────────────────────────────────
+    print()
+    print("[ Stage 5 ] Rendering Excel report...")
+    tmpl = None
+    cfg_tmpl = cfg.get("output", {}).get("template_path", "")
+    if cfg_tmpl:
+        p = Path(cfg_tmpl)
+        if not p.is_absolute():
+            p = Path(__file__).resolve().parent.parent / cfg_tmpl
+        if p.exists():
+            tmpl = p
+    excel_path = render_excel(er, cfg, output_path, template_path=tmpl)
+
+    # ── Final summary ──────────────────────────────────────────────────
     print()
     print(f"{'='*70}")
-    if er:
-        from collections import Counter
-        rc = er.risk_rating_counts
-        print("PIPELINE COMPLETE — READY FOR STAGE 4 (QUALITY GATE + RENDERER)")
-        print(f"{'='*70}")
-        print(f"  Groups enriched   : {er.enriched_count}/{er.group_count}")
-        print(f"  Risk distribution : High={rc.get('High',0)}  Medium={rc.get('Medium',0)}  Low={rc.get('Low',0)}")
-        if er.failed_count:
-            print(f"  ⚠ LLM failures    : {er.failed_count} — needs human review before final output")
-    else:
-        print("STAGES 1+2 COMPLETE — STAGE 3 SKIPPED")
-        print(f"{'='*70}")
-        print(f"  Output groups ready for LLM : {pr.group_count}")
+    rc = er.risk_rating_counts
+    print("PIPELINE COMPLETE")
+    print(f"{'='*70}")
+    print(f"  Checks → Groups   : {gr.original_count} → {gr.group_count} "
+          f"({gr.merges_applied} merge(s), {gr.chunks_used} chunk(s))")
+    print(f"  Groups enriched   : {er.enriched_count}/{er.group_count}")
+    print(f"  Risk distribution : High={rc.get('High',0)}  Medium={rc.get('Medium',0)}  Low={rc.get('Low',0)}")
+    if er.failed_count:
+        print(f"  ⚠ LLM failures    : {er.failed_count} — needs human review before final output")
     print()
     print(f"  Output written to: {output_path.resolve()}")
     print()
@@ -735,56 +642,17 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run Stage 1 + Stage 2 of the security scanner pipeline.",
+        description="Run the security scanner pipeline end to end.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    parser.add_argument(
-        "--input", "-i",
-        required=True,
-        help="Path to Prowler CSV or XLSX file",
-    )
-    parser.add_argument(
-        "--output-dir", "-o",
-        default="data/output",
-        help="Directory for output files (default: data/output)",
-    )
-    parser.add_argument(
-        "--config", "-c",
-        default="config/config.toml",
-        help="Path to config.toml (default: config/config.toml)",
-    )
-
-    parser.add_argument(
-        "--format", "-f",
-        choices=["auto", "csv", "xlsx", "json"],
-        default="auto",
-        help="Force input format (default: auto-detect from extension)",
-    )
-
-    parser.add_argument(
-        "--skip-llm",
-        action="store_true",
-        default=False,
-        help="Skip Stage 3 LLM enrichment (Stage 1+2 only)",
-    )
-    parser.add_argument(
-        "--skip-review",
-        action="store_true",
-        default=False,
-        help="Skip HTML grouping review — use AI grouping directly",
-    )
-    parser.add_argument(
-        "--force-review",
-        action="store_true",
-        default=False,
-        help="Force review even if grouping_approved.json already exists",
-    )
-    parser.add_argument(
-        "--no-browser",
-        action="store_true",
-        default=False,
-        help="Do not auto-open browser (use when running over SSH)",
-    )
+    parser.add_argument("--input", "-i", required=True, help="Path to Prowler CSV/XLSX/JSON file")
+    parser.add_argument("--output-dir", "-o", default="data/output", help="Directory for output files (default: data/output)")
+    parser.add_argument("--config", "-c", default="config/config.toml", help="Path to config.toml")
+    parser.add_argument("--format", "-f", choices=["auto", "csv", "xlsx", "json"], default="auto", help="Force input format")
+    parser.add_argument("--skip-llm", action="store_true", default=False, help="Skip Stage 2.5+3 (Stage 1+2 only)")
+    parser.add_argument("--skip-review", action="store_true", default=False, help="Skip grouping review UI — use AI proposal directly")
+    parser.add_argument("--force-review", action="store_true", default=False, help="Force review even if grouping_approved.json exists")
+    parser.add_argument("--no-browser", action="store_true", default=False, help="Do not auto-open browser (use over SSH)")
 
     args = parser.parse_args()
     run(args.input, args.output_dir, args.config, args.format,

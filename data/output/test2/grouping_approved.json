@@ -1,0 +1,77 @@
+{
+  "run_id": "f38aaaed-c3ee-4e36-bcb4-0eea16bd0cbc",
+  "approved_at": "2026-06-30T06:02:11.447Z",
+  "groups": [
+    {
+      "group_name": "S3 Security Controls",
+      "check_ids": [
+        "s3_bucket_public_access",
+        "s3_bucket_default_encryption",
+        "s3_bucket_object_lock"
+      ],
+      "rationale": "This group addresses S3-specific security controls including access restrictions, encryption, and immutability features. These controls ensure that object storage is protected against unauthorized access, data breaches, and ransomware attacks through comprehensive bucket-level security configurations.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Multi-Factor Authentication Enforcement",
+      "check_ids": [
+        "iam_root_mfa_enabled",
+        "iam_user_mfa_enabled_console_access"
+      ],
+      "rationale": "This group focuses on multi-factor authentication requirements for AWS account access. Enforcing MFA for root and console users provides an additional layer of authentication security, significantly reducing the risk of unauthorized access from compromised credentials.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "SSH Access Security",
+      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+      ],
+      "rationale": "This group specifically addresses the security of SSH access to EC2 instances by preventing direct internet exposure on port 22. Restricting SSH access from the public internet is critical to prevent brute-force attacks and unauthorized remote access attempts that could compromise compute instances.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Database Network Isolation",
+      "check_ids": [
+        "rds_instance_no_public_access"
+      ],
+      "rationale": "This group ensures that RDS database instances are not directly accessible from the public internet, enforcing proper network segmentation. Keeping databases on private subnets prevents unauthorized external connections and reduces exposure to internet-based threats targeting database systems.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Centralized Logging and Monitoring",
+      "check_ids": [
+        "vpc_flow_logs_enabled",
+        "cloudtrail_log_file_validation_enabled",
+        "cloudtrail_multi_region_enabled",
+        "config_recorder_all_regions_enabled",
+        "securityhub_enabled"
+      ],
+      "rationale": "This group encompasses comprehensive logging and monitoring capabilities across the AWS environment. These controls enable security teams to detect anomalies, investigate incidents, maintain audit trails, and ensure compliance through centralized visibility into network traffic, API calls, configuration changes, and security findings.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "RDS Encryption at Rest",
+      "check_ids": [
+        "rds_instance_storage_encrypted"
+      ],
+      "rationale": "This group focuses specifically on encryption of data at rest for RDS database instances. Enabling storage encryption protects sensitive data from unauthorized access in the event of physical media theft or improper disposal, ensuring compliance with data protection regulations.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "EC2 Metadata Service Security",
+      "check_ids": [
+        "ec2_instance_imdsv2_enabled"
+      ],
+      "rationale": "This group addresses the security of the EC2 instance metadata service by enforcing IMDSv2. Requiring session-oriented requests for metadata access prevents SSRF attacks and unauthorized credential theft from EC2 instances through metadata service exploitation.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "IAM Credential Lifecycle Management",
+      "check_ids": [
+        "iam_user_access_key_age_90_days"
+      ],
+      "rationale": "This group manages the lifecycle and rotation of IAM credentials to minimize the risk of compromised long-lived keys. Regular rotation of access keys within 90 days reduces the window of opportunity for attackers to exploit stolen or leaked credentials.",
+      "analyst_note": ""
+    }
+  ]
+}

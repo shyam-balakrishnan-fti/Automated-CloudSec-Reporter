@@ -1,0 +1,268 @@
+{
+  "run_id": "4b9602c6-ccf0-42cb-a850-c05d9cfbc80e",
+  "approved_at": "2026-06-30T06:50:25.492Z",
+  "groups": [
+    {
+      "group_name": "CloudTrail Security and Integrity Controls",
+      "check_ids": [
+        "cloudtrail_bucket_requires_mfa_delete",
+        "cloudtrail_log_file_validation_enabled",
+        "cloudtrail_logs_s3_bucket_access_logging_enabled",
+        "cloudtrail_logs_s3_bucket_is_not_publicly_accessible"
+      ],
+      "rationale": "These checks collectively ensure the integrity, availability, and confidentiality of CloudTrail audit logs by preventing unauthorized modification, deletion, and access while enabling comprehensive audit trails of who accesses the logs themselves.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Public Access Prevention for AWS Resources",
+      "check_ids": [
+        "cloudwatch_log_group_not_publicly_accessible",
+        "ec2_ebs_snapshot_account_block_public_access",
+        "awslambda_function_not_publicly_accessible",
+        "s3_bucket_policy_public_write_access",
+        "s3_bucket_public_access",
+        "s3_bucket_public_list_acl",
+        "s3_bucket_public_write_acl",
+        "sns_topics_not_publicly_accessible",
+        "s3_account_level_public_access_blocks",
+        "s3_bucket_level_public_access_block"
+      ],
+      "rationale": "These checks identify AWS resources that are either publicly accessible or allow unauthenticated access, creating significant security exposure across CloudWatch, EBS, Lambda, S3, and SNS services. They enforce public access prevention at both account and resource levels to ensure that sensitive data and infrastructure components are not inadvertently exposed to the internet.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Root Account Security and MFA Controls",
+      "check_ids": [
+        "iam_root_credentials_management_enabled",
+        "iam_root_hardware_mfa_enabled",
+        "iam_root_mfa_enabled"
+      ],
+      "rationale": "These checks all address protection of the root account, which represents the highest privilege level in an AWS account and is a prime target for attackers. They ensure proper credential management and multi-factor authentication to prevent unauthorized access to account-level administrative functions.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Secrets Management and Exposure Prevention",
+      "check_ids": [
+        "cloudformation_stack_outputs_find_secrets",
+        "cloudwatch_log_group_no_secrets_in_logs",
+        "awslambda_function_no_secrets_in_code",
+        "awslambda_function_no_secrets_in_variables"
+      ],
+      "rationale": "All these checks detect hardcoded or exposed secrets across multiple AWS services including CloudFormation, Lambda, and CloudWatch. The root cause is insecure secret management practices that increase the risk of credential theft and unauthorized access to systems and data.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "AWS Organizations Governance and Delegation",
+      "check_ids": [
+        "organizations_delegated_administrators",
+        "organizations_tags_policies_enabled_and_attached"
+      ],
+      "rationale": "These checks both relate to proper governance and policy enforcement within AWS Organizations multi-account structures. Delegated administrator trust and tag policies ensure proper management delegation and consistent resource tagging across the organization.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Data-at-Rest Encryption Using AWS KMS",
+      "check_ids": [
+        "cloudtrail_kms_encryption_enabled",
+        "cloudwatch_log_group_kms_encryption_enabled",
+        "glue_data_catalogs_connection_passwords_encryption_enabled",
+        "glue_data_catalogs_metadata_encryption_enabled",
+        "s3_bucket_kms_encryption",
+        "sns_topics_kms_encryption_at_rest_enabled",
+        "firehose_stream_encrypted_at_rest"
+      ],
+      "rationale": "These checks all validate that AWS services are using customer-managed KMS keys (CMKs) to encrypt data at rest, representing a unified security control across CloudTrail, CloudWatch, Glue, S3, SNS, and Kinesis Firehose. This ensures sensitive data is protected with keys under organizational control rather than AWS-managed defaults.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Data-in-Transit Encryption Requirements",
+      "check_ids": [
+        "rds_instance_transport_encrypted",
+        "s3_bucket_secure_transport_policy"
+      ],
+      "rationale": "Both checks enforce encryption for data in transit, ensuring that client connections use SSL/TLS protocols to prevent interception or tampering. RDS instance transport encryption and S3 secure transport policies together establish baseline protection for data moving between clients and AWS services.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "IAM Cross-Boundary Access and Privilege Controls",
+      "check_ids": [
+        "iam_role_administratoraccess_policy",
+        "iam_role_cross_account_readonlyaccess_policy",
+        "iam_role_cross_service_confused_deputy_prevention",
+        "vpc_endpoint_connections_trust_boundaries",
+        "iam_aws_attached_policy_no_administrative_privileges",
+        "iam_inline_policy_allows_privilege_escalation",
+        "iam_inline_policy_no_administrative_privileges",
+        "iam_inline_policy_no_full_access_to_kms",
+        "iam_policy_allows_privilege_escalation",
+        "s3_bucket_cross_account_access"
+      ],
+      "rationale": "These checks all address trust boundary violations and excessive privilege assignments in IAM and network configurations. The common theme is controlling access across AWS accounts, services, and organizational boundaries while preventing privilege escalation and administrative access that violates the principle of least privilege, including full administrative access, cross-account permissions, and S3 bucket access from external accounts.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Network Access Control Misconfigurations",
+      "check_ids": [
+        "ec2_networkacl_allow_ingress_any_port",
+        "ec2_networkacl_allow_ingress_tcp_port_22",
+        "ec2_networkacl_allow_ingress_tcp_port_3389",
+        "ec2_transitgateway_auto_accept_vpc_attachments",
+        "vpc_endpoint_for_ec2_enabled"
+      ],
+      "rationale": "These checks all target overly permissive Network ACL rules and insecure network boundary configurations that allow unrestricted ingress from the internet to VPC subnets or automatic acceptance of Transit Gateway attachments. They ensure proper network segmentation, controlled connectivity, and prevent unauthorized network-level access to compute resources.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Service Activity Logging and Audit Trail Coverage",
+      "check_ids": [
+        "bedrock_model_invocation_logging_enabled",
+        "cloudtrail_multi_region_enabled",
+        "config_recorder_all_regions_enabled",
+        "guardduty_is_enabled",
+        "s3_bucket_server_access_logging_enabled",
+        "rds_cluster_integration_cloudwatch_logs",
+        "rds_instance_integration_cloudwatch_logs",
+        "wafv2_webacl_rule_logging_enabled",
+        "rds_instance_event_subscription_security_groups",
+        "s3_bucket_event_notifications_enabled"
+      ],
+      "rationale": "These checks all address the organization's ability to maintain comprehensive audit logs and detect security events across AWS services. They ensure that critical service activities from Bedrock, CloudTrail, Config, GuardDuty, S3, RDS, and WAF are captured and routed to monitoring systems, enabling security teams to detect configuration changes, access patterns, and potential threats across the entire AWS environment.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "AWS Account Contact Information Segregation",
+      "check_ids": [
+        "account_maintain_different_contact_details_to_security_billing_and_operations"
+      ],
+      "rationale": "This check ensures proper separation of contact information for different functional areas within AWS account management. It represents a distinct operational security control for maintaining appropriate segregation of duties and communication channels.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "AWS Support and Incident Response Enablement",
+      "check_ids": [
+        "iam_support_role_created",
+        "securityhub_enabled"
+      ],
+      "rationale": "These checks ensure that organizations have established proper support access and centralized security monitoring capabilities. The IAM support role enables AWS Support access during incident response, while Security Hub provides centralized security findings aggregation, compliance monitoring, and automated security checks across AWS accounts and regions.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Compute Runtime Security and Patch Management",
+      "check_ids": [
+        "awslambda_function_using_supported_runtimes"
+      ],
+      "rationale": "This check identifies Lambda functions running on deprecated or unsupported runtime versions, which no longer receive security patches and represent a significant vulnerability exposure requiring migration to supported versions.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Data Lifecycle and Recovery Controls",
+      "check_ids": [
+        "dlm_ebs_snapshot_lifecycle_policy_exists",
+        "cloudwatch_log_group_retention_policy_specific_days_enabled",
+        "drs_job_exist",
+        "rds_cluster_backtrack_enabled",
+        "rds_cluster_protected_by_backup_plan",
+        "s3_bucket_object_versioning",
+        "s3_bucket_no_mfa_delete"
+      ],
+      "rationale": "These checks address data lifecycle management, business continuity, and recovery capabilities across different AWS services including EBS snapshots, CloudWatch log retention, Disaster Recovery Service jobs, RDS backtrack, backup plans, and S3 versioning with MFA delete protection. Together they ensure that organizations can recover from data loss, accidental deletion, or disaster scenarios while maintaining appropriate retention policies.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Default Encryption Configuration for Data Stores",
+      "check_ids": [
+        "s3_bucket_default_encryption"
+      ],
+      "rationale": "This check validates that S3 buckets have server-side encryption automatically applied to new objects, which is a foundational baseline protection distinct from KMS-based encryption requirements.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "IAM Password Policy Compliance Requirements",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "All seven checks evaluate different requirements of the AWS IAM password policy against industry best practices and compliance standards. They share the common objective of ensuring strong password security through complexity requirements, expiration policies, and prevention of password reuse.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Infrastructure Change Monitoring and Alerting",
+      "check_ids": [
+        "cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk",
+        "cloudwatch_changes_to_network_acls_alarm_configured",
+        "cloudwatch_changes_to_network_gateways_alarm_configured",
+        "cloudwatch_changes_to_network_route_tables_alarm_configured",
+        "cloudwatch_changes_to_vpcs_alarm_configured",
+        "cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_authentication_failures",
+        "cloudwatch_log_metric_filter_aws_organizations_changes",
+        "cloudwatch_log_metric_filter_for_s3_bucket_policy_changes",
+        "cloudwatch_log_metric_filter_policy_changes",
+        "cloudwatch_log_metric_filter_root_usage",
+        "cloudwatch_log_metric_filter_security_group_changes",
+        "cloudwatch_log_metric_filter_sign_in_without_mfa",
+        "cloudwatch_log_metric_filter_unauthorized_api_calls"
+      ],
+      "rationale": "All these checks validate the presence of CloudWatch log metric filters and alarms for monitoring critical infrastructure and security events across AWS services. They provide real-time alerting for changes to network configurations, KMS keys, IAM policies, authentication events, and other security-sensitive operations that could indicate malicious activity or misconfigurations.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Multi-Region Resilience and Availability Architecture",
+      "check_ids": [
+        "vpc_different_regions"
+      ],
+      "rationale": "This check verifies that network infrastructure is deployed across multiple AWS regions to ensure business continuity and disaster recovery capabilities in the event of regional service disruptions.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Network Perimeter Security Controls",
+      "check_ids": [
+        "networkfirewall_in_all_vpc"
+      ],
+      "rationale": "This check ensures that VPCs are protected by AWS Network Firewall for deep packet inspection and threat prevention at the network perimeter. It represents a critical layer of defense for controlling and inspecting traffic entering and leaving VPC boundaries.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "RDS Authentication and Access Security Controls",
+      "check_ids": [
+        "rds_cluster_default_admin",
+        "rds_cluster_iam_authentication_enabled",
+        "rds_instance_default_admin",
+        "rds_instance_iam_authentication_enabled"
+      ],
+      "rationale": "These checks address database authentication security by preventing use of predictable default usernames and enabling IAM-based authentication for stronger, centralized access control. IAM authentication eliminates the need to manage database passwords separately and provides better audit trails through CloudTrail integration.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Resource Deletion and State Protection Mechanisms",
+      "check_ids": [
+        "cloudformation_stacks_termination_protection_enabled"
+      ],
+      "rationale": "This check verifies that CloudFormation stacks have termination protection enabled to prevent accidental or malicious deletion of critical infrastructure, ensuring business continuity and preventing service disruptions.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "S3 Access Control Model Configuration",
+      "check_ids": [
+        "s3_bucket_acl_prohibited"
+      ],
+      "rationale": "This check ensures S3 buckets use modern bucket policies and IAM policies rather than legacy Access Control Lists (ACLs), which are more difficult to audit and manage at scale, reducing the risk of misconfiguration.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Vulnerability Scanning and Runtime Security Coverage",
+      "check_ids": [
+        "inspector2_active_findings_exist",
+        "inspector2_is_enabled"
+      ],
+      "rationale": "Both checks relate to AWS Inspector2's vulnerability and security assessment capabilities across compute resources (EC2, Lambda, ECR). The enablement check ensures the service is active, while the findings check validates that discovered vulnerabilities are being tracked and remediated.",
+      "analyst_note": ""
+    }
+  ]
+}

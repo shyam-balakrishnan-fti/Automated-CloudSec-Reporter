@@ -336,7 +336,32 @@ def _call_bedrock_runtime(prompt: str, llm_cfg: dict[str, Any]) -> str:
             f"Model: {model_id}, Region: {region}"
         ) from e
 
-    return response["output"]["message"]["content"][0]["text"]
+    stop_reason = response.get("stopReason", "")
+    content_blocks = response.get("output", {}).get("message", {}).get("content", [])
+
+    if not content_blocks:
+        raise RuntimeError(
+            f"Bedrock returned no content blocks. stopReason='{stop_reason}'. "
+            f"Model: {model_id}, max_tokens={max_tokens}. "
+            f"If stopReason is 'max_tokens', increase max_tokens in config."
+        )
+
+    text = content_blocks[0].get("text", "")
+
+    if stop_reason == "max_tokens":
+        raise RuntimeError(
+            f"Bedrock response was truncated (stopReason='max_tokens', "
+            f"max_tokens={max_tokens}). Response so far ({len(text)} chars): "
+            f"{text[:150]!r}. Increase max_tokens in config.toml or reduce prompt size."
+        )
+
+    if not text or not text.strip():
+        raise RuntimeError(
+            f"Bedrock returned an empty text response. stopReason='{stop_reason}'. "
+            f"Model: {model_id}, max_tokens={max_tokens}."
+        )
+
+    return text
 
 
 def _call_ollama(prompt: str, llm_cfg: dict[str, Any]) -> str:

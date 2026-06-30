@@ -1,0 +1,289 @@
+{
+  "run_id": "2cd1eb73-9a1d-4ada-b9de-5af6bb93e8c0",
+  "approved_at": "2026-06-30T06:58:40.619Z",
+  "groups": [
+    {
+      "group_name": "CloudTrail Public Access Controls",
+      "check_ids": [
+        "cloudtrail_logs_s3_bucket_is_not_publicly_accessible"
+      ],
+      "rationale": "This group focuses specifically on preventing public access to CloudTrail logs stored in S3 buckets. CloudTrail logs contain sensitive audit data about API calls and account activity, making their public exposure a critical security risk that requires dedicated attention and remediation.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "CloudWatch Public Access Controls",
+      "check_ids": [
+        "cloudwatch_log_group_not_publicly_accessible"
+      ],
+      "rationale": "This group addresses public accessibility of CloudWatch Log Groups, which may contain application logs, security events, and sensitive operational data. Isolating CloudWatch-specific public access controls allows security teams to focus remediation efforts on logging infrastructure separately from other AWS services.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "EC2 Public Access Controls",
+      "check_ids": [
+        "ec2_ebs_snapshot_account_block_public_access"
+      ],
+      "rationale": "This group is dedicated to EC2-related public access controls, specifically focusing on EBS snapshot exposure. Public EBS snapshots can leak sensitive data including application code, databases, and configuration files, requiring focused monitoring and blocking at the account level.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Lambda Public Access Controls",
+      "check_ids": [
+        "awslambda_function_not_publicly_accessible"
+      ],
+      "rationale": "This group isolates Lambda function public accessibility concerns to enable targeted remediation of serverless compute exposure. Publicly accessible Lambda functions can be invoked by anyone, potentially leading to unauthorized code execution, data exfiltration, or resource abuse.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "S3 Public Access Controls",
+      "check_ids": [
+        "s3_bucket_policy_public_write_access",
+        "s3_bucket_public_access",
+        "s3_bucket_public_list_acl",
+        "s3_bucket_public_write_acl",
+        "s3_account_level_public_access_blocks",
+        "s3_bucket_level_public_access_block",
+        "s3_bucket_acl_prohibited",
+        "s3_bucket_cross_account_access"
+      ],
+      "rationale": "This group consolidates all S3 public access and cross-account access controls into a single category for comprehensive bucket security management. S3 buckets are frequently targeted for data breaches, and this grouping allows security teams to systematically address bucket policies, ACLs, and account-level blocks in a coordinated manner.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "SNS Public Access Controls",
+      "check_ids": [
+        "sns_topics_not_publicly_accessible"
+      ],
+      "rationale": "This group focuses on preventing public access to SNS topics, which could allow unauthorized message publishing or subscription to sensitive notification streams. Isolating SNS access controls enables teams to audit and secure messaging infrastructure independently from storage and compute resources.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Root Account Protection and MFA Enforcement",
+      "check_ids": [
+        "iam_root_credentials_management_enabled",
+        "iam_root_hardware_mfa_enabled",
+        "iam_root_mfa_enabled"
+      ],
+      "rationale": "This group ensures the AWS root account is protected with MFA and proper credential management. The root account has unrestricted access to all resources, making its protection critical to overall account security posture.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Secrets Management and Exposure Prevention",
+      "check_ids": [
+        "cloudformation_stack_outputs_find_secrets",
+        "cloudwatch_log_group_no_secrets_in_logs",
+        "awslambda_function_no_secrets_in_code",
+        "awslambda_function_no_secrets_in_variables"
+      ],
+      "rationale": "This group addresses the detection and prevention of hardcoded secrets across various AWS services. Exposed secrets in logs, code, or configuration can lead to credential compromise and unauthorized access.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Comprehensive Activity Logging Coverage",
+      "check_ids": [
+        "bedrock_model_invocation_logging_enabled",
+        "cloudtrail_multi_region_enabled",
+        "config_recorder_all_regions_enabled",
+        "guardduty_is_enabled",
+        "s3_bucket_server_access_logging_enabled",
+        "rds_cluster_integration_cloudwatch_logs",
+        "rds_instance_integration_cloudwatch_logs",
+        "wafv2_webacl_rule_logging_enabled",
+        "rds_instance_event_subscription_security_groups",
+        "s3_bucket_event_notifications_enabled"
+      ],
+      "rationale": "This group ensures comprehensive logging is enabled across all critical AWS services for security monitoring and incident response. Proper logging coverage is essential for detecting security incidents, meeting compliance requirements, and conducting forensic investigations.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Encryption at Rest with Customer-Managed Keys",
+      "check_ids": [
+        "cloudtrail_kms_encryption_enabled",
+        "cloudwatch_log_group_kms_encryption_enabled",
+        "s3_bucket_kms_encryption",
+        "sns_topics_kms_encryption_at_rest_enabled",
+        "glue_data_catalogs_connection_passwords_encryption_enabled",
+        "glue_data_catalogs_metadata_encryption_enabled",
+        "firehose_stream_encrypted_at_rest"
+      ],
+      "rationale": "This group verifies that sensitive data is encrypted at rest using KMS customer-managed keys. Using customer-managed keys provides greater control over encryption key lifecycle and access policies compared to AWS-managed keys.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Encryption in Transit Enforcement",
+      "check_ids": [
+        "rds_instance_transport_encrypted",
+        "s3_bucket_secure_transport_policy"
+      ],
+      "rationale": "This group ensures data is encrypted during transmission to protect against man-in-the-middle attacks and network eavesdropping. Transport encryption is critical for maintaining data confidentiality as it moves between clients and AWS services.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Excessive IAM Privilege and Trust Boundary Violations",
+      "check_ids": [
+        "iam_role_administratoraccess_policy",
+        "iam_role_cross_account_readonlyaccess_policy",
+        "iam_role_cross_service_confused_deputy_prevention",
+        "vpc_endpoint_connections_trust_boundaries",
+        "iam_aws_attached_policy_no_administrative_privileges",
+        "iam_inline_policy_allows_privilege_escalation",
+        "iam_inline_policy_no_administrative_privileges",
+        "iam_inline_policy_no_full_access_to_kms",
+        "iam_policy_allows_privilege_escalation"
+      ],
+      "rationale": "This group identifies overly permissive IAM configurations and trust boundary violations that could lead to privilege escalation or unauthorized access. Following the principle of least privilege is essential for limiting the blast radius of security incidents.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Governance and Organizational Trust Boundaries",
+      "check_ids": [
+        "organizations_delegated_administrators",
+        "organizations_tags_policies_enabled_and_attached"
+      ],
+      "rationale": "This group addresses governance controls at the AWS Organizations level including delegated administration and tag policies. Proper organizational governance ensures consistent security policies across multiple accounts.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Unrestricted Network Perimeter Controls",
+      "check_ids": [
+        "ec2_networkacl_allow_ingress_any_port",
+        "ec2_networkacl_allow_ingress_tcp_port_22",
+        "ec2_networkacl_allow_ingress_tcp_port_3389",
+        "ec2_transitgateway_auto_accept_vpc_attachments"
+      ],
+      "rationale": "This group identifies overly permissive network ACLs and transit gateway configurations that expose resources to unnecessary network traffic. Restricting network perimeter access reduces the attack surface and prevents unauthorized access attempts.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Advanced Network Traffic Inspection and Filtering",
+      "check_ids": [
+        "networkfirewall_in_all_vpc"
+      ],
+      "rationale": "This group ensures AWS Network Firewall is deployed for deep packet inspection and advanced threat prevention. Network firewalls provide stateful inspection and can detect and block malicious traffic patterns.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Audit Trail Integrity and Protection",
+      "check_ids": [
+        "cloudtrail_log_file_validation_enabled",
+        "cloudtrail_bucket_requires_mfa_delete",
+        "cloudtrail_logs_s3_bucket_access_logging_enabled"
+      ],
+      "rationale": "This group ensures CloudTrail logs maintain integrity and cannot be tampered with or deleted without authorization. Protecting audit trails is critical for forensic investigations and compliance requirements.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Data Lifecycle and Recovery Preparedness",
+      "check_ids": [
+        "dlm_ebs_snapshot_lifecycle_policy_exists",
+        "cloudformation_stacks_termination_protection_enabled",
+        "cloudwatch_log_group_retention_policy_specific_days_enabled",
+        "drs_job_exist",
+        "rds_cluster_backtrack_enabled",
+        "rds_cluster_protected_by_backup_plan",
+        "s3_bucket_object_versioning",
+        "s3_bucket_no_mfa_delete"
+      ],
+      "rationale": "This group addresses backup, versioning, and disaster recovery capabilities across multiple services. Proper data lifecycle management ensures business continuity and enables recovery from ransomware, accidental deletion, or other data loss scenarios.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Database Authentication and Access Control Hardening",
+      "check_ids": [
+        "rds_cluster_default_admin",
+        "rds_cluster_iam_authentication_enabled",
+        "rds_instance_default_admin",
+        "rds_instance_iam_authentication_enabled"
+      ],
+      "rationale": "This group focuses on strengthening database authentication by avoiding default credentials and enabling IAM-based authentication. IAM database authentication eliminates the need to store database credentials and provides centralized access management.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Default Encryption Configuration",
+      "check_ids": [
+        "s3_bucket_default_encryption"
+      ],
+      "rationale": "This group ensures S3 buckets have default encryption enabled to protect data at rest automatically. Default encryption prevents accidental storage of unencrypted sensitive data.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Detection of Critical Security Events and Configuration Changes",
+      "check_ids": [
+        "cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk",
+        "cloudwatch_changes_to_network_acls_alarm_configured",
+        "cloudwatch_changes_to_network_gateways_alarm_configured",
+        "cloudwatch_changes_to_network_route_tables_alarm_configured",
+        "cloudwatch_changes_to_vpcs_alarm_configured",
+        "cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_authentication_failures",
+        "cloudwatch_log_metric_filter_aws_organizations_changes",
+        "cloudwatch_log_metric_filter_for_s3_bucket_policy_changes",
+        "cloudwatch_log_metric_filter_policy_changes",
+        "cloudwatch_log_metric_filter_root_usage",
+        "cloudwatch_log_metric_filter_security_group_changes",
+        "cloudwatch_log_metric_filter_sign_in_without_mfa",
+        "cloudwatch_log_metric_filter_unauthorized_api_calls"
+      ],
+      "rationale": "This group implements metric filters and alarms for detecting critical security events and unauthorized changes. Real-time alerting on security-relevant events enables rapid incident response and prevents attackers from operating undetected.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "IAM Password Policy Controls",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "This group enforces strong password requirements for IAM users to prevent credential-based attacks. Strong password policies reduce the risk of brute force attacks and credential compromise.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Operational Contact Segmentation",
+      "check_ids": [
+        "account_maintain_different_contact_details_to_security_billing_and_operations"
+      ],
+      "rationale": "This group ensures different contact details are maintained for security, billing, and operations to enable appropriate routing of communications. Proper contact segmentation ensures critical notifications reach the right teams promptly.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Operational Support and Incident Response Preparedness",
+      "check_ids": [
+        "iam_support_role_created",
+        "vpc_different_regions"
+      ],
+      "rationale": "This group verifies that support roles are created for AWS Support access and multi-region VPC deployment for resilience. These configurations ensure organizations can receive assistance during incidents and maintain availability during regional outages.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Serverless Runtime Security and Maintenance",
+      "check_ids": [
+        "awslambda_function_using_supported_runtimes"
+      ],
+      "rationale": "This group ensures Lambda functions use supported runtimes to receive security patches and updates. Deprecated runtimes no longer receive security updates and may contain known vulnerabilities.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "VPC Endpoint Configuration for Service Isolation",
+      "check_ids": [
+        "vpc_endpoint_for_ec2_enabled"
+      ],
+      "rationale": "This group verifies VPC endpoints are configured for EC2 service access to keep traffic within the AWS network. VPC endpoints eliminate the need for internet gateways and provide enhanced security and performance.",
+      "analyst_note": ""
+    },
+    {
+      "group_name": "Vulnerability Detection and Assessment Coverage",
+      "check_ids": [
+        "inspector2_active_findings_exist",
+        "inspector2_is_enabled",
+        "securityhub_enabled"
+      ],
+      "rationale": "This group ensures vulnerability scanning and security assessment services are enabled and actively identifying issues. Continuous vulnerability detection is essential for maintaining a strong security posture and identifying exploitable weaknesses before attackers do.",
+      "analyst_note": ""
+    }
+  ]
+}

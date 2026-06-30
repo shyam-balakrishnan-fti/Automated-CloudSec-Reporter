@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html><head><style>
+body{font-family:sans-serif;padding:40px}
+.box{width:250px;height:120px;border:3px solid #333;margin:15px;display:inline-block;vertical-align:top;padding:15px;font-size:16px}
+.chip{display:inline-block;padding:8px 14px;background:#dbeafe;border:2px solid #2563eb;cursor:grab;margin:4px;border-radius:6px;font-weight:600}
+.drag-over{border-color:red;background:#fee2e2}
+#log{font-family:monospace;font-size:13px;background:#f3f4f6;padding:15px;white-space:pre-wrap;border-radius:6px}
+</style></head>
+<body>
+<h2>Drag-and-Drop Isolation Test</h2>
+<p>Drag the blue chip from Box A into Box B. Watch the log below.</p>
+<div class="box" id="a" ondragover="ov(event)" ondrop="dp(event,'A')" ondragleave="lv(event)">
+  <strong>BOX A</strong><br>
+  <div class="chip" draggable="true" id="chip1" ondragstart="ds(event)">DRAG ME</div>
+</div>
+<div class="box" id="b" ondragover="ov(event)" ondrop="dp(event,'B')" ondragleave="lv(event)">
+  <strong>BOX B (drop here)</strong>
+</div>
+<div id="log">Log will appear here...</div>
+<script>
+function log(m){ document.getElementById('log').textContent += new Date().toLocaleTimeString()+'  '+m+'\n'; }
+function ds(e){ e.dataTransfer.setData('text/plain','chip1'); log('✓ dragstart fired'); }
+function ov(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function lv(e){ e.currentTarget.classList.remove('drag-over'); }
+function dp(e,box){
+  e.preventDefault();
+  document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
+  const data = e.dataTransfer.getData('text/plain');
+  log('✓ drop fired on Box '+box+' — payload="'+data+'"');
+  if(data && box==='B'){
+    document.getElementById('b').appendChild(document.getElementById('chip1'));
+    log('✓ chip successfully moved to Box B');
+  } else {
+    log('✗ drop fired but payload was EMPTY — something is blocking dataTransfer');
+  }
+}
+</script>
+</body></html>

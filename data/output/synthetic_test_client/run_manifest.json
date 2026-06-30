@@ -1,11 +1,11 @@
 {
-  "run_id": "06020bb8-2d03-4e63-9618-8b7eeb623a30",
-  "source_file": "data/synthetic/synthetic_prowler_messy.xlsx",
-  "source_file_hash": "40d41253a83672f68cad05de2f9e2b98ef308d77300457c3f84307fd90f0d541",
+  "run_id": "d00c9e16-1a4b-40aa-a15a-03b1b856a9a4",
+  "source_file": "data/output/synthetic_test_client/enriched_groups.json",
+  "source_file_hash": "4df5441b01c7a0e7e5a4ab89c72532028067cf39d95a9c8fedcf6ef3ffdb5b9c",
   "scanner": "prowler",
-  "scanner_version": "4.3.1",
+  "scanner_version": "",
   "schema_version": "1.0.0",
-  "generated_at": "2026-06-30T01:00:50.192941+00:00",
+  "generated_at": "2026-06-30T04:07:17.299269+00:00",
   "config": {
     "include_statuses": [
       "FAIL",
@@ -34,70 +34,28 @@
     }
   },
   "counts": {
-    "total_rows_read": 30,
-    "total_findings": 30,
-    "included": 26,
-    "excluded": 2,
-    "duplicates": 2,
-    "output_groups": 16
+    "total_rows_read": 1,
+    "total_findings": 1,
+    "included": 0,
+    "excluded": 1,
+    "duplicates": 0,
+    "output_groups": 0
   },
   "stage1_warnings": [
     {
       "code": "DATA_QUALITY_BLANK",
-      "message": "Row 8: blank data quality fields: ['RISK', 'REMEDIATION_RECOMMENDATION_TEXT']"
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 9: blank data quality fields: ['DESCRIPTION', 'RISK']"
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 10: blank data quality fields: ['DESCRIPTION', 'RISK']"
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 11: blank data quality fields: ['DESCRIPTION', 'RISK']"
-    },
-    {
-      "code": "MUTED_STATUS_RECONCILED",
-      "message": "MUTED=True but STATUS='FAIL' (not prefixed MUTED). Reconciled to 'MUTED(FAIL)'. Original STATUS preserved in raw_status."
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 14: blank data quality fields: ['RISK', 'REMEDIATION_RECOMMENDATION_TEXT']"
-    },
-    {
-      "code": "ARN_FALLBACK",
-      "message": "Row 16: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='i-0aabbccdd' as resource identifier."
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 20: blank data quality fields: ['DESCRIPTION', 'RISK']"
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 26: blank data quality fields: ['DESCRIPTION']"
-    },
-    {
-      "code": "ARN_FALLBACK",
-      "message": "Row 26: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='guardduty' as resource identifier."
-    },
-    {
-      "code": "ARN_FALLBACK",
-      "message": "Row 28: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='security-hub' as resource identifier."
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 29: blank data quality fields: ['DESCRIPTION', 'RISK']"
-    },
-    {
-      "code": "DATA_QUALITY_BLANK",
-      "message": "Row 31: blank data quality fields: ['DESCRIPTION', 'RISK', 'REMEDIATION_RECOMMENDATION_TEXT']"
+      "message": "Row 2: blank data quality fields: ['DESCRIPTION', 'RISK', 'REMEDIATION_RECOMMENDATION_TEXT']"
     },
     {
       "code": "UNKNOWN_COLUMNS",
-      "message": "Found 1 unknown column(s) not in the standard Prowler schema. Stored in extra_fields: ['FUTURE_PROWLER_COLUMN']. This may indicate a newer Prowler version."
+      "message": "Found 7 unknown column(s) not in the standard Prowler schema. Stored in extra_fields: ['run_id', 'group_count', 'enriched', 'failed', 'risk_ratings', 'generated_at', 'groups']. This may indicate a newer Prowler version."
     }
   ],
-  "stage2_warnings": []
+  "stage2_warnings": [
+    {
+      "code": "EMPTY_OUTPUT",
+      "message": "No output groups produced. Either all findings were excluded (include_statuses=['FAIL', 'MUTED(FAIL)']) or the input had no findings.",
+      "check_id": null
+    }
+  ]
 }

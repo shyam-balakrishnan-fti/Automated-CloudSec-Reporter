@@ -1,0 +1,1068 @@
+{
+  "run_id": "bce7f3f2-497d-4189-b2b7-20a9fdd305c4",
+  "group_count": 15,
+  "generated_at": "2026-06-30T06:16:55.331778+00:00",
+  "groups": [
+    {
+      "output_group_key": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22:AWS",
+      "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "9d18185a-7c2d-4b81-9e85-2e577e8f4d55"
+      ],
+      "representative": {
+        "finding_instance_id": "9d18185a-7c2d-4b81-9e85-2e577e8f4d55",
+        "source_row_id": "Sheet:prowler-output Row:10",
+        "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+        "check_title": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+        "severity": "critical",
+        "service_name": "ec2",
+        "resource_type": "AWSEC2SecurityGroup",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
+        "check_title": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended": "Security group sg-0abc1234 allows unrestricted SSH access.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "ec2",
+        "subservice_name": null,
+        "resource_type": "AWSEC2SecurityGroup",
+        "resource_uid": "arn:aws:ec2:ap-southeast-2:123456789012:security-group/sg-0abc1234",
+        "resource_name": "sg-0abc1234",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "internet-exposed",
+          "network-security"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "5.2",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "iam_root_mfa_enabled:AWS",
+      "check_id": "iam_root_mfa_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "b0b2a2c0-2447-473a-9db8-b60abe4f1fff"
+      ],
+      "representative": {
+        "finding_instance_id": "b0b2a2c0-2447-473a-9db8-b60abe4f1fff",
+        "source_row_id": "Sheet:prowler-output Row:8",
+        "check_id": "iam_root_mfa_enabled",
+        "check_title": "Ensure MFA is enabled for the root account",
+        "severity": "critical",
+        "service_name": "iam",
+        "resource_type": "AWSIAMAccountSummary",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": true
+      },
+      "llm_context": {
+        "check_id": "iam_root_mfa_enabled",
+        "check_title": "Ensure MFA is enabled for the root account",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended": "Root account does not have MFA enabled.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "iam",
+        "subservice_name": null,
+        "resource_type": "AWSIAMAccountSummary",
+        "resource_uid": null,
+        "resource_name": null,
+        "region": "global",
+        "account_name": "acme-prod",
+        "categories": [
+          "identity-management"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "1.5"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "iam_user_mfa_enabled_console_access:AWS",
+      "check_id": "iam_user_mfa_enabled_console_access",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "2f0b7805-f8af-4186-93b9-38c2842e4b0f"
+      ],
+      "representative": {
+        "finding_instance_id": "2f0b7805-f8af-4186-93b9-38c2842e4b0f",
+        "source_row_id": "Sheet:prowler-output Row:7",
+        "check_id": "iam_user_mfa_enabled_console_access",
+        "check_title": "Ensure MFA is enabled for all IAM users with console access",
+        "severity": "critical",
+        "service_name": "iam",
+        "resource_type": "AWSIAMUser",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "iam_user_mfa_enabled_console_access",
+        "check_title": "Ensure MFA is enabled for all IAM users with console access",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended": "IAM user john.smith does not have MFA enabled.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "iam",
+        "subservice_name": null,
+        "resource_type": "AWSIAMUser",
+        "resource_uid": "arn:aws:iam::123456789012:user/john.smith",
+        "resource_name": "john.smith",
+        "region": "global",
+        "account_name": "acme-prod",
+        "categories": [
+          "identity-management"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "1.10",
+          "NIST-800-53",
+          "IA-2"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "rds_instance_no_public_access:AWS",
+      "check_id": "rds_instance_no_public_access",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "c91170c3-940d-486f-b7ed-a9563797acb2"
+      ],
+      "representative": {
+        "finding_instance_id": "c91170c3-940d-486f-b7ed-a9563797acb2",
+        "source_row_id": "Sheet:prowler-output Row:13",
+        "check_id": "rds_instance_no_public_access",
+        "check_title": "Ensure RDS instances are not publicly accessible",
+        "severity": "critical",
+        "service_name": "rds",
+        "resource_type": "AWSRDSDBInstance",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "rds_instance_no_public_access",
+        "check_title": "Ensure RDS instances are not publicly accessible",
+        "check_type": "Software and Configuration Checks",
+        "severity": "critical",
+        "status": "FAIL",
+        "status_extended": "RDS instance prod-db is publicly accessible.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "rds",
+        "subservice_name": null,
+        "resource_type": "AWSRDSDBInstance",
+        "resource_uid": "arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
+        "resource_name": "prod-db",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "internet-exposed"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "cloudtrail_multi_region_enabled:AWS",
+      "check_id": "cloudtrail_multi_region_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "d4fe1f96-2392-4805-a6c3-d439ae08c78a"
+      ],
+      "representative": {
+        "finding_instance_id": "d4fe1f96-2392-4805-a6c3-d439ae08c78a",
+        "source_row_id": "Sheet:prowler-output Row:16",
+        "check_id": "cloudtrail_multi_region_enabled",
+        "check_title": "=SUM(1,2) CloudTrail multi-region logging check",
+        "severity": "high",
+        "service_name": "cloudtrail",
+        "resource_type": "AWSCloudTrailTrail",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "cloudtrail_multi_region_enabled",
+        "check_title": "=SUM(1,2) CloudTrail multi-region logging check",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "CloudTrail is not enabled in all regions.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "cloudtrail",
+        "subservice_name": null,
+        "resource_type": "AWSCloudTrailTrail",
+        "resource_uid": "arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events",
+        "resource_name": "management-events",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "logging"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "3.1"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "ec2_instance_imdsv2_enabled:AWS",
+      "check_id": "ec2_instance_imdsv2_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "516a217c-c937-47df-8f22-c98d8e750fce"
+      ],
+      "representative": {
+        "finding_instance_id": "516a217c-c937-47df-8f22-c98d8e750fce",
+        "source_row_id": "Sheet:prowler-output Row:11",
+        "check_id": "ec2_instance_imdsv2_enabled",
+        "check_title": "Ensure EC2 instances use IMDSv2",
+        "severity": "high",
+        "service_name": "ec2",
+        "resource_type": "AWSEC2Instance",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "ec2_instance_imdsv2_enabled",
+        "check_title": "Ensure EC2 instances use IMDSv2",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "Instance i-0abc1234 does not enforce IMDSv2.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "ec2",
+        "subservice_name": null,
+        "resource_type": "AWSEC2Instance",
+        "resource_uid": null,
+        "resource_name": "i-0abc1234",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "configuration"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "rds_instance_storage_encrypted:AWS",
+      "check_id": "rds_instance_storage_encrypted",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "d2a89355-7e63-414f-a428-6287fb4b9ea3"
+      ],
+      "representative": {
+        "finding_instance_id": "d2a89355-7e63-414f-a428-6287fb4b9ea3",
+        "source_row_id": "Sheet:prowler-output Row:12",
+        "check_id": "rds_instance_storage_encrypted",
+        "check_title": "Ensure RDS instances are encrypted at rest",
+        "severity": "high",
+        "service_name": "rds",
+        "resource_type": "AWSRDSDBInstance",
+        "region": "ap-southeast-2",
+        "completeness_score": 3,
+        "has_description": false,
+        "has_risk": false,
+        "has_remediation": true,
+        "human_review_required": true
+      },
+      "llm_context": {
+        "check_id": "rds_instance_storage_encrypted",
+        "check_title": "Ensure RDS instances are encrypted at rest",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "RDS instance prod-db is not encrypted at rest.",
+        "description": null,
+        "risk": null,
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "rds",
+        "subservice_name": null,
+        "resource_type": "AWSRDSDBInstance",
+        "resource_uid": "arn:aws:rds:ap-southeast-2:123456789012:db:prod-db",
+        "resource_name": "prod-db",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "encryption"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.3.1"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "s3_bucket_public_access:AWS",
+      "check_id": "s3_bucket_public_access",
+      "output_section": "AWS",
+      "instance_count": 3,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod",
+        "acme-dev"
+      ],
+      "affected_account_uids": [
+        "123456789012",
+        "987654321098"
+      ],
+      "instance_ids": [
+        "ff0b92eb-71da-4b49-9739-372bda903434",
+        "478ae920-1189-4b42-bd31-9ea4ab2448ec",
+        "2a65b1f4-cd88-4d8e-944a-7832dfc4ad42"
+      ],
+      "representative": {
+        "finding_instance_id": "ff0b92eb-71da-4b49-9739-372bda903434",
+        "source_row_id": "Sheet:prowler-output Row:2",
+        "check_id": "s3_bucket_public_access",
+        "check_title": "Ensure S3 bucket does not allow public access",
+        "severity": "high",
+        "service_name": "s3",
+        "resource_type": "AWSS3Bucket",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "s3_bucket_public_access",
+        "check_title": "Ensure S3 bucket does not allow public access",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "Bucket acme-logs is publicly accessible.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "s3",
+        "subservice_name": null,
+        "resource_type": "AWSS3Bucket",
+        "resource_uid": "arn:aws:s3:::acme-logs",
+        "resource_name": "acme-logs",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "internet-exposed",
+          "encryption"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 3,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod",
+          "acme-dev"
+        ]
+      }
+    },
+    {
+      "output_group_key": "config_recorder_all_regions_enabled:AWS",
+      "check_id": "config_recorder_all_regions_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "1d028862-db90-4c6e-99de-6b2eb97ace88"
+      ],
+      "representative": {
+        "finding_instance_id": "1d028862-db90-4c6e-99de-6b2eb97ace88",
+        "source_row_id": "Sheet:prowler-output Row:18",
+        "check_id": "config_recorder_all_regions_enabled",
+        "check_title": "Ensure AWS Config is enabled in all regions",
+        "severity": "medium",
+        "service_name": "account",
+        "resource_type": "AWSAccount",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "config_recorder_all_regions_enabled",
+        "check_title": "Ensure AWS Config is enabled in all regions",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "AWS Config recorder is not enabled in all regions.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "account",
+        "subservice_name": null,
+        "resource_type": "AWSAccount",
+        "resource_uid": null,
+        "resource_name": "synthetic-resource-config_rec",
+        "region": "global",
+        "account_name": "acme-prod",
+        "categories": [
+          "configuration"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "3.5"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "iam_user_access_key_age_90_days:AWS",
+      "check_id": "iam_user_access_key_age_90_days",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "de64bf43-78c8-4d5d-b829-bc76572b7604"
+      ],
+      "representative": {
+        "finding_instance_id": "de64bf43-78c8-4d5d-b829-bc76572b7604",
+        "source_row_id": "Sheet:prowler-output Row:9",
+        "check_id": "iam_user_access_key_age_90_days",
+        "check_title": "Ensure IAM user access keys are rotated every 90 days",
+        "severity": "medium",
+        "service_name": "iam",
+        "resource_type": "AWSIAMUser",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "iam_user_access_key_age_90_days",
+        "check_title": "Ensure IAM user access keys are rotated every 90 days",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "MUTED(FAIL)",
+        "status_extended": "Access key AKIAIOSFODNN7EXAMPLE for user jane.doe is 120 days old.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "iam",
+        "subservice_name": null,
+        "resource_type": "AWSIAMUser",
+        "resource_uid": "arn:aws:iam::123456789012:user/jane.doe",
+        "resource_name": "jane.doe",
+        "region": "global",
+        "account_name": "acme-prod",
+        "categories": [
+          "identity-management"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "s3_bucket_default_encryption:AWS",
+      "check_id": "s3_bucket_default_encryption",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "b8c0dc02-1af6-4d7b-afa6-c788f61a0415"
+      ],
+      "representative": {
+        "finding_instance_id": "b8c0dc02-1af6-4d7b-afa6-c788f61a0415",
+        "source_row_id": "Sheet:prowler-output Row:5",
+        "check_id": "s3_bucket_default_encryption",
+        "check_title": "Ensure S3 bucket has default encryption enabled",
+        "severity": "medium",
+        "service_name": "s3",
+        "resource_type": "AWSS3Bucket",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "s3_bucket_default_encryption",
+        "check_title": "Ensure S3 bucket has default encryption enabled",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "MUTED(FAIL)",
+        "status_extended": "Bucket acme-archive has no default encryption.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "s3",
+        "subservice_name": null,
+        "resource_type": "AWSS3Bucket",
+        "resource_uid": "arn:aws:s3:::acme-archive",
+        "resource_name": "acme-archive",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "encryption"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.1"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "securityhub_enabled:AWS",
+      "check_id": "securityhub_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Medium",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "4592cfa9-02a2-4397-8836-b1733ca2fe2f"
+      ],
+      "representative": {
+        "finding_instance_id": "4592cfa9-02a2-4397-8836-b1733ca2fe2f",
+        "source_row_id": "Sheet:prowler-output Row:20",
+        "check_id": "securityhub_enabled",
+        "check_title": "Ensure AWS Security Hub is enabled",
+        "severity": "medium",
+        "service_name": "securityhub",
+        "resource_type": "AWSS3Bucket",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "securityhub_enabled",
+        "check_title": "Ensure AWS Security Hub is enabled",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "Security Hub is not enabled.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "securityhub",
+        "subservice_name": null,
+        "resource_type": "AWSS3Bucket",
+        "resource_uid": null,
+        "resource_name": "securityhub",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "configuration"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "Medium",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "vpc_flow_logs_enabled:AWS",
+      "check_id": "vpc_flow_logs_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "f04f9d3e-09ad-41d6-be8a-5154a1f57345"
+      ],
+      "representative": {
+        "finding_instance_id": "f04f9d3e-09ad-41d6-be8a-5154a1f57345",
+        "source_row_id": "Sheet:prowler-output Row:15",
+        "check_id": "vpc_flow_logs_enabled",
+        "check_title": "Ensure VPC flow logging is enabled in all VPCs",
+        "severity": "medium",
+        "service_name": "vpc",
+        "resource_type": "AWSVPC",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "vpc_flow_logs_enabled",
+        "check_title": "Ensure VPC flow logging is enabled in all VPCs",
+        "check_type": "Software and Configuration Checks",
+        "severity": "medium",
+        "status": "FAIL",
+        "status_extended": "VPC vpc-0abc1234 does not have flow logging enabled.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "vpc",
+        "subservice_name": null,
+        "resource_type": "AWSVPC",
+        "resource_uid": "arn:aws:ec2:ap-southeast-2:123456789012:vpc/vpc-0abc1234",
+        "resource_name": "vpc-0abc1234",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "logging",
+          "internet-exposed"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "3.9"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "cloudtrail_log_file_validation_enabled:AWS",
+      "check_id": "cloudtrail_log_file_validation_enabled",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Low",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "935ca4fe-8da0-4032-8b7c-e93c4fa2445a"
+      ],
+      "representative": {
+        "finding_instance_id": "935ca4fe-8da0-4032-8b7c-e93c4fa2445a",
+        "source_row_id": "Sheet:prowler-output Row:17",
+        "check_id": "cloudtrail_log_file_validation_enabled",
+        "check_title": "Ensure CloudTrail log file validation is enabled",
+        "severity": "low",
+        "service_name": "cloudtrail",
+        "resource_type": "AWSCloudTrailTrail",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "cloudtrail_log_file_validation_enabled",
+        "check_title": "Ensure CloudTrail log file validation is enabled",
+        "check_type": "Software and Configuration Checks",
+        "severity": "low",
+        "status": "FAIL",
+        "status_extended": "Trail management-events does not have log file validation enabled.",
+        "description": "This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks whether AWS CloudTrail is configured to log management events across all regions. This control checks wheth",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "cloudtrail",
+        "subservice_name": null,
+        "resource_type": "AWSCloudTrailTrail",
+        "resource_uid": "arn:aws:cloudtrail:ap-southeast-2:123456789012:trail/management-events",
+        "resource_name": "management-events",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "logging"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "Low",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    },
+    {
+      "output_group_key": "s3_bucket_object_lock:AWS",
+      "check_id": "s3_bucket_object_lock",
+      "output_section": "AWS",
+      "instance_count": 1,
+      "likelihood_rating": "Low",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "f1252eac-0e32-462b-b412-339ebe9c2d0c"
+      ],
+      "representative": {
+        "finding_instance_id": "f1252eac-0e32-462b-b412-339ebe9c2d0c",
+        "source_row_id": "Sheet:prowler-output Row:21",
+        "check_id": "s3_bucket_object_lock",
+        "check_title": "Ensure S3 bucket has Object Lock configured",
+        "severity": "informational",
+        "service_name": "s3",
+        "resource_type": "AWSS3Bucket",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "s3_bucket_object_lock",
+        "check_title": "Ensure S3 bucket has Object Lock configured",
+        "check_type": "Software and Configuration Checks",
+        "severity": "informational",
+        "status": "FAIL",
+        "status_extended": "Bucket acme-logs does not have Object Lock enabled.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "s3",
+        "subservice_name": null,
+        "resource_type": "AWSS3Bucket",
+        "resource_uid": "arn:aws:s3:::acme-logs",
+        "resource_name": "acme-logs",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "resilience"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 1,
+        "likelihood_rating": "Low",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    }
+  ]
+}
