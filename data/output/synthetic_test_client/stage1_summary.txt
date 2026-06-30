@@ -1,44 +1,51 @@
 ======================================================================
 STAGE 1 — INGEST & PARSE SUMMARY
 ======================================================================
-Run ID           : cb250269-fb3d-4ec8-9b15-8531171cbb0e
-Source file      : data/synthetic/synthetic_prowler.xlsx
-SHA-256          : f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd
+Run ID           : 06020bb8-2d03-4e63-9618-8b7eeb623a30
+Source file      : data/synthetic/synthetic_prowler_messy.xlsx
+SHA-256          : 40d41253a83672f68cad05de2f9e2b98ef308d77300457c3f84307fd90f0d541
 Scanner          : prowler v4.3.1
 Sheet detected   : prowler-output
-Rows read        : 20
-Findings parsed  : 20
-Unknown columns  : ['FUTURE_COLUMN_V5']
-Ingested at      : 2026-06-29T06:52:43.818777
+Rows read        : 30
+Findings parsed  : 30
+Unknown columns  : ['FUTURE_PROWLER_COLUMN']
+Ingested at      : 2026-06-30T01:00:50.151627
 
 STATUS BREAKDOWN:
-  FAIL                     : 16
+  FAIL                     : 26
   MANUAL                   : 1
   MUTED(FAIL)              : 2
   PASS                     : 1
 
 BLANK VALUE CLASSIFICATIONS:
-  Category 2 — DESCRIPTION blank      : 2
-  Category 2 — RISK blank              : 1
-  Category 2 — REMEDIATION_TEXT blank  : 0
-  Category 1 — REGION blank (global)   : 4
+  Category 2 — DESCRIPTION blank      : 7
+  Category 2 — RISK blank              : 8
+  Category 2 — REMEDIATION_TEXT blank  : 3
+  Category 1 — REGION blank (global)   : 8
 
 MUTED RECONCILIATIONS: 1
-  Row Sheet:prowler-output Row:9: iam_user_access_key_age_90_days — STATUS='FAIL' + MUTED=True → MUTED(FAIL)
+  Row Sheet:prowler-output Row:13: iam_user_access_key_age_90_days — STATUS='FAIL' + MUTED=True → MUTED(FAIL)
 
-ARN FALLBACKS (name used instead of ARN): 4
-  ec2_instance_imdsv2_enabled: resource='i-0abc1234'
-  config_recorder_all_regions_enabled: resource='synthetic-resource-config_rec'
-  guardduty_is_enabled: resource='guardduty-detector'
-  securityhub_enabled: resource='securityhub'
+ARN FALLBACKS (name used instead of ARN): 3
+  ec2_instance_imdsv2_enabled: resource='i-0aabbccdd'
+  guardduty_is_enabled: resource='guardduty'
+  securityhub_enabled: resource='security-hub'
 
-FLAGGED FOR HUMAN REVIEW: 3
-  Sheet:prowler-output Row:8: iam_root_mfa_enabled — No resource identifier (both RESOURCE_UID and RESOURCE_NAME blank)
-  Sheet:prowler-output Row:12: rds_instance_storage_encrypted — Category 2 blank fields: DESCRIPTION, RISK
-  Sheet:prowler-output Row:19: guardduty_is_enabled — Category 2 blank fields: DESCRIPTION
+FLAGGED FOR HUMAN REVIEW: 11
+  Sheet:prowler-output Row:8: s3_bucket_versioning_enabled — Category 2 blank fields: RISK, REMEDIATION_RECOMMENDATION_TEXT
+  Sheet:prowler-output Row:9: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:10: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:11: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:12: iam_root_mfa_enabled — No resource identifier (both RESOURCE_UID and RESOURCE_NAME blank)
+  Sheet:prowler-output Row:14: iam_password_policy_lowercase — Category 2 blank fields: RISK, REMEDIATION_RECOMMENDATION_TEXT
+  Sheet:prowler-output Row:20: rds_instance_storage_encrypted — Category 2 blank fields: DESCRIPTION, RISK
+  Sheet:prowler-output Row:26: guardduty_is_enabled — Category 2 blank fields: DESCRIPTION
+  Sheet:prowler-output Row:27: config_recorder_all_regions_enabled — No resource identifier (both RESOURCE_UID and RESOURCE_NAME blank)
+  Sheet:prowler-output Row:29: iam_user_mfa_enabled_console_access — Category 2 blank fields: DESCRIPTION, RISK
+  ... and 1 more
 
-WARNINGS (8):
-  ARN_FALLBACK                       : 4
-  DATA_QUALITY_BLANK                 : 2
+WARNINGS (14):
+  ARN_FALLBACK                       : 3
+  DATA_QUALITY_BLANK                 : 9
   MUTED_STATUS_RECONCILED            : 1
   UNKNOWN_COLUMNS                    : 1

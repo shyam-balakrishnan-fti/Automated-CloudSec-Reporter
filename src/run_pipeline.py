@@ -28,7 +28,7 @@ from models import BlankCategory, ReportInclusion, ScannerStatus
 from stage1_ingest import IngestResult, ingest
 from stage2_process import OutputGroup, ProcessResult, load_config, process
 from stage2_5_grouping import group_semantically
-from stage2_5_reviewer import apply_approved_grouping, load_approved_grouping, start_review_server
+from stage_reviewer import ReviewApproval, load_review_approval, start_review_server
 from stage3_llm import EnrichResult, EnrichWarning, enrich, enrich_grouped
 from stage5_render_excel import render_excel
 
@@ -480,31 +480,158 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
         print(f"  Output groups ready for LLM: {pr.group_count}")
         print(f"{'='*70}")
     else:
+        # ── Stage 2.5: LLM proposes groups (suggestion only) ────────
         gr = group_semantically(pr, cfg)
+        # Build proposed groups as a plain list for the review UI
+        ai_proposed_groups = [
+            {
+                "group_name": g.group_name,
+                "check_ids":  g.check_ids,
+                "rationale":  g.group_rationale,
+            }
+            for g in gr.grouped_groups
+        ]
 
-        # ── HTML review (default) or skip-review mode ──────────────
-        approved_path = output_path / "grouping_approved.json"
+        # ── Stage 3: Enrich individual findings (not merged) ─────────
+        # Pass original Stage 2 output_groups so each check gets its own enrichment
+        from stage3_llm import ProcessResult as _PR
+        _pr_individual = _PR(
+            run_id=pr.run_id,
+            all_findings=pr.all_findings,
+            output_groups=pr.output_groups,   # individual check_id groups
+            warnings=pr.warnings,
+            config=cfg,
+        )
+        er_individual = enrich(_pr_individual, cfg)
+
+        # ── Review UI ─────────────────────────────────────────────────
+        approved_path = output_path / "review_approved.json"
         client_name   = cfg.get("engagement", {}).get("client_name", "")
+
         if skip_review:
             print()
-            print("  ℹ --skip-review: using AI grouping directly", flush=True)
+            print("  ℹ --skip-review: skipping review UI", flush=True)
+            # Build a minimal approval from current enrichment state
+            approval_data = {
+                "run_id":       pr.run_id,
+                "approved_at":  "",
+                "findings": [
+                    {
+                        "check_id":              g.check_id,
+                        "group_name":            g.check_id,
+                        "finding_title":         g.representative.finding_title or "",
+                        "root_cause_narrative":  g.representative.root_cause_narrative or "",
+                        "situation_narrative":   g.representative.situation_narrative or "",
+                        "consequence_narrative": g.representative.consequence_narrative or "",
+                        "consequence_rating":    g.representative.consequence_rating or "Moderate",
+                        "access_required":       g.representative.access_required or "",
+                        "likelihood_rating":     g.likelihood_rating or "Medium",
+                        "risk_rating":           g.representative.risk_rating or "Medium",
+                        "instance_count":        g.instance_count,
+                        "affected_accounts":     g.affected_account_names,
+                        "analyst_comment":       "",
+                        "analyst_edited":        False,
+                        "ai_regenerated":        False,
+                    }
+                    for g in er_individual.output_groups
+                ],
+                "groups": ai_proposed_groups,
+            }
         elif approved_path.exists() and not force_review:
             print()
-            print(f"  ✓ Found existing grouping_approved.json — applying", flush=True)
-            approved = load_approved_grouping(approved_path)
-            gr = apply_approved_grouping(approved, gr)
-            print(f"  ✓ Applied analyst grouping: {gr.group_count} groups", flush=True)
+            print(f"  ✓ Found existing review_approved.json — applying", flush=True)
+            approval_data = json.loads(approved_path.read_text(encoding="utf-8"))
         else:
-            approved = start_review_server(
-                grouping_result=gr,
+            approval_data = start_review_server(
+                enrich_result=er_individual,
                 output_dir=output_path,
+                ai_proposed_groups=ai_proposed_groups,
+                config=cfg,
                 client_name=client_name,
                 open_browser=not no_browser,
             )
-            gr = apply_approved_grouping(approved, gr)
-            print(f"  ✓ Applied analyst grouping: {gr.group_count} groups", flush=True)
 
-        er = enrich_grouped(gr, cfg)
+        print(f"  ✓ Review complete: {len(approval_data.get('findings',[]))} findings, {len(approval_data.get('groups',[]))} groups", flush=True)
+
+        # ── Apply approved state to EnrichResult for renderer ─────────
+        # Update each representative finding with analyst-approved values
+        findings_by_check = {
+            g.check_id: g for g in er_individual.output_groups
+        }
+        for fd in approval_data.get("findings", []):
+            cid = fd.get("check_id")
+            g   = findings_by_check.get(cid)
+            if not g:
+                continue
+            rep = g.representative
+            rep.finding_title         = fd.get("finding_title")         or rep.finding_title
+            rep.root_cause_narrative  = fd.get("root_cause_narrative")  or rep.root_cause_narrative
+            rep.situation_narrative   = fd.get("situation_narrative")   or rep.situation_narrative
+            rep.consequence_narrative = fd.get("consequence_narrative") or rep.consequence_narrative
+            rep.consequence_rating    = fd.get("consequence_rating")    or rep.consequence_rating
+            rep.access_required       = fd.get("access_required")       or rep.access_required
+            rep.risk_rating           = fd.get("risk_rating")           or rep.risk_rating
+            rep.likelihood_rating     = fd.get("likelihood_rating")     or rep.likelihood_rating
+            g.likelihood_rating       = rep.likelihood_rating
+
+            if fd.get("analyst_edited") or fd.get("ai_regenerated"):
+                rep.add_audit(
+                    stage="analyst_review",
+                    field="narratives",
+                    old_value="llm_generated",
+                    new_value="analyst_approved",
+                    reason=(
+                        "AI regenerated with comment: " + fd.get("analyst_comment","")
+                        if fd.get("ai_regenerated")
+                        else "Edited inline by analyst"
+                    ),
+                    actor="human",
+                )
+
+        # ── Merge groups per analyst approval ─────────────────────────
+        from stage2_5_grouping import GroupedOutputGroup, GroupingResult
+        new_groups = []
+        for grp in approval_data.get("groups", []):
+            src_groups = [findings_by_check[cid] for cid in grp.get("check_ids", []) if cid in findings_by_check]
+            if not src_groups:
+                continue
+            best_rep = max(src_groups, key=lambda x: x.representative.completeness_score())
+            rep      = best_rep.representative
+            total_inst = sum(g.instance_count for g in src_groups)
+            all_accounts = []
+            all_instance_ids = []
+            for sg in src_groups:
+                all_instance_ids.extend(sg.instance_ids)
+                for a in sg.affected_account_names:
+                    if a not in all_accounts:
+                        all_accounts.append(a)
+            rep.instance_count = total_inst
+
+            new_groups.append(GroupedOutputGroup(
+                group_name=grp["group_name"],
+                group_rationale=grp.get("rationale",""),
+                output_section="AWS",
+                is_merged=len(src_groups) > 1,
+                check_ids=grp.get("check_ids",[]),
+                representative=rep,
+                instance_ids=all_instance_ids,
+                instance_count=total_inst,
+                affected_account_names=all_accounts,
+                affected_account_uids=[],
+                severity=src_groups[0].representative.raw_severity,
+                likelihood_rating=src_groups[0].likelihood_rating,
+                source_groups=src_groups,
+            ))
+
+        er = EnrichResult(
+            run_id=pr.run_id,
+            output_groups=new_groups,
+            all_findings=pr.all_findings,
+            warnings=er_individual.warnings,
+            config=cfg,
+            enriched_count=len([g for g in new_groups if not g.representative.llm_enrichment_failed]),
+            failed_count=len([g for g in new_groups if g.representative.llm_enrichment_failed]),
+        )
 
         # ── Resource detail helper ─────────────────────────────────
         _fmap = {f.finding_instance_id: f for f in er.all_findings}

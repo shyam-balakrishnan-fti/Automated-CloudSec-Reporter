@@ -1,11 +1,11 @@
 {
-  "run_id": "cb250269-fb3d-4ec8-9b15-8531171cbb0e",
-  "source_file": "data/synthetic/synthetic_prowler.xlsx",
-  "source_file_hash": "f98f52fff5da3144213dfa6ff1201db330384c5fc84888f7bcb23bfe22a8cdbd",
+  "run_id": "06020bb8-2d03-4e63-9618-8b7eeb623a30",
+  "source_file": "data/synthetic/synthetic_prowler_messy.xlsx",
+  "source_file_hash": "40d41253a83672f68cad05de2f9e2b98ef308d77300457c3f84307fd90f0d541",
   "scanner": "prowler",
   "scanner_version": "4.3.1",
   "schema_version": "1.0.0",
-  "generated_at": "2026-06-29T06:52:43.832005+00:00",
+  "generated_at": "2026-06-30T01:00:50.192941+00:00",
   "config": {
     "include_statuses": [
       "FAIL",
@@ -34,45 +34,69 @@
     }
   },
   "counts": {
-    "total_rows_read": 20,
-    "total_findings": 20,
-    "included": 17,
+    "total_rows_read": 30,
+    "total_findings": 30,
+    "included": 26,
     "excluded": 2,
-    "duplicates": 1,
-    "output_groups": 15
+    "duplicates": 2,
+    "output_groups": 16
   },
   "stage1_warnings": [
+    {
+      "code": "DATA_QUALITY_BLANK",
+      "message": "Row 8: blank data quality fields: ['RISK', 'REMEDIATION_RECOMMENDATION_TEXT']"
+    },
+    {
+      "code": "DATA_QUALITY_BLANK",
+      "message": "Row 9: blank data quality fields: ['DESCRIPTION', 'RISK']"
+    },
+    {
+      "code": "DATA_QUALITY_BLANK",
+      "message": "Row 10: blank data quality fields: ['DESCRIPTION', 'RISK']"
+    },
+    {
+      "code": "DATA_QUALITY_BLANK",
+      "message": "Row 11: blank data quality fields: ['DESCRIPTION', 'RISK']"
+    },
     {
       "code": "MUTED_STATUS_RECONCILED",
       "message": "MUTED=True but STATUS='FAIL' (not prefixed MUTED). Reconciled to 'MUTED(FAIL)'. Original STATUS preserved in raw_status."
     },
     {
+      "code": "DATA_QUALITY_BLANK",
+      "message": "Row 14: blank data quality fields: ['RISK', 'REMEDIATION_RECOMMENDATION_TEXT']"
+    },
+    {
       "code": "ARN_FALLBACK",
-      "message": "Row 11: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='i-0abc1234' as resource identifier."
+      "message": "Row 16: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='i-0aabbccdd' as resource identifier."
     },
     {
       "code": "DATA_QUALITY_BLANK",
-      "message": "Row 12: blank data quality fields: ['DESCRIPTION', 'RISK']"
-    },
-    {
-      "code": "ARN_FALLBACK",
-      "message": "Row 18: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='synthetic-resource-config_rec' as resource identifier."
+      "message": "Row 20: blank data quality fields: ['DESCRIPTION', 'RISK']"
     },
     {
       "code": "DATA_QUALITY_BLANK",
-      "message": "Row 19: blank data quality fields: ['DESCRIPTION']"
+      "message": "Row 26: blank data quality fields: ['DESCRIPTION']"
     },
     {
       "code": "ARN_FALLBACK",
-      "message": "Row 19: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='guardduty-detector' as resource identifier."
+      "message": "Row 26: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='guardduty' as resource identifier."
     },
     {
       "code": "ARN_FALLBACK",
-      "message": "Row 20: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='securityhub' as resource identifier."
+      "message": "Row 28: no valid ARN in RESOURCE_UID='None'. Using RESOURCE_NAME='security-hub' as resource identifier."
+    },
+    {
+      "code": "DATA_QUALITY_BLANK",
+      "message": "Row 29: blank data quality fields: ['DESCRIPTION', 'RISK']"
+    },
+    {
+      "code": "DATA_QUALITY_BLANK",
+      "message": "Row 31: blank data quality fields: ['DESCRIPTION', 'RISK', 'REMEDIATION_RECOMMENDATION_TEXT']"
     },
     {
       "code": "UNKNOWN_COLUMNS",
-      "message": "Found 1 unknown column(s) not in the standard Prowler schema. Stored in extra_fields: ['FUTURE_COLUMN_V5']. This may indicate a newer Prowler version."
+      "message": "Found 1 unknown column(s) not in the standard Prowler schema. Stored in extra_fields: ['FUTURE_PROWLER_COLUMN']. This may indicate a newer Prowler version."
     }
   ],
   "stage2_warnings": []
