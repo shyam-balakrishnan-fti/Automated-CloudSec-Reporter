@@ -4,7 +4,7 @@
 
 # ── Engagement (change every run) ──────────────────────────────────
 [engagement]
-client_name       = "Omico2"
+client_name       = "Omico3"
 assessment_period = "June 2026"
 analyst           = "analyst"
 output_filename   = "SecurityReport_Omico.xlsx"
