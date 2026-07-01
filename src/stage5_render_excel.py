@@ -352,10 +352,15 @@ def render_excel(
     engagement  = config.get("engagement", {})
     client_name = engagement.get("client_name", "Client")
     period      = engagement.get("assessment_period", "")
-    ref_prefix  = config.get("output", {}).get("ref_prefix", "AWS")
     filename    = engagement.get("output_filename") or f"SecurityReport_{period.replace(' ','')}.xlsx"
-
     output_path = output_dir / filename
+
+    # Ref prefix per provider — configurable, with sensible defaults
+    ref_prefixes = {
+        "AWS":   config.get("output", {}).get("ref_prefix", "AWS"),
+        "Azure": config.get("output", {}).get("ref_prefix_azure", "AZ"),
+        "GCP":   config.get("output", {}).get("ref_prefix_gcp", "GCP"),
+    }
 
     # ── Load template or create fresh workbook ──
     tmpl = template_path
@@ -364,54 +369,63 @@ def render_excel(
         if cfg_tmpl:
             tmpl = Path(cfg_tmpl)
             if not tmpl.is_absolute():
-                # Resolve relative to project root (two levels up from src/)
                 tmpl = Path(__file__).resolve().parent.parent / tmpl
 
     if tmpl and tmpl.exists():
         wb = openpyxl.load_workbook(str(tmpl))
-        # Use AWS sheet from template; clear data rows but keep header
-        if "AWS" in wb.sheetnames:
-            ws = wb["AWS"]
-            # Delete all rows below header
+    else:
+        wb = openpyxl.Workbook()
+        wb.active.title = "AWS"
+
+    # ── Determine which sections have data ──
+    from collections import defaultdict
+    groups_by_section: dict[str, list] = defaultdict(list)
+    for g in enrich_result.output_groups:
+        groups_by_section[g.output_section].append(g)
+
+    # Always write AWS first (matches template sheet order), then others
+    sections_to_write = sorted(
+        groups_by_section.keys(),
+        key=lambda s: (0 if s == "AWS" else 1 if s == "Azure" else 2, s),
+    )
+
+    # ── Write each section to its own sheet ──
+    for section in sections_to_write:
+        section_groups = groups_by_section[section]
+        ref_prefix     = ref_prefixes.get(section, section[:3].upper())
+
+        # Get or create the sheet
+        if section in wb.sheetnames:
+            ws = wb[section]
+            # Clear data rows, keep header
             if ws.max_row > 1:
                 ws.delete_rows(2, ws.max_row - 1)
-            # Remove any merged cells below row 1
             for mr in list(ws.merged_cells.ranges):
                 if mr.min_row > 1:
                     ws.merged_cells.remove(mr)
         else:
-            ws = wb.create_sheet("AWS")
+            ws = wb.create_sheet(section)
             _write_header(ws)
-    else:
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "AWS"
-        _write_header(ws)
 
-    _set_column_widths(ws)
-    _freeze_header(ws)
+        _set_column_widths(ws)
+        _freeze_header(ws)
 
-    # ── Write findings ──
-    current_row = 2
-    ref_counter = 1
+        current_row = 2
+        ref_counter = 1
 
-    # Only groups for the AWS section
-    aws_groups = [
-        g for g in enrich_result.output_groups
-        if g.output_section == "AWS"
-    ]
+        if not section_groups:
+            ws.cell(row=current_row, column=1, value=f"No findings in this section.")
+        else:
+            for group in section_groups:
+                ref = f"{ref_prefix}{ref_counter}"
+                ref_counter += 1
+                _write_finding_row(ws, current_row, ref, group, enrich_result.all_findings)
+                current_row += 1
 
-    if not aws_groups:
-        # Write a placeholder if no groups
-        ws.cell(row=current_row, column=1, value="No findings in this section.")
-    else:
-        for group in aws_groups:
-            ref = f"{ref_prefix}{ref_counter}"
-            ref_counter += 1
-
-            # Finding row — resources are embedded in the Situation column
-            _write_finding_row(ws, current_row, ref, group, enrich_result.all_findings)
-            current_row += 1
+        print(
+            f"  ✓ Sheet '{section}': {len(section_groups)} finding(s) written",
+            flush=True,
+        )
 
     # ── Run info in a note at the top of a metadata sheet ──
     if "_meta" not in wb.sheetnames:
@@ -438,7 +452,7 @@ def render_excel(
     wb.save(str(output_path))
 
     print(
-        f"  Excel report written: {output_path.name} "
+        f"  ✓ Excel report written: {output_path.name} "
         f"({output_path.stat().st_size // 1024} KB)",
         flush=True,
     )

@@ -1,12 +1,12 @@
 """
-stage2_process.py - Stage 2: Deterministic Processing Engine
+stage2_process.py — Stage 2: Deterministic Processing Engine
 
 Responsibilities (all sub-stages run in order):
-    2A  Status filter      - keep only include_statuses from config; exclude rest
-    2B  Deduplication      - resource-level, type-stratified, within-run
-    2C  Output grouping    - collapse instances by check_id → one OutputGroup per check
-    2D  Likelihood rating  - rule-based lookup from config [severity_rules]
-    2E  Section assignment - map provider/service → output sheet section
+    2A  Status filter      — keep only include_statuses from config; exclude rest
+    2B  Deduplication      — resource-level, type-stratified, within-run
+    2C  Output grouping    — collapse instances by check_id → one OutputGroup per check
+    2D  Likelihood rating  — rule-based lookup from config [severity_rules]
+    2E  Section assignment — map provider/service → output sheet section
 
 Contract:
     process(ingest_result, config) -> ProcessResult
@@ -20,7 +20,7 @@ What Stage 3 (LLM) receives:
         - The representative CanonicalFinding (highest completeness score)
         - instance_count (number of affected resources)
         - affected_account_names (for scope language in narratives)
-        - likelihood_rating (already computed - LLM is informed but cannot override)
+        - likelihood_rating (already computed — LLM is informed but cannot override)
         - All resource-level instance IDs (for audit trail)
 """
 
@@ -107,7 +107,7 @@ class OutputGroup:
     output_section:         str         # "AWS" etc.
     output_group_key:       str         # "{check_id}:{output_section}"
 
-    # Representative finding - drives LLM input and output content
+    # Representative finding — drives LLM input and output content
     representative:         CanonicalFinding
 
     # All instance IDs in this group (for audit trail and canonical JSON)
@@ -161,7 +161,7 @@ class ProcessResult:
     output_groups:  Deduplicated, grouped findings ready for LLM enrichment.
                     One OutputGroup per distinct check_id in the working set.
     warnings:       Non-fatal issues encountered during processing.
-    config:         The config dict used - recorded in the run manifest.
+    config:         The config dict used — recorded in the run manifest.
     """
     run_id:         str
     all_findings:   list[CanonicalFinding]
@@ -169,7 +169,7 @@ class ProcessResult:
     warnings:       list[ProcessWarning]
     config:         dict[str, Any]
 
-    # Counts (convenience - derived from all_findings)
+    # Counts (convenience — derived from all_findings)
     @property
     def total_findings(self) -> int:
         return len(self.all_findings)
@@ -210,7 +210,7 @@ def _apply_status_filter(
 ) -> None:
     """
     Mark findings whose scanner_status is NOT in include_statuses as EXCLUDED.
-    Mutates findings in-place - exclusions are recorded in each finding's audit trail.
+    Mutates findings in-place — exclusions are recorded in each finding's audit trail.
     The finding is never deleted; it remains in all_findings for canonical JSON.
     """
     include_set = set(include_statuses)
@@ -253,7 +253,7 @@ def _apply_deduplication(
     subsequent instances as duplicates. The duplicate is excluded from
     the output but preserved in all_findings for audit.
 
-    Only operates on INCLUDED findings - already-excluded findings are
+    Only operates on INCLUDED findings — already-excluded findings are
     skipped (no point deduplicating what's already excluded).
     """
     seen: dict[str, str] = {}  # dedup_key → finding_instance_id of primary
@@ -265,9 +265,9 @@ def _apply_deduplication(
 
         key = f.dedup_key
         if not key:
-            # No dedup key - cannot safely deduplicate; flag for review
+            # No dedup key — cannot safely deduplicate; flag for review
             f.flag_for_review(
-                reason="Empty dedup_key - cannot deduplicate safely",
+                reason="Empty dedup_key — cannot deduplicate safely",
                 stage="stage2_dedup",
             )
             warnings.append(ProcessWarning(
@@ -279,7 +279,7 @@ def _apply_deduplication(
             continue
 
         if key in seen:
-            # Duplicate - mark and exclude
+            # Duplicate — mark and exclude
             primary_id = seen[key]
             f.is_duplicate = True
             f.duplicate_of = primary_id
@@ -309,23 +309,19 @@ def _apply_deduplication(
 # ── 2C: Output grouping ───────────────────────────────────────────────
 
 _SECTION_MAP: dict[str, str] = {
-    # Provider-level
-    "aws": "AWS",
-    # Service-level overrides (if needed for ScubaGear Phase 2)
-    # These are not used for Prowler/AWS - everything goes to "AWS"
+    "aws":   "AWS",
+    "azure": "Azure",
+    "gcp":   "GCP",
 }
 
 def _assign_section(provider: Optional[str], service_name: Optional[str]) -> str:
     """
-    Map a finding to its output Excel section.
-    For Phase 1 (Prowler/AWS), all findings → "AWS".
-    Phase 2 will add Azure section logic here.
+    Map a finding to its output Excel section based on cloud provider.
+    Prowler uses the same column schema for AWS, Azure, and GCP — the
+    PROVIDER column value determines which sheet the finding lands on.
     """
     prov = (provider or "").lower().strip()
-    if prov == "aws":
-        return "AWS"
-    # Fallback
-    return "AWS"
+    return _SECTION_MAP.get(prov, "AWS")
 
 
 def _build_output_groups(

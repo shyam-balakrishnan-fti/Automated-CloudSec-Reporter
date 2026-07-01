@@ -232,22 +232,49 @@ def _make_chunks(groups: list[OutputGroup], chunk_size: int) -> list[list[Output
 
 # ── Token/timeout scaling (per individual LLM call, not the whole run) ──
 
-def _scaled_llm_cfg(llm_cfg: dict[str, Any], n_items: int) -> dict[str, Any]:
+def _scaled_llm_cfg(
+    llm_cfg: dict[str, Any],
+    n_items: int,
+    mode: str = "chunk",
+) -> dict[str, Any]:
     """
-    Scale max_tokens and timeout_seconds for a single LLM call handling
-    n_items (checks in a chunk, or groups in the consolidation pass).
-    Kept deliberately conservative since each individual call is now
-    small (<=20 items) regardless of total scan size.
+    Scale max_tokens and timeout_seconds for a single LLM call.
+
+    mode="chunk"     — chunking / consolidation calls (n_items <= 20 groups).
+                       Conservative cap: each chunk is small by design.
+    mode="regroup"   — global/per-group analyst regroup calls where n_items
+                       is the total check_id count on the board (can be 100+).
+                       The output must re-state every check_id, so the budget
+                       must scale linearly with the full board size, not just
+                       the chunk size. Bedrock Opus hard limit is 8192 output
+                       tokens; we stay just under that.
     """
     cfg = dict(llm_cfg)
-    cfg["max_tokens"] = max(
-        llm_cfg.get("max_tokens", 1000),
-        min(300 + (n_items * 90), 4000),
-    )
-    cfg["timeout_seconds"] = max(
-        llm_cfg.get("timeout_seconds", 60),
-        60 + (n_items * 3),
-    )
+
+    if mode == "regroup":
+        # The output must re-state every check_id in a JSON array.
+        # Even with minimal rationale, 101 check_ids across 30 groups
+        # generates ~3000-5000 tokens of pure JSON structure.
+        # Budget: 80 tokens/check_id (id string + surrounding JSON) +
+        # fixed overhead. Cap at 8000 (Bedrock Opus output limit).
+        cfg["max_tokens"] = max(
+            llm_cfg.get("max_tokens", 1000),
+            min(800 + (n_items * 80), 8000),
+        )
+        cfg["timeout_seconds"] = max(
+            llm_cfg.get("timeout_seconds", 60),
+            90 + (n_items * 3),
+        )
+    else:
+        # chunk / consolidation — conservative, items are always small
+        cfg["max_tokens"] = max(
+            llm_cfg.get("max_tokens", 1000),
+            min(300 + (n_items * 90), 4000),
+        )
+        cfg["timeout_seconds"] = max(
+            llm_cfg.get("timeout_seconds", 60),
+            60 + (n_items * 3),
+        )
     return cfg
 
 
@@ -306,15 +333,29 @@ single narrative can accurately cover all of them.
 === CHECKS IN THIS CHUNK ===
 {check_list}
 
+=== MERGE CRITERIA (apply strictly) ===
+Only merge checks into one group when ALL of the following are true:
+  a) They affect the SAME AWS service or resource type (e.g. all IAM checks,
+     or all S3 checks — do NOT merge across services just because they share
+     a broad theme like "public access" or "logging").
+  b) They share the SAME root cause (e.g. both result from missing MFA policy,
+     or both from a missing encryption-at-rest default setting).
+  c) A single engineer could remediate all of them in one session following
+     the same steps. If the fix differs per check, keep them separate.
+
+Checks that merely share a theme (e.g. "several services lack logging") but
+differ in service, remediation steps, or responsible team MUST stay separate.
+
 === INSTRUCTIONS ===
-1. Identify groups of check_ids that should appear as ONE finding in the report.
+1. Apply the merge criteria above. When in doubt, keep checks separate.
 2. Every check_id in this chunk must appear in exactly one group.
-3. Name groups GENERICALLY (e.g. "Public Network Exposure", not "S3 Public Access")
-   so that if related checks appear in a different chunk, they can be merged
-   into this same theme later — do not over-specify to just what you see here.
+3. Name groups specifically, not generically — include the service name
+   (e.g. "IAM MFA Not Enforced", not "Authentication Gaps").
+   Cross-chunk deduplication is handled in a later pass — do not over-broaden
+   names just to enable future merging.
 4. Provide a rationale of AT LEAST 2 sentences per group explaining the shared
-   root cause and why grouping aids the reader. For standalone checks, explain
-   why this issue is distinct enough to warrant its own line item.
+   root cause and why one narrative can accurately cover all checks in the group.
+   For standalone checks, explain why this issue warrants its own line item.
 
 === OUTPUT FORMAT ===
 Respond with ONLY a valid JSON array. No preamble, no explanation.
@@ -454,17 +495,30 @@ that should be merged into one.
 === CURRENT GROUPS ===
 {group_list}
 
+=== MERGE CRITERIA (conservative — when in doubt, do NOT merge) ===
+Only merge two groups if ALL of the following are true:
+  a) They affect the exact same AWS service or resource type. Do NOT merge
+     checks across different services even if they share a broad theme
+     (e.g. "S3 public access" and "CloudTrail public access" and "SNS public
+     access" are THREE separate findings — they share a theme but differ
+     in service, remediation steps, and responsible owner. Keep them separate).
+  b) The specific remediation action is the same or nearly the same for both.
+     If fixing one group requires different AWS console steps than fixing the
+     other, they must stay separate.
+  c) They were almost certainly split across chunks due to chunking boundary
+     only — not because they are genuinely distinct controls.
+
+The bar for merging is HIGH. A shorter report is not automatically better.
+Keeping controls separate gives the client specific, actionable guidance.
+
 === INSTRUCTIONS ===
-1. Identify any groups above that represent the SAME underlying theme and
-   should be merged into one group (e.g. two separately-named groups that
-   both cover public network exposure, or two groups that both cover
-   encryption-at-rest gaps).
-2. Do NOT merge groups that are genuinely distinct, even if superficially
-   similar — only merge when one coherent narrative could cover both.
+1. Apply the criteria above conservatively. Most groups should be UNCHANGED.
+2. Only merge groups that are clear duplicates from chunking — same service,
+   same fix, same owner. Different services = different findings, always.
 3. Every check_id from every input group must appear in exactly one output
    group. Preserve groups that have no merge candidate exactly as given.
-4. For any group you merge, write a NEW rationale (2+ sentences) describing
-   the combined theme. For unchanged groups, keep the original rationale.
+4. For any group you merge, write a NEW rationale (2+ sentences). For
+   unchanged groups, copy the original rationale exactly.
 
 === OUTPUT FORMAT ===
 Respond with ONLY a valid JSON array, same structure as input.

@@ -1,5 +1,5 @@
 """
-stage_reviewer.py — Grouping review UI (no individual enrichment)
+stage_reviewer.py — Grouping review UI
 
 Replaces the old per-finding review flow. Individual enrichment is skipped
 entirely — the analyst only ever sees and works with GROUPS, never raw
@@ -93,7 +93,7 @@ def _build_group_data(grouping_result) -> list[dict]:
     zero LLM cost, always present regardless of grouping state.
     """
     result = []
-    for g in grouping_result.grouped_groups:
+    for i, g in enumerate(grouping_result.grouped_groups):
         checks = []
         for src in g.source_groups:
             checks.append({
@@ -108,7 +108,7 @@ def _build_group_data(grouping_result) -> list[dict]:
             })
 
         result.append({
-            "id":            g.group_name.lower().replace(" ", "_").replace("/", "_")[:40],
+            "id":            f"grp_{i}",
             "group_name":    g.group_name,
             "rationale":     g.group_rationale,
             "is_merged":     g.is_merged,
@@ -413,7 +413,7 @@ let dragCid = null, dragFrom = null;
 
 function init() {{
   groups = PROPOSAL.map((g,i) => ({{
-    id: g.id || `g${{i}}`,
+    id: `g${{i}}`,  // position-based — always unique even for duplicate group names
     group_name: g.group_name,
     rationale:  g.rationale || "",
     check_ids:  [...g.check_ids],
@@ -486,9 +486,9 @@ function buildCard(group) {{
     <div class="gc-chips" id="chips-${{group.id}}"></div>
     ${{(group.affected_resources||[]).length ? `
     <div class="gc-resources-toggle" onclick="toggleResources('${{group.id}}')">
-      <span id="res-chevron-${{group.id}}">▸</span> ${{(group.affected_resources||[]).length}} affected resource(s)
+      <span>▸</span> ${{(group.affected_resources||[]).length}} affected resource(s)
     </div>
-    <div class="gc-resources" id="res-panel-${{group.id}}">${{resourcesHtml}}</div>` : ""}}
+    <div class="gc-resources">${{resourcesHtml}}</div>` : ""}}
     <div class="gc-ai-box">
       <div class="gc-ai-label">AI instruction for this group only</div>
       <textarea class="gc-ai-input" id="gai-${{group.id}}" rows="1"
@@ -517,7 +517,7 @@ function buildCard(group) {{
   }}
   if (group.resources_open) {{
     const panel = card.querySelector(".gc-resources");
-    const chev  = card.querySelector(`#res-chevron-${{group.id}}`);
+    const chev  = card.querySelector(".gc-resources-toggle span");
     if (panel) panel.classList.add("open");
     if (chev) chev.textContent = "▾";
   }}
@@ -532,8 +532,14 @@ function autoGrow(textarea) {{
 function toggleResources(gid) {{
   const g = groups.find(x => x.id === gid);
   if (g) g.resources_open = !g.resources_open;
-  const panel = document.getElementById("res-panel-" + gid);
-  const chev  = document.getElementById("res-chevron-" + gid);
+  // Use the card element as the scope for querySelector — this correctly
+  // targets elements within the specific card that was clicked, not the
+  // first matching element in the document (which breaks for duplicate
+  // group names since both cards share derived IDs from the name).
+  const card  = document.querySelector(`[data-group-id="${{gid}}"]`);
+  if (!card) return;
+  const panel = card.querySelector(".gc-resources");
+  const chev  = card.querySelector(".gc-resources-toggle span");
   if (panel) panel.classList.toggle("open");
   if (chev) chev.textContent = panel && panel.classList.contains("open") ? "▾" : "▸";
 }}
@@ -864,10 +870,12 @@ the board — apply the instruction board-wide, not just to one group.
    exactly as they are.
 
 === OUTPUT FORMAT ===
-Respond with ONLY a valid JSON array.
+Respond with ONLY a valid JSON array. Keep rationale SHORT (one sentence max)
+or omit it entirely — the analyst will review and edit rationale in the UI.
+Minimising output length is more important than thorough rationale text here.
 
 [
-  {{"group_name": "...", "check_ids": [...], "rationale": "..."}}
+  {{"group_name": "...", "check_ids": [...], "rationale": ""}}
 ]"""
 
 
@@ -1028,7 +1036,7 @@ class _Handler(BaseHTTPRequestHandler):
             # a global regroup must re-state every check_id in its output,
             # so the same per-item budget used for chunking applies here.
             n_items    = len(expected_ids) or 1
-            scaled_cfg = _scaled_llm_cfg(_Handler.llm_cfg, n_items)
+            scaled_cfg = _scaled_llm_cfg(_Handler.llm_cfg, n_items, mode="regroup")
 
             prompt = _build_global_regroup_prompt(instruction, all_groups, unassigned)
             raw    = _call_llm(prompt, scaled_cfg)
@@ -1070,7 +1078,7 @@ class _Handler(BaseHTTPRequestHandler):
             # Per-group regroup still echoes back the FULL board in its
             # output (see prompt instructions), so scale the same way.
             n_items    = len(expected_ids) or 1
-            scaled_cfg = _scaled_llm_cfg(_Handler.llm_cfg, n_items)
+            scaled_cfg = _scaled_llm_cfg(_Handler.llm_cfg, n_items, mode="regroup")
 
             prompt = _build_one_group_regroup_prompt(instruction, target_group, all_groups)
             raw    = _call_llm(prompt, scaled_cfg)
