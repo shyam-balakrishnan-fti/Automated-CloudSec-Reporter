@@ -4,10 +4,10 @@
 
 # ── Engagement (change every run) ──────────────────────────────────
 [engagement]
-client_name       = "Omico-AWS"
+client_name       = "ClientName"
 assessment_period = "July 2026"
 analyst           = "analyst"
-output_filename   = "SecurityReport_omice_AWS1.xlsx"
+output_filename   = "SecurityReport.xlsx"
 
 # ── LLM (set once at setup) ────────────────────────────────────────
 [llm]
