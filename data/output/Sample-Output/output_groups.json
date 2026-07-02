@@ -1,7 +1,7 @@
 {
-  "run_id": "836b223a-54ed-4dfb-87f3-7f34c301f66a",
+  "run_id": "68ac53d3-807b-4c40-b9b0-a396f7b507cb",
   "group_count": 16,
-  "generated_at": "2026-06-29T02:18:35.628058+00:00",
+  "generated_at": "2026-07-02T06:43:13.213554+00:00",
   "groups": [
     {
       "output_group_key": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22:AWS",
@@ -18,11 +18,11 @@
         "777788889999"
       ],
       "instance_ids": [
-        "02c8bb7f-a91e-4894-a2b0-4296ee1719f6",
-        "f535660a-8d58-4014-8265-9b7dab2194ef"
+        "34548d8b-4b08-4a3c-a319-f19ae786b667",
+        "631633c3-f11d-407c-b9af-7582e45de5e3"
       ],
       "representative": {
-        "finding_instance_id": "02c8bb7f-a91e-4894-a2b0-4296ee1719f6",
+        "finding_instance_id": "34548d8b-4b08-4a3c-a319-f19ae786b667",
         "source_row_id": "Sheet:prowler-output Row:15",
         "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22",
         "check_title": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
@@ -94,10 +94,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "5ffc2abc-b7a6-4042-a80d-99c7f73176a6"
+        "e3d8a759-0360-4827-b336-e9982475be64"
       ],
       "representative": {
-        "finding_instance_id": "5ffc2abc-b7a6-4042-a80d-99c7f73176a6",
+        "finding_instance_id": "e3d8a759-0360-4827-b336-e9982475be64",
         "source_row_id": "Sheet:prowler-output Row:12",
         "check_id": "iam_root_mfa_enabled",
         "check_title": "Ensure MFA is enabled for the root account",
@@ -165,13 +165,13 @@
         "777788889999"
       ],
       "instance_ids": [
-        "4ddb5c5d-809b-489d-a5fd-5868df39f645",
-        "4422128f-72b8-4066-8c8b-0104f47dbced",
-        "69cc1014-e8fe-4eaa-8a06-e2c103837462",
-        "3e80b865-411e-44ae-baaf-89bde64ad4e8"
+        "e427614a-a205-43b4-842c-0b7a11955e64",
+        "0786224b-0c6b-47ce-8e08-78209934ec38",
+        "e647de23-68e1-4347-b048-5c53cb296198",
+        "3ce6978f-ab42-49b6-8065-afdc164cbd7d"
       ],
       "representative": {
-        "finding_instance_id": "4ddb5c5d-809b-489d-a5fd-5868df39f645",
+        "finding_instance_id": "e427614a-a205-43b4-842c-0b7a11955e64",
         "source_row_id": "Sheet:prowler-output Row:9",
         "check_id": "iam_user_mfa_enabled_console_access",
         "check_title": "Ensure MFA is enabled for all IAM users with console access",
@@ -238,10 +238,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "27a1ce61-00b0-43af-b1c9-42c47c6397ea"
+        "a8b7402c-02ba-40bd-a3bf-06223e6b53d0"
       ],
       "representative": {
-        "finding_instance_id": "27a1ce61-00b0-43af-b1c9-42c47c6397ea",
+        "finding_instance_id": "a8b7402c-02ba-40bd-a3bf-06223e6b53d0",
         "source_row_id": "Sheet:prowler-output Row:21",
         "check_id": "rds_instance_no_public_access",
         "check_title": "Ensure RDS instances are not publicly accessible",
@@ -305,10 +305,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "228aafa6-0854-4506-9b70-03acb1654a00"
+        "8ae5ac38-962c-47d8-a984-d7481c16ed23"
       ],
       "representative": {
-        "finding_instance_id": "228aafa6-0854-4506-9b70-03acb1654a00",
+        "finding_instance_id": "8ae5ac38-962c-47d8-a984-d7481c16ed23",
         "source_row_id": "Sheet:prowler-output Row:24",
         "check_id": "cloudtrail_multi_region_enabled",
         "check_title": "Ensure CloudTrail is enabled in all regions",
@@ -374,12 +374,12 @@
         "111122223333"
       ],
       "instance_ids": [
-        "49736885-09f5-443a-b9c6-aa68379219bc",
-        "fb9dc15d-7df0-45b4-a745-cadb3c07a9c4",
-        "b5ed6ec3-39e6-4e27-902a-b248fd7a3a08"
+        "4bf2ed6d-38c0-4f5c-95d9-079f1526f1aa",
+        "e098c51f-198f-4f0c-9df9-4347800bce98",
+        "5cbf9528-b5ac-4398-8c9c-21b1a9153af5"
       ],
       "representative": {
-        "finding_instance_id": "49736885-09f5-443a-b9c6-aa68379219bc",
+        "finding_instance_id": "4bf2ed6d-38c0-4f5c-95d9-079f1526f1aa",
         "source_row_id": "Sheet:prowler-output Row:17",
         "check_id": "ec2_ebs_volume_encryption_enabled",
         "check_title": "Ensure EBS volumes are encrypted",
@@ -445,10 +445,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "c8dd479c-aa2a-468b-a997-9ee46f0cc0d0"
+        "b968c891-6f10-4236-9c39-2689168a56cd"
       ],
       "representative": {
-        "finding_instance_id": "c8dd479c-aa2a-468b-a997-9ee46f0cc0d0",
+        "finding_instance_id": "b968c891-6f10-4236-9c39-2689168a56cd",
         "source_row_id": "Sheet:prowler-output Row:16",
         "check_id": "ec2_instance_imdsv2_enabled",
         "check_title": "Ensure EC2 instances use IMDSv2",
@@ -512,10 +512,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "b14b32bc-712d-4834-a870-18af0a47995a"
+        "bf35c2cd-f9aa-4077-9052-3b8246f91501"
       ],
       "representative": {
-        "finding_instance_id": "b14b32bc-712d-4834-a870-18af0a47995a",
+        "finding_instance_id": "bf35c2cd-f9aa-4077-9052-3b8246f91501",
         "source_row_id": "Sheet:prowler-output Row:20",
         "check_id": "rds_instance_storage_encrypted",
         "check_title": "Ensure RDS instances are encrypted at rest",
@@ -584,13 +584,13 @@
         "777788889999"
       ],
       "instance_ids": [
-        "406682f3-ff68-4976-8f6d-5c109d1d1ecd",
-        "f8ea01ab-1b50-4b3f-b676-067298a452b2",
-        "0b44c5ce-9455-4e0f-993a-ec1341187c45",
-        "edb4e68f-f478-422d-b42a-a86385a60fcf"
+        "534d0245-c747-4ad0-8439-b33d1bac5f80",
+        "f9e94504-6df3-45ba-9293-c7d246a7b8eb",
+        "e31c5a54-1e34-485c-9ed0-d7ce75b3eeaf",
+        "ffd3070a-4814-4e7a-9f18-c0e63d7da5bd"
       ],
       "representative": {
-        "finding_instance_id": "406682f3-ff68-4976-8f6d-5c109d1d1ecd",
+        "finding_instance_id": "534d0245-c747-4ad0-8439-b33d1bac5f80",
         "source_row_id": "Sheet:prowler-output Row:2",
         "check_id": "s3_bucket_public_access",
         "check_title": "Ensure S3 bucket does not allow public access",
@@ -663,10 +663,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "0cc1f02a-601b-4ea0-bae6-13a4a6ec96ad"
+        "7e6511a7-02e1-4f61-a7c4-9317dc9ea45b"
       ],
       "representative": {
-        "finding_instance_id": "0cc1f02a-601b-4ea0-bae6-13a4a6ec96ad",
+        "finding_instance_id": "7e6511a7-02e1-4f61-a7c4-9317dc9ea45b",
         "source_row_id": "Sheet:prowler-output Row:27",
         "check_id": "config_recorder_all_regions_enabled",
         "check_title": "Ensure AWS Config is enabled in all regions",
@@ -732,10 +732,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "d9f2cffd-3d7d-4a93-8eb8-01e304e4c9e7"
+        "9a1d0e6d-0f24-42bc-9012-4bbb946ad7a9"
       ],
       "representative": {
-        "finding_instance_id": "d9f2cffd-3d7d-4a93-8eb8-01e304e4c9e7",
+        "finding_instance_id": "9a1d0e6d-0f24-42bc-9012-4bbb946ad7a9",
         "source_row_id": "Sheet:prowler-output Row:14",
         "check_id": "iam_password_policy_lowercase",
         "check_title": "Ensure IAM password policy requires at least one lowercase letter",
@@ -798,10 +798,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "95375240-bad6-4acd-a708-7f901183ef2a"
+        "d9d68410-eb8d-4a7d-8971-f7e313dc1855"
       ],
       "representative": {
-        "finding_instance_id": "95375240-bad6-4acd-a708-7f901183ef2a",
+        "finding_instance_id": "d9d68410-eb8d-4a7d-8971-f7e313dc1855",
         "source_row_id": "Sheet:prowler-output Row:13",
         "check_id": "iam_user_access_key_age_90_days",
         "check_title": "Ensure IAM user access keys are rotated every 90 days or less",
@@ -867,11 +867,11 @@
         "777788889999"
       ],
       "instance_ids": [
-        "190ca08d-9c6b-4f78-b634-deac9fe00c9b",
-        "7f6efef7-3f2d-44f3-9962-d4513918d731"
+        "a6940fa2-6789-4c3e-9576-86197ee9d308",
+        "fe258121-9caf-4498-a5ae-c91ef3206ed0"
       ],
       "representative": {
-        "finding_instance_id": "190ca08d-9c6b-4f78-b634-deac9fe00c9b",
+        "finding_instance_id": "a6940fa2-6789-4c3e-9576-86197ee9d308",
         "source_row_id": "Sheet:prowler-output Row:7",
         "check_id": "s3_bucket_default_encryption",
         "check_title": "Ensure S3 bucket has default encryption enabled",
@@ -935,10 +935,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "260a3038-77df-4beb-8095-31b0600bd9a3"
+        "188b3ebf-9d26-4452-902e-2fa4a5710d98"
       ],
       "representative": {
-        "finding_instance_id": "260a3038-77df-4beb-8095-31b0600bd9a3",
+        "finding_instance_id": "188b3ebf-9d26-4452-902e-2fa4a5710d98",
         "source_row_id": "Sheet:prowler-output Row:28",
         "check_id": "securityhub_enabled",
         "check_title": "Ensure AWS Security Hub is enabled",
@@ -1002,10 +1002,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "aefc9c0f-afdd-41af-a253-dd588f38a918"
+        "27e67a65-14ea-4ff0-b7a0-f1f9e1fd8433"
       ],
       "representative": {
-        "finding_instance_id": "aefc9c0f-afdd-41af-a253-dd588f38a918",
+        "finding_instance_id": "27e67a65-14ea-4ff0-b7a0-f1f9e1fd8433",
         "source_row_id": "Sheet:prowler-output Row:23",
         "check_id": "vpc_flow_logs_enabled",
         "check_title": "Ensure VPC flow logging is enabled in all VPCs",
@@ -1071,10 +1071,10 @@
         "111122223333"
       ],
       "instance_ids": [
-        "0d4bb5d7-1e78-4ca2-939e-de3b7f47e46a"
+        "b3791c36-475d-4129-8c1c-9ad7990116ca"
       ],
       "representative": {
-        "finding_instance_id": "0d4bb5d7-1e78-4ca2-939e-de3b7f47e46a",
+        "finding_instance_id": "b3791c36-475d-4129-8c1c-9ad7990116ca",
         "source_row_id": "Sheet:prowler-output Row:25",
         "check_id": "cloudwatch_log_group_retention_policy_specific_days_enabled",
         "check_title": "Ensure CloudWatch log groups have retention policies set",

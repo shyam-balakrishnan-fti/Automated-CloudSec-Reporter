@@ -45,7 +45,6 @@ htmlcov/
 Thumbs.db
 
 # ── Pipeline outputs ──────────────────────────────────────────────
-data/output/*
 data/synthetic/
 scubagear/data/output/*
 

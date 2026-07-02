@@ -1,0 +1,582 @@
+{
+  "run_id": "68ac53d3-807b-4c40-b9b0-a396f7b507cb",
+  "group_count": 13,
+  "enriched": 13,
+  "failed": 0,
+  "risk_ratings": {
+    "High": 7,
+    "Medium": 4,
+    "Low": 1,
+    "Unknown": 0,
+    "Critical": 1
+  },
+  "generated_at": "2026-07-02T06:46:34.849886+00:00",
+  "groups": [
+    {
+      "group_name": "IAM MFA Not Enforced for Root and Console Users",
+      "check_ids": [
+        "iam_root_mfa_enabled",
+        "iam_user_mfa_enabled_console_access"
+      ],
+      "output_section": "AWS",
+      "instance_count": 5,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "Critical",
+      "consequence_rating": "Major",
+      "finding_title": "Root Account MFA Not Enabled Across 2 Production Accounts",
+      "root_cause_narrative": "The root account was created without MFA enforcement during initial AWS account setup, and organizational policies have not mandated or automated MFA enablement for root users. This configuration gap persists because root accounts are rarely used day-to-day, allowing the missing control to go unaddressed.",
+      "situation_narrative": "The AWS root account lacks multi-factor authentication in 2 accounts (acme-prod, acme-legacy), affecting 5 resources total. The root user can currently authenticate using only a password without a second factor. This configuration violates CIS AWS Foundations Benchmark 2.0 control 1.5 and NIST 800-53 IA-2(1) requirements for privileged account protection.",
+      "consequence_narrative": "An attacker who obtains root credentials through phishing, credential stuffing, or password reuse could gain unrestricted access to all AWS services and resources in both accounts. This would enable complete infrastructure takeover, including deletion of logging and backup systems, exfiltration of sensitive data, deployment of ransomware, and creation of persistent backdoors that survive standard incident response procedures.",
+      "access_required": "An attacker would need to obtain the root account email address and password through credential theft, phishing, or compromise of the email account associated with the root user.",
+      "recommendations": "Enable a hardware or virtual MFA device for the root account.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "",
+          "resource_name": "",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMAccountSummary",
+          "status_extended": "The root account does not have an MFA device configured."
+        },
+        {
+          "resource_uid": "arn:aws:iam::111122223333:user/john.smith",
+          "resource_name": "john.smith",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMUser",
+          "status_extended": "IAM user john.smith has console access but no MFA device."
+        },
+        {
+          "resource_uid": "arn:aws:iam::111122223333:user/jane.doe",
+          "resource_name": "jane.doe",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMUser",
+          "status_extended": "IAM user jane.doe has console access but no MFA device."
+        },
+        {
+          "resource_uid": "arn:aws:iam::111122223333:user/svc-deploy",
+          "resource_name": "svc-deploy",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMUser",
+          "status_extended": "IAM user svc-deploy has console access but no MFA device."
+        },
+        {
+          "resource_uid": "arn:aws:iam::777788889999:user/admin.legacy",
+          "resource_name": "admin.legacy",
+          "account_uid": "777788889999",
+          "account_name": "acme-legacy",
+          "region": "global",
+          "resource_type": "AWSIAMUser",
+          "status_extended": "IAM user admin.legacy has console access but no MFA."
+        }
+      ]
+    },
+    {
+      "group_name": "RDS Instance Publicly Accessible",
+      "check_ids": [
+        "rds_instance_no_public_access"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "RDS Instance Publicly Accessible from Internet (prod-postgres)",
+      "root_cause_narrative": "The RDS instance was configured with the publicly_accessible flag set to true, likely during initial provisioning or a subsequent modification. This setting allocates a public IP address and allows inbound connections from any internet source that can reach the database port.",
+      "situation_narrative": "The production RDS instance 'prod-postgres' in account acme-prod (ap-southeast-2) is configured to be publicly accessible. This instance exposes a public endpoint that can be resolved and reached from the internet. The misconfiguration affects a single production database resource and violates CIS benchmark 2.3.2.",
+      "consequence_narrative": "An attacker could attempt direct connections to the database from anywhere on the internet, enabling brute-force attacks against database credentials, exploitation of unpatched database vulnerabilities, or unauthorized data access if credentials are compromised. This exposure creates a direct path to production data without requiring prior compromise of internal AWS resources.",
+      "access_required": "No AWS access required; attacker needs only network connectivity to the public endpoint and valid database credentials or an exploitable vulnerability.",
+      "recommendations": "Modify the RDS instance to disable public accessibility.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres",
+          "resource_name": "prod-postgres",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSRDSDBInstance",
+          "status_extended": "RDS instance prod-postgres is publicly accessible."
+        }
+      ]
+    },
+    {
+      "group_name": "Security Groups Allow Unrestricted SSH Access from Internet",
+      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+      ],
+      "output_section": "AWS",
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Security Group Allows Unrestricted SSH Access from Internet (0.0.0.0/0:22)",
+      "root_cause_narrative": "The security group was configured with an overly permissive ingress rule allowing SSH access from any IPv4 address (0.0.0.0/0). This typically occurs when administrators prioritize convenience over security during initial setup or troubleshooting, then fail to restrict access to specific IP ranges.",
+      "situation_narrative": "Security group sg-0prod1234 (web-servers) in the acme-prod account permits inbound SSH traffic from the entire internet on TCP port 22. This finding affects 2 resources across 2 accounts (acme-prod and acme-legacy). The security group is tagged as Environment=prod and associated with web servers. The rule violates multiple compliance frameworks including CIS-2.0 section 5.2, NIST-800-53 SC-7, and PCI-DSS requirements.",
+      "consequence_narrative": "An attacker could launch automated brute-force or credential stuffing attacks against SSH services on affected EC2 instances. Successful authentication would grant shell access to production web servers, enabling data exfiltration, lateral movement to other resources, or deployment of ransomware. Compromise of production infrastructure could result in service disruption, data breach notification obligations, and regulatory penalties under PCI-DSS.",
+      "access_required": "No authentication required to attempt connection; attacker needs only network access to the internet and valid SSH credentials (obtainable through brute-force, credential leaks, or social engineering).",
+      "recommendations": "Restrict SSH ingress to specific trusted IP ranges. Remove the 0.0.0.0/0 rule.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:111122223333:security-group/sg-0prod1234",
+          "resource_name": "sg-0prod1234",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSEC2SecurityGroup",
+          "status_extended": "Security group sg-0prod1234 (web-servers) allows unrestricted SSH (0.0.0.0/0:22)."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:us-east-1:777788889999:security-group/sg-0legacy99",
+          "resource_name": "sg-0legacy99",
+          "account_uid": "777788889999",
+          "account_name": "acme-legacy",
+          "region": "us-east-1",
+          "resource_type": "AWSEC2SecurityGroup",
+          "status_extended": "Security group sg-0legacy99 allows unrestricted SSH."
+        }
+      ]
+    },
+    {
+      "group_name": "CloudTrail Multi-Region Logging Not Enabled",
+      "check_ids": [
+        "cloudtrail_multi_region_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "CloudTrail Trail Not Enabled for Multi-Region Logging",
+      "root_cause_narrative": "The CloudTrail trail 'management-trail' was configured to log API activity in a single region rather than across all AWS regions. This likely occurred during initial setup when the multi-region flag was not enabled or was explicitly disabled.",
+      "situation_narrative": "CloudTrail trail 'management-trail' in account 'acme-prod' (ap-southeast-2) is configured for single-region logging only. This configuration violates CIS AWS Foundations Benchmark 3.1 and NIST 800-53 AU-2 requirements. API calls and management events occurring in AWS regions outside ap-southeast-2 are not being captured or logged, creating blind spots in the audit trail.",
+      "consequence_narrative": "An attacker with compromised credentials could perform malicious actions in unmonitored regions without detection, including launching resources, exfiltrating data, or modifying security configurations. Forensic investigations following a security incident would lack complete visibility into attacker actions across all regions, hindering incident response and compliance reporting.",
+      "access_required": "Valid AWS credentials with permissions to perform API actions in regions outside ap-southeast-2.",
+      "recommendations": "Update the CloudTrail trail to be multi-region.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:cloudtrail:ap-southeast-2:111122223333:trail/management-trail",
+          "resource_name": "management-trail",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSCloudTrailTrail",
+          "status_extended": "CloudTrail trail management-trail is not enabled in all regions."
+        }
+      ]
+    },
+    {
+      "group_name": "EBS and RDS Encryption at Rest Not Enabled",
+      "check_ids": [
+        "ec2_ebs_volume_encryption_enabled",
+        "rds_instance_storage_encrypted"
+      ],
+      "output_section": "AWS",
+      "instance_count": 4,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "EBS Volume Encryption Disabled in Production Account",
+      "root_cause_narrative": "The EBS volume was provisioned without encryption enabled, likely due to missing organizational policies enforcing encryption-at-rest or the use of default volume creation settings that do not enable encryption by default.",
+      "situation_narrative": "EBS volume vol-0aaa1111 in the acme-prod account (ap-southeast-2 region) is not encrypted at rest. This affects 4 resources across the production environment and violates CIS-2.0 (2.2.1) and NIST-800-53 (SC-28) encryption requirements. The volume is currently operational and storing data without cryptographic protection.",
+      "consequence_narrative": "An attacker with physical access to AWS infrastructure or an insider threat with privileged datacenter access could extract sensitive data directly from the unencrypted volume storage media. If EBS snapshots of this volume are created and inadvertently shared, data would be exposed in plaintext. Loss or decommissioning of the underlying hardware without proper sanitization would result in uncontrolled data disclosure.",
+      "access_required": "Physical access to AWS datacenter infrastructure, privileged AWS account access to create and exfiltrate snapshots, or access to decommissioned storage hardware.",
+      "recommendations": "Create an encrypted snapshot and replace the unencrypted volume.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:111122223333:volume/vol-0aaa1111",
+          "resource_name": "vol-0aaa1111",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSEC2Volume",
+          "status_extended": "EBS volume vol-0aaa1111 is not encrypted."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:111122223333:volume/vol-0bbb2222",
+          "resource_name": "vol-0bbb2222",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSEC2Volume",
+          "status_extended": ""
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:111122223333:volume/vol-0ccc3333",
+          "resource_name": "vol-0ccc3333",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSEC2Volume",
+          "status_extended": "EBS volume vol-0ccc3333 is not encrypted."
+        },
+        {
+          "resource_uid": "arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres",
+          "resource_name": "prod-postgres",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSRDSDBInstance",
+          "status_extended": "RDS instance prod-postgres is not encrypted at rest."
+        }
+      ]
+    },
+    {
+      "group_name": "EC2 Instance Metadata Service v2 Not Enforced",
+      "check_ids": [
+        "ec2_instance_imdsv2_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "EC2 Instance Does Not Enforce IMDSv2",
+      "root_cause_narrative": "The EC2 instance was provisioned or configured without setting the HttpTokens parameter to 'required', leaving the default IMDSv1 behavior enabled. This occurs when instance metadata options are not explicitly hardened during launch or through subsequent configuration updates.",
+      "situation_narrative": "EC2 instance i-0aabbccdd in the acme-prod account (ap-southeast-2 region) is configured to allow Instance Metadata Service Version 1 (IMDSv1). The instance does not enforce session-oriented IMDSv2, which requires authenticated token-based requests for metadata access. This configuration violates CIS AWS Foundations Benchmark 2.0 control 5.6.",
+      "consequence_narrative": "An attacker who achieves server-side request forgery (SSRF) through a vulnerable application on this instance could retrieve IAM credentials from the metadata service at 169.254.169.254. These credentials could then be used to escalate privileges, access additional AWS resources under the instance's IAM role, or exfiltrate data from services the role has permission to access.",
+      "access_required": "The attacker needs the ability to trigger SSRF via a vulnerable web application or service running on the EC2 instance, typically achievable through unauthenticated HTTP requests to exposed endpoints.",
+      "recommendations": "Enforce IMDSv2 on all EC2 instances by setting HttpTokens to required.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "i-0aabbccdd",
+          "resource_name": "i-0aabbccdd",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSEC2Instance",
+          "status_extended": "Instance i-0aabbccdd does not enforce IMDSv2."
+        }
+      ]
+    },
+    {
+      "group_name": "S3 Bucket Encryption and Public Access Controls",
+      "check_ids": [
+        "s3_bucket_public_access",
+        "s3_bucket_default_encryption"
+      ],
+      "output_section": "AWS",
+      "instance_count": 6,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-dev",
+        "acme-legacy"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "S3 Bucket Block Public Access Disabled Across 6 Resources in 3 Accounts",
+      "root_cause_narrative": "The S3 Block Public Access feature was not enabled during bucket creation or was explicitly disabled afterward. This likely reflects missing baseline security configurations or legacy deployment practices predating AWS best practices for public access prevention.",
+      "situation_narrative": "Six S3 buckets across three AWS accounts (acme-prod, acme-dev, acme-legacy) have Block Public Access settings disabled. The affected bucket 'acme-prod-logs' in the production account is tagged for platform logging operations. All four Block Public Access controls (BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, RestrictPublicBuckets) are currently disabled, leaving these buckets without safeguards against public exposure through ACLs or bucket policies.",
+      "consequence_narrative": "An attacker or unauthorized user could gain read access to bucket contents if public ACLs or bucket policies are accidentally or maliciously applied. For the production logging bucket, this could expose application logs containing authentication tokens, API keys, IP addresses, or other sensitive operational data. The exposure affects compliance posture for CIS, NIST, and PCI-DSS requirements.",
+      "access_required": "No AWS credentials required if a public ACL or bucket policy is applied; attackers only need knowledge of the bucket name to access publicly exposed data.",
+      "recommendations": "Enable S3 Block Public Access settings at the bucket level for all four settings.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:s3:::acme-prod-logs",
+          "resource_name": "acme-prod-logs",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-prod-logs has Block Public Access disabled."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::acme-prod-backups",
+          "resource_name": "acme-prod-backups",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-prod-backups is public."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::acme-dev-uploads",
+          "resource_name": "acme-dev-uploads",
+          "account_uid": "444455556666",
+          "account_name": "acme-dev",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": ""
+        },
+        {
+          "resource_uid": "arn:aws:s3:::legacy-data",
+          "resource_name": "legacy-data",
+          "account_uid": "777788889999",
+          "account_name": "acme-legacy",
+          "region": "us-east-1",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket legacy-data is publicly accessible."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::acme-prod-archive",
+          "resource_name": "acme-prod-archive",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-prod-archive has no default encryption configured."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::legacy-archive",
+          "resource_name": "legacy-archive",
+          "account_uid": "777788889999",
+          "account_name": "acme-legacy",
+          "region": "us-east-1",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": ""
+        }
+      ]
+    },
+    {
+      "group_name": "AWS Config Recording Not Enabled in All Regions",
+      "check_ids": [
+        "config_recorder_all_regions_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "AWS Config Not Enabled in All Regions",
+      "root_cause_narrative": "AWS Config recorders have not been deployed uniformly across all AWS regions, likely due to a regional deployment gap during initial infrastructure setup or lack of centralized configuration management policy enforcement.",
+      "situation_narrative": "The AWS Config service is not enabled in one or more regions within account 'acme-prod'. This misconfiguration affects the entire account scope, preventing comprehensive tracking of resource configuration changes across the full AWS footprint. The finding violates compliance requirements including CIS-2.0 benchmark 3.5 and NIST-800-53 CM-8 configuration management controls.",
+      "consequence_narrative": "Without AWS Config recording in all regions, security teams cannot detect unauthorized configuration changes, track resource inventory, or investigate security incidents in affected regions. This creates blind spots that attackers could exploit to modify resources, deploy malicious infrastructure, or cover their tracks without triggering audit alarms.",
+      "access_required": "Legitimate AWS access with permissions to create or modify resources in regions without Config enabled would allow actions to go undetected in audit logs.",
+      "recommendations": "Enable AWS Config in all regions with an S3 delivery channel.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "",
+          "resource_name": "",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSAccount",
+          "status_extended": "AWS Config recorder is not enabled in one or more regions."
+        }
+      ]
+    },
+    {
+      "group_name": "AWS Security Hub Not Enabled",
+      "check_ids": [
+        "securityhub_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "AWS Security Hub Not Enabled in ap-southeast-2",
+      "root_cause_narrative": "Security Hub has not been activated in the ap-southeast-2 region for account 'acme-prod'. This typically occurs when security monitoring services are not enabled during initial account setup or when regional expansion occurs without applying consistent security baselines.",
+      "situation_narrative": "AWS Security Hub is not enabled in the ap-southeast-2 region within the 'acme-prod' account. Security Hub serves as a centralized service for aggregating and prioritizing security findings from AWS services including GuardDuty, Inspector, Macie, IAM Access Analyzer, and Firewall Manager. Without this service active, security findings in this region remain siloed within their respective services, reducing visibility into the overall security posture. This configuration gap represents a monitoring deficiency rather than a direct exploitable vulnerability.",
+      "consequence_narrative": "The absence of Security Hub eliminates centralized visibility into security findings, increasing mean time to detect and respond to security incidents in this region. Security teams may miss or delay response to threats detected by other AWS services, potentially allowing malicious activity to persist undetected. This monitoring gap increases organizational risk by preventing correlation of security events across multiple detection sources.",
+      "access_required": "This is a monitoring gap rather than an exploitable vulnerability; attackers do not need to exploit this misconfiguration directly, but it impairs the organization's ability to detect unauthorized access or malicious activity.",
+      "recommendations": "Enable AWS Security Hub in all regions.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "security-hub",
+          "resource_name": "security-hub",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSSecurityHub",
+          "status_extended": "Security Hub is not enabled in ap-southeast-2."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Access Keys Not Rotated Within 90 Days",
+      "check_ids": [
+        "iam_user_access_key_age_90_days"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "IAM User Access Key Exceeds 90-Day Rotation Policy (svc-deploy, 134 days old)",
+      "root_cause_narrative": "The access key for IAM user 'svc-deploy' has not been rotated according to the 90-day policy, likely due to the absence of automated rotation processes or calendar reminders for this service account. The key has been active for 134 days, exceeding the threshold by 44 days.",
+      "situation_narrative": "IAM user 'svc-deploy' in account 'acme-prod' (111122223333) has an active access key (AKIAI...) that is 134 days old, exceeding the 90-day rotation requirement defined in CIS Benchmark 2.0 control 1.14. This service account credential has remained unchanged for over four months. The finding affects a single IAM user resource.",
+      "consequence_narrative": "An attacker who obtains this access key through code repository exposure, log file leakage, or insider threat would have prolonged unauthorized access to AWS resources with the permissions granted to svc-deploy. The extended age increases the window of opportunity for undetected credential compromise, potentially enabling data exfiltration, resource manipulation, or lateral movement depending on the user's IAM policies.",
+      "access_required": "An attacker would need to obtain the access key ID and secret access key pair through credential leakage (e.g., hardcoded in source code, exposed in logs, or stolen from CI/CD systems).",
+      "recommendations": "Rotate IAM user access keys and delete old keys.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam::111122223333:user/svc-deploy",
+          "resource_name": "svc-deploy",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMUser",
+          "status_extended": "Access key AKIAI... for user svc-deploy is 134 days old."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Password Policy Missing Lowercase Requirement",
+      "check_ids": [
+        "iam_password_policy_lowercase"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Minor",
+      "finding_title": "IAM Password Policy Does Not Require Lowercase Letters",
+      "root_cause_narrative": "The IAM password policy for account 'acme-prod' was not configured with the requirement for at least one lowercase letter. This likely resulted from manual policy creation without applying security hardening standards or CIS benchmark requirements.",
+      "situation_narrative": "The IAM password policy in account 'acme-prod' (111122223333) does not enforce lowercase letter requirements for user passwords. This policy applies to all IAM users with password-based authentication in the account. The configuration violates CIS AWS Foundations Benchmark v2.0 control 1.8, which mandates character complexity requirements.",
+      "consequence_narrative": "Weakened password complexity increases the probability of successful credential compromise through brute-force or dictionary attacks. An attacker with network access could more easily guess or crack IAM user passwords, potentially gaining unauthorized access to AWS resources and data within the account.",
+      "access_required": "An attacker would need network access to authentication endpoints and the ability to enumerate valid IAM usernames to attempt password-based authentication attacks.",
+      "recommendations": null,
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam::111122223333:account",
+          "resource_name": "password-policy",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "global",
+          "resource_type": "AWSIAMPasswordPolicy",
+          "status_extended": "Password policy does not require lowercase letters."
+        }
+      ]
+    },
+    {
+      "group_name": "VPC Flow Logs Not Enabled",
+      "check_ids": [
+        "vpc_flow_logs_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Moderate",
+      "finding_title": "VPC Flow Logging Disabled in Production VPC (ap-southeast-2)",
+      "root_cause_narrative": "VPC flow logging was not configured during VPC provisioning or was explicitly disabled. This is commonly due to infrastructure-as-code templates lacking flow log resources or organizations prioritizing cost savings over security monitoring.",
+      "situation_narrative": "VPC vpc-0prod5678 in account 'acme-prod' (ap-southeast-2) does not have flow logging enabled. This VPC is categorized as internet-exposed, yet network traffic metadata is not being captured or retained. The configuration violates CIS AWS Foundations Benchmark 3.9 and NIST 800-53 AU-12 logging requirements.",
+      "consequence_narrative": "Without flow logs, the organization cannot investigate security incidents, detect lateral movement, or identify data exfiltration attempts within this VPC. In the event of a breach, forensic analysis would be severely impaired, potentially delaying incident response by days or weeks and preventing root cause determination. Regulatory compliance audits may result in findings or penalties due to inadequate audit logging.",
+      "access_required": "No attacker access is required to exploit this gap; the security impact manifests when any incident occurs and forensic visibility is unavailable.",
+      "recommendations": "Enable VPC flow logs for all VPCs and send logs to CloudWatch Logs or S3.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:111122223333:vpc/vpc-0prod5678",
+          "resource_name": "vpc-0prod5678",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSVPC",
+          "status_extended": "VPC vpc-0prod5678 does not have flow logging enabled."
+        }
+      ]
+    },
+    {
+      "group_name": "CloudWatch Log Group Retention Policy Not Configured",
+      "check_ids": [
+        "cloudwatch_log_group_retention_policy_specific_days_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "Low",
+      "risk_rating": "Low",
+      "consequence_rating": "Minor",
+      "finding_title": "CloudWatch Log Group Missing Retention Policy",
+      "root_cause_narrative": "The CloudWatch log group was created without specifying a retention period, causing AWS to default to indefinite retention. This typically occurs when log groups are automatically created by AWS services or provisioned without explicit retention configuration in infrastructure-as-code templates.",
+      "situation_narrative": "The CloudWatch log group '/aws/lambda/prod-api' in account 'acme-prod' (ap-southeast-2) has no retention policy configured. This Lambda function's logs will accumulate indefinitely until a retention policy is applied. The log group is currently storing data without any automatic cleanup mechanism.",
+      "consequence_narrative": "This configuration leads to unnecessary storage costs that scale linearly with log volume over time. While the immediate financial impact may be small, unbounded log retention across multiple resources can result in substantial monthly charges and complicate log management operations.",
+      "access_required": "This is a cost optimization issue that does not require attacker access to exploit; it represents an operational inefficiency rather than a security vulnerability.",
+      "recommendations": "Set a retention policy on the CloudWatch log group.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:logs:ap-southeast-2:111122223333:log-group:/aws/lambda/prod-api",
+          "resource_name": "/aws/lambda/prod-api",
+          "account_uid": "111122223333",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSCloudWatchLogGroup",
+          "status_extended": "Log group /aws/lambda/prod-api has no retention policy."
+        }
+      ]
+    }
+  ]
+}

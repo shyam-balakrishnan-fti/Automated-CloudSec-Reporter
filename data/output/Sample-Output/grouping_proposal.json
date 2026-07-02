@@ -1,0 +1,325 @@
+{
+  "run_id": "68ac53d3-807b-4c40-b9b0-a396f7b507cb",
+  "original_count": 16,
+  "merged_count": 13,
+  "merges_applied": 3,
+  "chunks_used": 1,
+  "consolidation_applied": true,
+  "warnings": [],
+  "groups": [
+    {
+      "group_name": "IAM MFA Not Enforced for Root and Console Users",
+      "check_ids": [
+        "iam_root_mfa_enabled",
+        "iam_user_mfa_enabled_console_access"
+      ],
+      "rationale": "Both checks identify the absence of multi-factor authentication on IAM principals with console access. They share the same root cause of insufficient authentication controls and require the same remediation approach of enabling MFA through the IAM console.",
+      "is_merged": true,
+      "instance_count": 5,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::111122223333:user/john.smith",
+          "resource_name": "john.smith",
+          "resource_type": "AWSIAMUser",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "global",
+          "check_id": "iam_user_mfa_enabled_console_access"
+        }
+      ]
+    },
+    {
+      "group_name": "RDS Instance Publicly Accessible",
+      "check_ids": [
+        "rds_instance_no_public_access"
+      ],
+      "rationale": "This check identifies database instances with public accessibility enabled, exposing them to unauthorized access attempts. It warrants a separate finding because it affects RDS-specific network configuration distinct from EC2 security groups.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres",
+          "resource_name": "prod-postgres",
+          "resource_type": "AWSRDSDBInstance",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_no_public_access"
+        }
+      ]
+    },
+    {
+      "group_name": "Security Groups Allow Unrestricted SSH Access from Internet",
+      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+      ],
+      "rationale": "This check identifies security groups with overly permissive SSH rules exposing instances to brute-force attacks. It merits a dedicated finding because it addresses a specific network access control misconfiguration requiring security group rule modifications.",
+      "is_merged": false,
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:111122223333:security-group/sg-0prod1234",
+          "resource_name": "sg-0prod1234",
+          "resource_type": "AWSEC2SecurityGroup",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+        }
+      ]
+    },
+    {
+      "group_name": "CloudTrail Multi-Region Logging Not Enabled",
+      "check_ids": [
+        "cloudtrail_multi_region_enabled"
+      ],
+      "rationale": "This check identifies the absence of comprehensive API audit logging across all AWS regions. It warrants a dedicated finding because CloudTrail is the foundational audit logging service and multi-region coverage is a critical security baseline requirement.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:cloudtrail:ap-southeast-2:111122223333:trail/management-trail",
+          "resource_name": "management-trail",
+          "resource_type": "AWSCloudTrailTrail",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "cloudtrail_multi_region_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "EBS and RDS Encryption at Rest Not Enabled",
+      "check_ids": [
+        "ec2_ebs_volume_encryption_enabled",
+        "rds_instance_storage_encrypted"
+      ],
+      "rationale": "Both checks identify unencrypted storage resources, representing a shared root cause of missing encryption-at-rest controls for persistent data stores. However, these affect different AWS services (EC2/EBS versus RDS) with different remediation procedures, so they should remain as separate findings to provide service-specific guidance.",
+      "is_merged": true,
+      "instance_count": 4,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:111122223333:volume/vol-0aaa1111",
+          "resource_name": "vol-0aaa1111",
+          "resource_type": "AWSEC2Volume",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_ebs_volume_encryption_enabled"
+        },
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres",
+          "resource_name": "prod-postgres",
+          "resource_type": "AWSRDSDBInstance",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_storage_encrypted"
+        }
+      ]
+    },
+    {
+      "group_name": "EC2 Instance Metadata Service v2 Not Enforced",
+      "check_ids": [
+        "ec2_instance_imdsv2_enabled"
+      ],
+      "rationale": "This check identifies EC2 instances vulnerable to SSRF attacks via IMDSv1. It warrants a separate finding because it requires specific instance-level configuration changes to enforce IMDSv2 and addresses a distinct attack vector.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "i-0aabbccdd",
+          "resource_name": "i-0aabbccdd",
+          "resource_type": "AWSEC2Instance",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_instance_imdsv2_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "S3 Bucket Encryption and Public Access Controls",
+      "check_ids": [
+        "s3_bucket_public_access",
+        "s3_bucket_default_encryption"
+      ],
+      "rationale": "Both checks address S3 bucket security configuration gaps that expose data to unauthorized access or disclosure risks. While distinct controls, they represent fundamental S3 security misconfigurations that should be remediated together as part of baseline S3 hardening.",
+      "is_merged": true,
+      "instance_count": 6,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-dev",
+        "acme-legacy"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:s3:::acme-prod-logs",
+          "resource_name": "acme-prod-logs",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_public_access"
+        },
+        {
+          "resource": "arn:aws:s3:::acme-prod-archive",
+          "resource_name": "acme-prod-archive",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_default_encryption"
+        }
+      ]
+    },
+    {
+      "group_name": "AWS Config Recording Not Enabled in All Regions",
+      "check_ids": [
+        "config_recorder_all_regions_enabled"
+      ],
+      "rationale": "This check identifies missing configuration change tracking and compliance monitoring capabilities. It requires its own finding because AWS Config provides distinct configuration management and compliance functions separate from audit logging.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": []
+    },
+    {
+      "group_name": "AWS Security Hub Not Enabled",
+      "check_ids": [
+        "securityhub_enabled"
+      ],
+      "rationale": "This check identifies the absence of centralized security findings aggregation and compliance monitoring. It merits its own finding because Security Hub provides unique cross-service security posture management capabilities.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "security-hub",
+          "resource_name": "security-hub",
+          "resource_type": "AWSSecurityHub",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "securityhub_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Access Keys Not Rotated Within 90 Days",
+      "check_ids": [
+        "iam_user_access_key_age_90_days"
+      ],
+      "rationale": "This check identifies stale programmatic credentials that increase compromise risk over time. It requires a separate finding because access key rotation is a distinct credential lifecycle management control with different remediation steps than MFA enforcement.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::111122223333:user/svc-deploy",
+          "resource_name": "svc-deploy",
+          "resource_type": "AWSIAMUser",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "global",
+          "check_id": "iam_user_access_key_age_90_days"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Password Policy Missing Lowercase Requirement",
+      "check_ids": [
+        "iam_password_policy_lowercase"
+      ],
+      "rationale": "This check identifies insufficient password complexity requirements in the account-level IAM password policy. It warrants its own finding because it represents a specific password policy configuration gap that requires modifying the account password policy settings.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::111122223333:account",
+          "resource_name": "password-policy",
+          "resource_type": "AWSIAMPasswordPolicy",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "global",
+          "check_id": "iam_password_policy_lowercase"
+        }
+      ]
+    },
+    {
+      "group_name": "VPC Flow Logs Not Enabled",
+      "check_ids": [
+        "vpc_flow_logs_enabled"
+      ],
+      "rationale": "This check identifies VPCs without network traffic logging enabled, limiting incident response and forensic capabilities. It requires its own finding because VPC Flow Logs provide network-level visibility distinct from CloudTrail API logging.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:111122223333:vpc/vpc-0prod5678",
+          "resource_name": "vpc-0prod5678",
+          "resource_type": "AWSVPC",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "vpc_flow_logs_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "CloudWatch Log Group Retention Policy Not Configured",
+      "check_ids": [
+        "cloudwatch_log_group_retention_policy_specific_days_enabled"
+      ],
+      "rationale": "This check identifies log groups without retention policies, leading to indefinite log storage and cost concerns. It warrants a standalone finding because retention policy configuration is a specific CloudWatch Logs management control.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:logs:ap-southeast-2:111122223333:log-group:/aws/lambda/prod-api",
+          "resource_name": "/aws/lambda/prod-api",
+          "resource_type": "AWSCloudWatchLogGroup",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "cloudwatch_log_group_retention_policy_specific_days_enabled"
+        }
+      ]
+    }
+  ]
+}

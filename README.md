@@ -31,6 +31,7 @@ Both pipelines follow the same flow: ingest → process → semantic grouping �
 - [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Bedrock Setup](#bedrock-setup)
+- [Sample Outputs](#sample-outputs)
 
 ---
 
@@ -683,6 +684,17 @@ Minimum required IAM permissions:
 ```
 
 ---
+
+## Sample Outputs
+
+Reference Excel reports generated from real pipeline runs are committed to the repository for review and QA purposes. These illustrate the final report structure, section layout, colour-coded risk ratings, and LLM-generated narratives.
+
+| Pipeline | Path |
+|----------|------|
+| Prowler | `data/output/Sample-Output/SecurityReport.xlsx` |
+| ScubaGear | `data/sample-scuba-output/SampleScuba/M365_SecurityReport.xlsx` |
+
+> These files contain synthetic or anonymised data only. Do not commit reports containing real client data to version control — `data/output/` and `scubagear/data/output/` are in `.gitignore`.
 
 ## Contact
 
