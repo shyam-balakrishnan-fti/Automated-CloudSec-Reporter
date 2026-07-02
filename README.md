@@ -2,10 +2,10 @@
 
 A production-grade pipeline that converts cloud security scanner output into client-ready security assessment reports. Supports two independent pipelines:
 
-- **Prowler** — AWS and Azure infrastructure scanning (CSV, XLSX, JSON / OCSF)
-- **ScubaGear** — Microsoft 365 and Entra ID CISA SCuBA baseline compliance scanning (CSV)
+- **Prowler** - AWS and Azure infrastructure scanning (CSV, XLSX, JSON / OCSF)
+- **ScubaGear** - Microsoft 365 and Entra ID CISA SCuBA baseline compliance scanning (CSV)
 
-Both pipelines follow the same flow: ingest → process → semantic grouping → analyst review UI → LLM enrichment → Excel report. They share no code and have no runtime dependencies on each other.
+Both pipelines follow the same flow: ingest → process → semantic grouping → analyst review UI → LLM enrichment → Excel report.
 
 ---
 
@@ -39,18 +39,18 @@ Both pipelines follow the same flow: ingest → process → semantic grouping �
 
 ### What both pipelines do
 
-1. **Ingest** scanner output — normalise to an internal model with a full field-level audit trail
+1. **Ingest** scanner output - normalise to an internal model with a full field-level audit trail
 2. **Process** findings: filter by status/criticality, deduplicate, assign likelihood ratings, route to output sections
-3. **Group semantically** using LLM — sort by service/category, chunk into batches of ~15, run an automatic cross-chunk consolidation pass to catch missed merges
+3. **Group semantically** using LLM - sort by service/category, chunk into batches of ~15, run an automatic cross-chunk consolidation pass to catch missed merges
 4. **Open a browser-based review UI** where analysts can drag findings between groups, rename groups, use per-group or board-wide AI instructions to refine grouping, and override Risk Ratings per group
-5. **Enrich** only the final approved groups — situation, consequence, root cause narratives, consequence rating — using Claude via AWS Bedrock
+5. **Enrich** only the final approved groups - situation, consequence, root cause narratives, consequence rating - using Claude via AWS Bedrock
 6. **Render** a client-facing Excel report with colour-coded risk ratings, per-section organisation, and sequential reference numbers
 
 ### What neither pipeline does
 
-- Store any customer data persistently — all processing is in-memory per run
+- Store any customer data persistently - all processing is in-memory per run
 - Call any external service other than AWS Bedrock (no third-party APIs, no telemetry)
-- Enrich individual findings before grouping — enrichment runs only on the final approved groups (~16 LLM calls), not all individual findings (~100+ calls)
+- Enrich individual findings before grouping - enrichment runs only on the final approved groups (~16 LLM calls), not all individual findings (~100+ calls)
 
 ---
 
@@ -144,21 +144,21 @@ ScubaGear Output (ActionPlan.csv or ScubaResults.csv)
 
 ### Key design decisions (shared by both pipelines)
 
-**Grouping before enrichment.** The LLM proposes groups first, the analyst approves, then enrichment runs on the final ~16 groups — not the original ~100 individual checks. This keeps LLM costs proportional to report line items and ensures narratives are written with full merged context.
+**Grouping before enrichment.** The LLM proposes groups first, the analyst approves, then enrichment runs on the final ~16 groups - not the original ~100 individual checks. This keeps LLM costs proportional to report line items and ensures narratives are written with full merged context.
 
-**Conservative merge criteria.** Prowler: only merges checks that share the same AWS service AND the same remediation path. ScubaGear: only merges controls that share the same M365 service AND the same root cause. Different services are never auto-merged — the analyst uses the review UI to merge manually if desired.
+**Conservative merge criteria.** Prowler: only merges checks that share the same AWS service AND the same remediation path. ScubaGear: only merges controls that share the same M365 service AND the same root cause. Different services are never auto-merged - the analyst uses the review UI to merge manually if desired.
 
 **Analyst always has final say.** The AI proposes, the analyst approves. The review UI supports drag-and-drop rearrangement, per-group AI instructions, board-wide AI instructions, inline group renaming, and per-group Risk Rating overrides. Nothing goes to the Excel renderer until the analyst clicks Approve.
 
-**Token and timeout scaling.** LLM calls scale `max_tokens` and `timeout_seconds` dynamically based on item count and call mode. A flat config value is not used for any call — this prevents truncation errors on large scans.
+**Token and timeout scaling.** LLM calls scale `max_tokens` and `timeout_seconds` dynamically based on item count and call mode. A flat config value is not used for any call - this prevents truncation errors on large scans.
 
-**LLM response caching.** Set `PIPELINE_LLM_CACHE_DIR=.llm_cache` to cache every prompt→response pair by SHA-256 key. Subsequent runs with identical inputs reuse cached responses at zero Bedrock cost — essential for iterative development.
+**LLM response caching.** Set `PIPELINE_LLM_CACHE_DIR=.llm_cache` to cache every prompt→response pair by SHA-256 key. Subsequent runs with identical inputs reuse cached responses at zero Bedrock cost - essential for iterative development.
 
 ---
 
 ## Prerequisites
 
-- Python 3.11+ (3.12 recommended — `tomllib` is stdlib from 3.11)
+- Python 3.11+ (3.12 recommended - `tomllib` is stdlib from 3.11)
 - AWS credentials configured (`~/.aws/credentials` or environment variables)
 - Zero data retention configured on your Bedrock account (see [Bedrock Setup](#bedrock-setup))
 
@@ -197,8 +197,8 @@ output_filename   = "SecurityReport_Jun2026.xlsx"
 provider         = "bedrock_runtime"
 deployment_name  = "au.anthropic.claude-opus-4-8"   # cross-region inference profile
 aws_region       = "ap-southeast-2"
-max_tokens       = 1500    # base — calls scale above this automatically
-timeout_seconds  = 60      # base — calls scale above this automatically
+max_tokens       = 1500    # base - calls scale above this automatically
+timeout_seconds  = 60      # base - calls scale above this automatically
 
 # ── Processing ─────────────────────────────────────────────────────
 [processing]
@@ -302,8 +302,8 @@ python3 src/run_pipeline.py \
 ```
 
 The pipeline will:
-1. Run Stages 1 and 2 (deterministic — no LLM calls)
-2. Run Stage 2.5 grouping (LLM — prints chunk progress to terminal)
+1. Run Stages 1 and 2 (deterministic - no LLM calls)
+2. Run Stage 2.5 grouping (LLM - prints chunk progress to terminal)
 3. Open the browser-based review UI at `http://localhost:8742/review`
 4. Wait for analyst approval
 5. Run Stage 3 enrichment on the approved groups
@@ -317,8 +317,8 @@ The pipeline will:
 | `--output-dir`, `-o` | Base output directory (default: `data/output`) |
 | `--config`, `-c` | Path to config.toml (default: `config/config.toml`) |
 | `--format`, `-f` | Force input format: `auto`, `csv`, `xlsx`, `json` (default: `auto`) |
-| `--skip-llm` | Skip Stages 2.5 and 3 — produces Stage 1+2 outputs only |
-| `--skip-review` | Skip the review UI — use AI grouping proposal directly |
+| `--skip-llm` | Skip Stages 2.5 and 3 - produces Stage 1+2 outputs only |
+| `--skip-review` | Skip the review UI - use AI grouping proposal directly |
 | `--force-review` | Force the review UI even if `grouping_approved.json` already exists |
 | `--no-browser` | Start the review server but do not auto-open the browser |
 
@@ -331,8 +331,8 @@ python3 scubagear/src/run_scubagear.py \
 ```
 
 The pipeline will:
-1. Run Stages 1 and 2 (deterministic — no LLM calls)
-2. Run Stage 2.5 grouping (LLM — prints chunk progress to terminal)
+1. Run Stages 1 and 2 (deterministic - no LLM calls)
+2. Run Stage 2.5 grouping (LLM - prints chunk progress to terminal)
 3. Open the browser-based review UI at `http://localhost:8743/review`
 4. Wait for analyst approval
 5. Run Stage 3 enrichment on the approved groups
@@ -347,13 +347,13 @@ The pipeline will:
 | `--config` | Path to scubagear_config.toml (default: `scubagear/config/scubagear_config.toml`) |
 | `--output-dir` | Base output directory (default: `scubagear/data/output`). Client name appended automatically |
 | `--no-browser` | Start the review server but do not auto-open the browser |
-| `--skip-grouping` | Skip Stage 2.5 — enrich each control individually |
-| `--skip-review` | Skip the review UI — use AI grouping proposal directly |
+| `--skip-grouping` | Skip Stage 2.5 - enrich each control individually |
+| `--skip-review` | Skip the review UI - use AI grouping proposal directly |
 | `--port` | Review UI port (default: 8743) |
 
 #### Using ScubaResults.csv for SHOULD-level controls
 
-By default, `ActionPlan.csv` is used — it is pre-filtered by ScubaGear to SHALL failures only. To include SHOULD-level controls:
+By default, `ActionPlan.csv` is used - it is pre-filtered by ScubaGear to SHALL failures only. To include SHOULD-level controls:
 
 ```toml
 # In scubagear_config.toml:
@@ -392,9 +392,9 @@ Use `--no-browser` to suppress auto-opening. The review URL is printed to the te
 
 ```bash
 # On the remote server
-python3 src/run_pipeline.py --input prowler.json --no-browser           # Prowler  — port 8742
+python3 src/run_pipeline.py --input prowler.json --no-browser           # Prowler  - port 8742
 python3 scubagear/src/run_scubagear.py --action-plan ActionPlan.csv \
-  --tenant-id <uuid> --no-browser                                        # ScubaGear — port 8743
+  --tenant-id <uuid> --no-browser                                        # ScubaGear - port 8743
 
 # On your local machine (open the relevant port)
 ssh -L 8742:localhost:8742 user@remote-server   # Prowler
@@ -412,26 +412,26 @@ Both pipelines use the same review UI architecture. Key differences between the 
 | Group cards | Flat grid | Grouped under collapsible M365 service section headers |
 | Chip labels | AWS check IDs (e.g. `iam_root_mfa_enabled`) | M365 control IDs (e.g. `MS.AAD.3.1v1`) |
 | Resource panel | ARNs, account names, regions | Control details text, service name |
-| Risk Rating | Computed from matrix | Editable dropdown per card — analyst override preserved through enrichment |
+| Risk Rating | Computed from matrix | Editable dropdown per card - analyst override preserved through enrichment |
 
 ### Group cards (both pipelines)
 
 Each card shows:
-- **Ref label** (e.g. ENT1, DEF2) — preview of the Excel reference number
-- **Group name** — click to rename inline
-- **Badges** — merged/standalone, severity, instance count, affected accounts/tenants
-- **Risk Rating dropdown** (ScubaGear) — override the computed risk rating for this group
-- **Rationale** — the AI's explanation of why these checks were grouped (editable)
-- **Check chips** — draggable; drag between cards to move a check to a different group
-- **Control details / Affected resources** — collapsible panel
-- **AI instruction box** — per-group narrow instruction (e.g. "split this — legacy auth is different from MFA enforcement")
+- **Ref label** (e.g. ENT1, DEF2) - preview of the Excel reference number
+- **Group name** - click to rename inline
+- **Badges** - merged/standalone, severity, instance count, affected accounts/tenants
+- **Risk Rating dropdown** (ScubaGear) - override the computed risk rating for this group
+- **Rationale** - the AI's explanation of why these checks were grouped (editable)
+- **Check chips** - draggable; drag between cards to move a check to a different group
+- **Control details / Affected resources** - collapsible panel
+- **AI instruction box** - per-group narrow instruction (e.g. "split this - legacy auth is different from MFA enforcement")
 
 ### Global AI instruction bar
 
 At the top of the page. Applies to the entire board with full visibility across all groups. Use for broad corrections:
 
 > "Merge all Entra ID MFA controls into one group"
-> "Split the Defender group — ATP and identity protection have different remediation owners"
+> "Split the Defender group - ATP and identity protection have different remediation owners"
 
 ### Manual drag-and-drop
 
@@ -439,7 +439,7 @@ Drag any chip from one group card and drop it onto another. Resource context, in
 
 ### Other controls
 
-- **New Group**: creates an empty group card — name it, then drag chips into it
+- **New Group**: creates an empty group card - name it, then drag chips into it
 - **Reset to Proposed Grouping**: reverts all changes back to the original AI proposal
 - **Approve & Continue**: validates (no unassigned chips, no empty groups, no unnamed groups), writes the approval file, and signals the pipeline to continue
 
@@ -521,7 +521,7 @@ Both pipelines use `templates/Output_Template.xlsx` and produce the same 10-colu
 
 | File | Description |
 |------|-------------|
-| `ActionPlan.csv` | Pre-filtered to SHALL/FAIL controls. Recommended default input. Supports both the 8-column older team export and the 16-column GitHub sample format — column presence is checked at runtime, never positional. |
+| `ActionPlan.csv` | Pre-filtered to SHALL/FAIL controls. Recommended default input. Supports both the 8-column older team export and the 16-column GitHub sample format - column presence is checked at runtime, never positional. |
 | `ScubaResults.csv` | Full scan output including PASS results and SHOULD-level controls. Use when engagement scope includes SHOULD findings. |
 
 The ingestor handles both the full 16-column format (from ScubaGear GitHub releases) and the stripped-down 8-column format produced by older team exports. The 5 required columns are `Control ID`, `Requirement`, `Result`, `Criticality`, and `Details`. All others default to `None` if absent.
@@ -532,13 +532,13 @@ The ingestor handles both the full 16-column format (from ScubaGear GitHub relea
 
 ### Prowler
 
-All tests run offline — LLM calls are mocked. No AWS credentials required.
+All tests run offline - LLM calls are mocked. No AWS credentials required.
 
 ```bash
-PYTHONPATH=src python3 tests/test_stage1.py    # 80 tests — ingestion
-PYTHONPATH=src python3 tests/test_stage2.py    # 81 tests — processing
-PYTHONPATH=src python3 tests/test_stage2_5.py  # 54 tests — grouping
-PYTHONPATH=src python3 tests/test_stage3.py    # 113 tests — enrichment
+PYTHONPATH=src python3 tests/test_stage1.py    # 80 tests - ingestion
+PYTHONPATH=src python3 tests/test_stage2.py    # 81 tests - processing
+PYTHONPATH=src python3 tests/test_stage2_5.py  # 54 tests - grouping
+PYTHONPATH=src python3 tests/test_stage3.py    # 113 tests - enrichment
 ```
 
 Total: 328 tests, 0 failures.
@@ -610,7 +610,7 @@ cloud-tool/
 │   │       └── {client_name}/
 │   │
 │   ├── src/                          ScubaGear pipeline source
-│   │   ├── sg_models.py              ScubaFinding Pydantic model — M365-native schema
+│   │   ├── sg_models.py              ScubaFinding Pydantic model - M365-native schema
 │   │   │                             with SECTION_ORDER, service map, HTML stripper
 │   │   ├── sg_ingest.py              CSV ingestion: column-presence-checked,
 │   │   │                             handles 8-col and 16-col export variants
@@ -663,7 +663,7 @@ To switch to a different model or region, update `deployment_name` and `aws_regi
 
 ### AWS credentials
 
-Both pipelines use standard AWS credential resolution — `~/.aws/credentials`, environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`), or an IAM role. No API keys are stored in the codebase or config files.
+Both pipelines use standard AWS credential resolution - `~/.aws/credentials`, environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`), or an IAM role. No API keys are stored in the codebase or config files.
 
 Minimum required IAM permissions:
 
@@ -694,7 +694,7 @@ Reference Excel reports generated from real pipeline runs are committed to the r
 | Prowler | [SecurityReport.xlsx](data/output/Sample-Output/SecurityReport.xlsx) |
 | ScubaGear | [M365_SecurityReport.xlsx](data/sample-scuba-output/SampleScuba/M365_SecurityReport.xlsx) |
 
-> These files contain synthetic or anonymised data only. Do not commit reports containing real client data to version control — `data/output/` and `scubagear/data/output/` are in `.gitignore`.
+> These files contain synthetic or anonymised data only. Do not commit reports containing real client data to version control - `data/output/` and `scubagear/data/output/` are in `.gitignore`.
 
 ## Contact
 
