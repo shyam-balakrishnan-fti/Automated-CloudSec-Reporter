@@ -74,6 +74,7 @@ class GroupedOutputGroup:
     situation_narrative:   Optional[str] = None
     consequence_narrative: Optional[str] = None
     access_required:       Optional[str] = None
+    recommendations:       Optional[str] = None
 
     def to_llm_context(self) -> dict[str, Any]:
         """Full context dict for sg_enrich enrichment (runs after approval)."""

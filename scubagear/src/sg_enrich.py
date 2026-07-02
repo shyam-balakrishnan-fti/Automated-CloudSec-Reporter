@@ -43,6 +43,7 @@ REQUIRED_LLM_FIELDS = {
     "consequence_narrative",
     "consequence_rating",
     "access_required",
+    "recommendations",
     "needs_human_review",
 }
 
@@ -310,6 +311,9 @@ This is a CISA SCuBA baseline compliance gap. Frame narratives accordingly.
 - access_required: one sentence — what access level would an attacker need to exploit this gap?
   Be specific (e.g. "Any authenticated user", "Compromised user account", "External attacker",
   "Privileged admin account required").
+- recommendations: 2-4 sentences of actionable remediation guidance. Reference the specific
+  M365 admin portal, policy name, or PowerShell cmdlet where relevant. Write for the engineer
+  who will fix this — be specific about WHAT to configure, not just WHERE to go.
 - needs_human_review: true only if you are genuinely uncertain about consequence_rating or
   if critical context is missing from the finding detail.
 - Do NOT use "significant", "crucial", "critical" as filler words.
@@ -325,6 +329,7 @@ Respond with ONLY a valid JSON object. No preamble, no explanation, no markdown.
   "consequence_narrative": "...",
   "consequence_rating": "Minor|Moderate|Major",
   "access_required": "...",
+  "recommendations": "...",
   "needs_human_review": false
 }}"""
     return prompt
@@ -343,7 +348,7 @@ Your previous response was invalid. Fix these issues:
 
 Previous response (first 400 chars): {bad_response[:400]}
 
-Respond again with ONLY valid JSON containing ALL 7 required fields.
+Respond again with ONLY valid JSON containing ALL 8 required fields.
 consequence_rating MUST be exactly: Minor, Moderate, or Major
 needs_human_review MUST be a JSON boolean: true or false (not a string)"""
 
@@ -367,6 +372,7 @@ def _write_placeholders(finding: ScubaFinding, reason: str) -> None:
     finding.consequence_narrative = "[REQUIRES_HUMAN_INPUT: consequence_narrative]"
     finding.consequence_rating    = "Moderate"
     finding.access_required       = "[REQUIRES_HUMAN_INPUT: access_required]"
+    finding.recommendations       = "[REQUIRES_HUMAN_INPUT: recommendations]"
     finding.llm_enrichment_failed = True
     finding.add_audit(
         stage="sg_enrich", field="llm_enrichment_failed",
@@ -460,6 +466,7 @@ def _enrich_group(
     rep.consequence_narrative = str(parsed["consequence_narrative"])
     rep.consequence_rating    = str(parsed["consequence_rating"])
     rep.access_required       = str(parsed["access_required"])
+    rep.recommendations       = str(parsed["recommendations"])
     rep.ai_enriched           = True
 
     if parsed.get("needs_human_review") is True:
@@ -485,20 +492,30 @@ def _enrich_group(
         reason=f"LLM assessed: {rep.consequence_rating}", actor="llm",
     )
 
-    # Compute risk rating
-    likelihood  = group.likelihood_rating or "High"
-    consequence = rep.consequence_rating
-    risk_rating = _compute_risk_rating(likelihood, consequence, risk_matrix)
-    rep.risk_rating = risk_rating
-
-    rep.add_audit(
-        stage="sg_enrich", field="risk_rating",
-        old_value=None, new_value=risk_rating,
-        reason=f"risk_matrix['{likelihood}_{consequence}'] = '{risk_rating}'",
-        actor="pipeline",
-    )
-
-    print(f"         consequence={consequence} → risk_rating={risk_rating}", flush=True)
+    # Compute risk rating — respect analyst override from review UI if present
+    analyst_override = getattr(group, "risk_rating", None) or getattr(rep, "risk_rating", None)
+    if analyst_override and analyst_override in ("High", "Medium", "Low"):
+        risk_rating = analyst_override
+        rep.risk_rating = risk_rating
+        rep.add_audit(
+            stage="sg_enrich", field="risk_rating",
+            old_value=None, new_value=risk_rating,
+            reason="Analyst override from review UI (preserved, matrix not applied)",
+            actor="human",
+        )
+        print(f"         consequence={rep.consequence_rating} → risk_rating={risk_rating} (analyst override)", flush=True)
+    else:
+        likelihood  = group.likelihood_rating or "High"
+        consequence = rep.consequence_rating
+        risk_rating = _compute_risk_rating(likelihood, consequence, risk_matrix)
+        rep.risk_rating = risk_rating
+        rep.add_audit(
+            stage="sg_enrich", field="risk_rating",
+            old_value=None, new_value=risk_rating,
+            reason=f"risk_matrix['{likelihood}_{consequence}'] = '{risk_rating}'",
+            actor="pipeline",
+        )
+        print(f"         consequence={consequence} → risk_rating={risk_rating}", flush=True)
 
     # Mirror results to GroupedOutputGroup fields
     from sg_grouping import GroupedOutputGroup as GOG
@@ -510,6 +527,7 @@ def _enrich_group(
         group.situation_narrative   = rep.situation_narrative
         group.consequence_narrative = rep.consequence_narrative
         group.access_required       = rep.access_required
+        group.recommendations       = rep.recommendations
 
 
 # ── Result types ──────────────────────────────────────────────────────

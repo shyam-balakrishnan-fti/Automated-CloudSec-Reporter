@@ -4,7 +4,7 @@
 
 # ── Engagement (change every run) ──────────────────────────────────────
 [engagement]
-client_name       = "ClientName"
+client_name       = "Balmain-test2"
 assessment_period = "July 2026"
 analyst           = "analyst"
 tenant_id         = ""           # fallback if --tenant-id CLI flag not supplied

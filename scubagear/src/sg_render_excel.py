@@ -20,6 +20,7 @@ and re-inserting findings under the correct section headings.
 
 from __future__ import annotations
 
+import copy
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -115,10 +116,7 @@ def _write_finding_row(ws: Any, row: int, group: GroupedOutputGroup) -> None:
     situation       = group.situation_narrative or rep.situation_narrative or ""
     consequence_nar = group.consequence_narrative or rep.consequence_narrative or ""
 
-    # Recommendations: use root cause narrative as remediation pointer
-    # (ScubaGear has no dedicated remediation column; the LLM situation
-    # narrative contains the most actionable remediation context).
-    recommendations = root_cause
+    recommendations = group.recommendations or rep.recommendations or root_cause
 
     cells = {
         COL_REF:             ref_label,
@@ -137,7 +135,11 @@ def _write_finding_row(ws: Any, row: int, group: GroupedOutputGroup) -> None:
         cell           = ws.cell(row=row, column=col_idx)
         cell.value     = value or ""
         cell.font      = _normal_font(11)
-        cell.alignment = _wrap_align(horizontal="left" if col_idx != COL_REF else "left")
+        cell.alignment = _wrap_align()
+        # Explicitly clear fill on non-risk columns so template ghost fills
+        # from the original section-heading rows don't bleed through.
+        if col_idx != COL_RISK:
+            cell.fill = PatternFill(fill_type=None)
 
     # Risk rating cell gets colour fill
     risk_fill = _risk_fill(risk_rating)
@@ -145,6 +147,52 @@ def _write_finding_row(ws: Any, row: int, group: GroupedOutputGroup) -> None:
         ws.cell(row=row, column=COL_RISK).fill = risk_fill
 
     ws.row_dimensions[row].height = 60  # default row height; Excel auto-adjusts on open
+
+
+# ── Ref number reassignment ──────────────────────────────────────────
+
+def _reassign_ref_numbers(groups: list[GroupedOutputGroup]) -> None:
+    """
+    Reassign per-section sequential ref numbers to the final approved groups.
+
+    Must run after grouping/review — the Stage 2 assignment is on individual
+    OutputGroups and becomes stale once the analyst merges or reorders groups.
+    Groups must already be sorted in section order before this is called.
+
+    Counter resets per section: ENT1, ENT2, ..., DEF1, DEF2, ...
+    """
+    from collections import defaultdict
+    counters: dict[str, int] = defaultdict(int)
+    for g in groups:
+        if not g.representative:
+            continue
+        section = g.output_section
+        counters[section] += 1
+        g.representative.ref_number = counters[section]
+        # ref_prefix comes from the representative's own field (set at ingest)
+        # but for merged groups the representative may come from any control —
+        # use the section's expected prefix from the first source group instead.
+        if g.source_groups:
+            g.representative.ref_prefix = g.source_groups[0].representative.ref_prefix
+
+
+def _sort_groups_for_render(groups: list[GroupedOutputGroup]) -> list[GroupedOutputGroup]:
+    """
+    Sort groups for Excel output:
+      1. Section order (matches SECTION_ORDER / template row order)
+      2. Severity within section (high → medium → low)
+      3. Group name as tiebreaker for determinism
+    """
+    _sev = {"high": 0, "medium": 1, "low": 2}
+    _sec = {s: i for i, s in enumerate(SECTION_ORDER)}
+    return sorted(
+        groups,
+        key=lambda g: (
+            _sec.get(g.output_section, 99),
+            _sev.get((g.severity or "low").lower(), 3),
+            g.group_name,
+        ),
+    )
 
 
 # ── Main renderer ─────────────────────────────────────────────────────
@@ -191,19 +239,59 @@ def render_excel(
             f"Available sheets: {wb.sheetnames}"
         )
 
-    ws = wb[target_sheet]
+    # ── Rebuild the target sheet from scratch ──────────────────────────
+    # openpyxl retains named styles and cell-level formatting from the
+    # template even after delete_rows — ghost cells appear wherever the
+    # template had section-heading rows. The only reliable fix is to
+    # snapshot the header row's column widths and row height, delete the
+    # old sheet entirely, create a fresh one, then re-write the header.
+    old_ws = wb[target_sheet]
 
-    # ── Clear everything below the header row ─────────────────────────
-    # Delete rows 2 to max_row (section headings and sample data) then
-    # re-insert them fresh so we start from a clean slate.
-    max_row = ws.max_row
-    if max_row >= 2:
-        ws.delete_rows(2, max_row - 1)
+    # Snapshot header row styles and column dimensions
+    header_cells: list[tuple] = []  # (col_idx, value, font, fill, alignment)
+    for cell in old_ws[1]:
+        header_cells.append((
+            cell.column,
+            cell.value,
+            copy.copy(cell.font) if cell.font else _bold_font(),
+            copy.copy(cell.fill) if cell.fill else PatternFill(),
+            copy.copy(cell.alignment) if cell.alignment else _wrap_align(),
+        ))
+    col_widths = {
+        col: old_ws.column_dimensions[col].width
+        for col in old_ws.column_dimensions
+    }
+    header_height = old_ws.row_dimensions[1].height or 43.2
+    sheet_position = wb.sheetnames.index(target_sheet)
+
+    # Delete and recreate
+    del wb[target_sheet]
+    ws = wb.create_sheet(target_sheet, sheet_position)
+
+    # Restore column widths
+    for col_letter, width in col_widths.items():
+        ws.column_dimensions[col_letter].width = width
+
+    # Restore header row
+    ws.row_dimensions[1].height = header_height
+    for col_idx, value, font, fill, alignment in header_cells:
+        cell = ws.cell(row=1, column=col_idx)
+        cell.value     = value
+        cell.font      = font
+        cell.fill      = fill
+        cell.alignment = alignment
+
+    # ── Sort groups and reassign ref numbers ─────────────────────────
+    # Must happen here, after grouping/review, so merged groups and any
+    # analyst reordering are reflected. Stage 2 ref numbers are stale by
+    # this point because controls may have been merged across sections.
+    sorted_groups = _sort_groups_for_render(list(enrich_result.output_groups))
+    _reassign_ref_numbers(sorted_groups)
 
     # ── Group findings by output_section ──────────────────────────────
     groups_by_section: dict[str, list[GroupedOutputGroup]] = {s: [] for s in SECTION_ORDER}
 
-    for group in enrich_result.output_groups:
+    for group in sorted_groups:
         section = group.output_section
         if section not in groups_by_section:
             groups_by_section[section] = []
@@ -237,7 +325,7 @@ def render_excel(
 
     # ── Any findings that mapped to unknown sections ───────────────────
     unknown_groups = [
-        g for g in enrich_result.output_groups
+        g for g in sorted_groups
         if g.output_section not in SECTION_ORDER
     ]
     if unknown_groups:

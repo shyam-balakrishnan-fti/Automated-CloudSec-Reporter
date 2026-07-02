@@ -34,7 +34,7 @@ import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 # ── Path setup ────────────────────────────────────────────────────────
 # Allow running from any directory
@@ -68,13 +68,41 @@ def load_config(config_path: Path) -> dict[str, Any]:
 
 # ── Output directory ──────────────────────────────────────────────────
 
+import re as _re
+
+def _safe_folder_name(name: str) -> str:
+    """
+    Convert a client name to a safe directory name.
+    Replaces whitespace with underscores, strips characters that are
+    illegal on Windows/Linux/macOS paths, and collapses runs of underscores.
+    """
+    name = name.strip()
+    name = _re.sub(r"[\s]+", "_", name)
+    name = _re.sub(r"[^\w\-.]", "", name)
+    name = _re.sub(r"_+", "_", name).strip("_")
+    return name or "output"
+
+
 def _output_dir(config: dict[str, Any], base: Optional[Path] = None) -> Path:
-    """Resolve output directory: CLI arg > config client_name > default."""
+    """
+    Resolve output directory, always appending the client name as a subfolder.
+
+    Resolution:
+      - base dir: CLI --output-dir if supplied, else scubagear/data/output/
+      - subfolder: client_name from config [engagement], sanitised for filesystem use
+
+    Examples:
+      client_name="Acme Corp", no --output-dir  -> scubagear/data/output/Acme_Corp/
+      client_name="Acme Corp", --output-dir /reports -> /reports/Acme_Corp/
+    """
+    client_raw = config.get("engagement", {}).get("client_name", "output")
+    client     = _safe_folder_name(client_raw)
+
     if base:
-        d = base
+        d = base / client
     else:
-        client = config.get("engagement", {}).get("client_name", "output").replace(" ", "_")
         d = _SRC_DIR.parent / "data" / "output" / client
+
     d.mkdir(parents=True, exist_ok=True)
     return d
 

@@ -247,6 +247,7 @@ class ScubaFinding(BaseModel):
     situation_narrative:    Optional[str] = None
     consequence_narrative:  Optional[str] = None
     access_required:        Optional[str] = None
+    recommendations:        Optional[str] = None
 
     # ── Processing state ──────────────────────────────────────────────
     report_inclusion:        ReportInclusion = ReportInclusion.INCLUDED

@@ -47,6 +47,7 @@ Thumbs.db
 # ── Pipeline outputs ──────────────────────────────────────────────
 data/output/*
 data/synthetic/
+scubagear/data/output/*
 
 # ── Sensitive config / keys ───────────────────────────────────────
 config/secrets.toml
