@@ -1,5 +1,5 @@
 """
-stage_reviewer.py — Grouping review UI
+stage_reviewer.py — Grouping review UI (no individual enrichment)
 
 Replaces the old per-finding review flow. Individual enrichment is skipped
 entirely — the analyst only ever sees and works with GROUPS, never raw
@@ -47,10 +47,11 @@ from stage2_process import OutputGroup
 
 @dataclass
 class ApprovedGroup:
-    group_name:   str
-    check_ids:    list[str]
-    rationale:    str = ""
-    analyst_note: str = ""
+    group_name:          str
+    check_ids:           list[str]
+    rationale:           str  = ""
+    analyst_note:        str  = ""
+    risk_rating_override: str = ""   # empty = use LLM-computed value
 
 
 @dataclass
@@ -70,10 +71,11 @@ def load_approved_grouping(path: Path) -> ApprovedGrouping:
                 f"check_ids. Got: {g}"
             )
         groups.append(ApprovedGroup(
-            group_name   = g["group_name"],
-            check_ids    = g["check_ids"],
-            rationale    = g.get("rationale", ""),
-            analyst_note = g.get("analyst_note", ""),
+            group_name           = g["group_name"],
+            check_ids            = g["check_ids"],
+            rationale            = g.get("rationale", ""),
+            analyst_note         = g.get("analyst_note", ""),
+            risk_rating_override = g.get("risk_rating_override", ""),
         ))
     if not groups:
         raise ValueError("Approved grouping has no groups.")
@@ -283,6 +285,12 @@ body{{display:flex;font-size:13px;color:var(--text);background:var(--bg)}}
 .res-meta{{color:var(--muted);flex-shrink:0;font-size:9.5px}}
 
 /* ── Per-group AI box ── */
+.gc-risk-override{{padding:8px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;background:#fafafa}}
+.gc-risk-label{{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--fh);white-space:nowrap}}
+.gc-risk-select{{border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;background:#fff;transition:border-color .12s}}
+.gc-risk-select:focus{{outline:none;border-color:var(--accent)}}
+.gc-risk-select.overridden{{border-color:var(--teal);background:var(--teal-light);color:var(--teal-dark)}}
+.gc-risk-note{{font-size:11px;color:var(--muted);font-style:italic}}
 .gc-ai-box{{padding:10px 14px;border-top:1px solid var(--border);background:#fafbff}}
 .gc-ai-label{{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-family:var(--fh)}}
 .gc-ai-input{{width:100%;border:1px solid var(--border);border-radius:5px;padding:6px 9px;font-size:11.5px;font-family:var(--fb);resize:none;min-height:36px}}
@@ -414,12 +422,13 @@ let dragCid = null, dragFrom = null;
 function init() {{
   groups = PROPOSAL.map((g,i) => ({{
     id: `g${{i}}`,  // position-based — always unique even for duplicate group names
-    group_name: g.group_name,
-    rationale:  g.rationale || "",
-    check_ids:  [...g.check_ids],
-    is_merged:  g.check_ids.length > 1,
-    affected_resources: g.affected_resources || [],
-    resources_open: false,
+    group_name:          g.group_name,
+    rationale:           g.rationale || "",
+    check_ids:           [...g.check_ids],
+    is_merged:           g.check_ids.length > 1,
+    affected_resources:  g.affected_resources || [],
+    resources_open:      false,
+    risk_rating_override: g.risk_rating_override || "",  // "" = use LLM-computed value
   }}));
   unassigned = [];
   render();
@@ -483,6 +492,19 @@ function buildCard(group) {{
       onchange="updateRationale('${{group.id}}',this.value)"
       style="width:calc(100% - 28px);border:none;resize:none;font-family:var(--fb);overflow:hidden;display:block"
     >${{group.rationale||""}}</textarea>
+    <div class="gc-risk-override">
+      <span class="gc-risk-label">Risk Rating Override</span>
+      <select class="gc-risk-select ${{group.risk_rating_override ? "overridden" : ""}}"
+        id="gc-rr-${{group.id}}"
+        onchange="updateRiskOverride('${{group.id}}',this.value)">
+        <option value="">AI-computed (default)</option>
+        <option value="Critical" ${{group.risk_rating_override==="Critical"?"selected":""}}>Critical</option>
+        <option value="High"     ${{group.risk_rating_override==="High"    ?"selected":""}}>High</option>
+        <option value="Medium"   ${{group.risk_rating_override==="Medium"  ?"selected":""}}>Medium</option>
+        <option value="Low"      ${{group.risk_rating_override==="Low"     ?"selected":""}}>Low</option>
+      </select>
+      <span class="gc-risk-note">${{group.risk_rating_override ? "Will override AI risk rating in Excel" : "AI enrichment will compute this"}}</span>
+    </div>
     <div class="gc-chips" id="chips-${{group.id}}"></div>
     ${{(group.affected_resources||[]).length ? `
     <div class="gc-resources-toggle" onclick="toggleResources('${{group.id}}')">
@@ -611,6 +633,31 @@ function onDrop(e, toGid) {{
 }}
 
 function renameGroup(gid, v) {{ const g = groups.find(x=>x.id===gid); if(g) g.group_name = v.trim()||g.group_name; }}
+
+function updateRiskOverride(gid, value) {{
+  const g = groups.find(x => x.id === gid);
+  if (!g) return;
+  g.risk_rating_override = value;
+  // Update the select styling to show it's been overridden
+  const sel = document.getElementById("gc-rr-" + gid);
+  if (sel) {{
+    sel.className = "gc-risk-select " + (value ? "overridden" : "");
+  }}
+  // Update the note text
+  const card = document.querySelector(`[data-group-id="${{gid}}"]`);
+  if (card) {{
+    const note = card.querySelector(".gc-risk-note");
+    if (note) note.textContent = value
+      ? "Will override AI risk rating in Excel"
+      : "AI enrichment will compute this";
+  }}
+  setStatus(
+    value
+      ? `Risk rating for "${{g.group_name}}" overridden to ${{value}}`
+      : `Risk rating for "${{g.group_name}}" reset to AI-computed`,
+    "ok"
+  );
+}}
 function updateRationale(gid, v) {{ const g = groups.find(x=>x.id===gid); if(g) g.rationale = v; }}
 function deleteGroup(gid) {{
   const g = groups.find(x=>x.id===gid); if(!g) return;
@@ -736,12 +783,13 @@ function applyNewGrouping(newGroupsFromServer) {{
     }});
     return {{
       id: "g" + i + "_" + Date.now(),
-      group_name: g.group_name,
-      rationale: g.rationale || "",
-      check_ids: g.check_ids,
-      is_merged: g.check_ids.length > 1,
-      affected_resources: resources,
-      resources_open: false,
+      group_name:          g.group_name,
+      rationale:           g.rationale || "",
+      check_ids:           g.check_ids,
+      is_merged:           g.check_ids.length > 1,
+      affected_resources:  resources,
+      resources_open:      false,
+      risk_rating_override: g.risk_rating_override || "",  // preserve any existing override
     }};
   }});
   unassigned = unassigned.filter(cid => !groups.some(g => g.check_ids.includes(cid)));
@@ -781,10 +829,11 @@ function approveGrouping() {{
     run_id: RUN_ID,
     approved_at: new Date().toISOString(),
     groups: groups.map(g => ({{
-      group_name: g.group_name.trim(),
-      check_ids:  g.check_ids,
-      rationale:  g.rationale || "",
-      analyst_note: "",
+      group_name:           g.group_name.trim(),
+      check_ids:            g.check_ids,
+      rationale:            g.rationale || "",
+      analyst_note:         "",
+      risk_rating_override: g.risk_rating_override || "",
     }})),
   }};
 

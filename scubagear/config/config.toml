@@ -4,11 +4,11 @@
 
 # ── Engagement (change every run) ──────────────────────────────────────
 [engagement]
-client_name       = "Balmain-test2"
+client_name       = "Balmain-test3"
 assessment_period = "July 2026"
 analyst           = "analyst"
 tenant_id         = ""           # fallback if --tenant-id CLI flag not supplied
-output_filename   = "M365_SecurityReport.xlsx"
+output_filename   = "M365_SecurityReport-test3.xlsx"
 
 # ── LLM (set once at setup) ────────────────────────────────────────────
 [llm]
@@ -28,7 +28,7 @@ timeout_seconds  = 60
 include_criticality = ["Shall", "Shall/3rd Party", "Shall/Not Implemented"]
 # "ActionPlan" (pre-filtered, recommended) or "ScubaResults" (full output)
 input_file          = "ActionPlan"
-
+ 
 # ── Severity mapping (security lead owns this) ─────────────────────────
 # Maps ScubaGear Criticality values to pipeline severity levels.
 # Compound Shall variants are treated as high — they are SHALL-level controls
@@ -40,7 +40,7 @@ input_file          = "ActionPlan"
 "May"                   = "low"
 "Shall/3rd Party"       = "high"
 "Shall/Not Implemented" = "high"
-
+ 
 # ── Service prefixes → report section and ref prefix ──────────────────
 # Maps the Control ID prefix to the output section name (as it appears in
 # the Excel template) and the ref prefix for that section.
@@ -49,10 +49,10 @@ input_file          = "ActionPlan"
 "MS.AAD"          = { section = "Microsoft Entra ID (previously Azure Active Directory)", ref_prefix = "ENT" }
 "MS.DEFENDER"     = { section = "Microsoft 365 Defender",   ref_prefix = "DEF" }
 "MS.EXCHANGE"     = { section = "Microsoft Exchange Online", ref_prefix = "EXC" }
-"MS.SHAREPOINT"   = { section = "Microsoft SharePoint",     ref_prefix = "SPT" }
+"MS.SHAREPOINT"   = { section = "Microsoft SharePoint Online", ref_prefix = "SPT" }
 "MS.TEAMS"        = { section = "Microsoft Teams",           ref_prefix = "TEA" }
 "MS.POWERPLATFORM"= { section = "Microsoft Power Platform",  ref_prefix = "PPL" }
-
+ 
 # ── Risk matrix (security lead owns this) ─────────────────────────────
 [risk_matrix]
 High_Major      = "High"
@@ -64,15 +64,16 @@ Medium_Minor    = "Medium"
 Low_Major       = "Medium"
 Low_Moderate    = "Medium"
 Low_Minor       = "Low"
-
+ 
 # ── Output (reporting owner) ───────────────────────────────────────────
 [output]
 template_path = "templates/Output_Template.xlsx"
 # The Azure sheet in the template is used for M365 ScubaGear output.
 # Section headers already present: Entra ID, Defender, Exchange, Power Platform, etc.
 target_sheet  = "Azure"
-
+ 
 [output.colours]
 High   = "FFFF0000"
 Medium = "FFFFC000"
 Low    = "FF92D050"
+ 

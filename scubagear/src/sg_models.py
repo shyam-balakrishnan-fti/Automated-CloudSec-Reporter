@@ -132,18 +132,22 @@ class AuditEvent(BaseModel):
 # Kept here as a fallback; the config service_map overrides at runtime.
 _DEFAULT_SERVICE_MAP: dict[str, dict[str, str]] = {
     "MS.AAD":           {"section": "Microsoft Entra ID (previously Azure Active Directory)", "ref_prefix": "ENT"},
-    "MS.DEFENDER":      {"section": "Microsoft 365 Defender",    "ref_prefix": "DEF"},
-    "MS.EXCHANGE":      {"section": "Microsoft Exchange Online",  "ref_prefix": "EXC"},
-    "MS.SHAREPOINT":    {"section": "Microsoft SharePoint",       "ref_prefix": "SPT"},
-    "MS.TEAMS":         {"section": "Microsoft Teams",            "ref_prefix": "TEA"},
-    "MS.POWERPLATFORM": {"section": "Microsoft Power Platform",   "ref_prefix": "PPL"},
+    "MS.DEFENDER":      {"section": "Microsoft 365 Defender",         "ref_prefix": "DEF"},
+    "MS.EXCHANGE":      {"section": "Microsoft Exchange Online",       "ref_prefix": "EXC"},
+    "MS.SHAREPOINT":    {"section": "Microsoft SharePoint Online",     "ref_prefix": "SPT"},
+    "MS.TEAMS":         {"section": "Microsoft Teams",                 "ref_prefix": "TEA"},
+    "MS.POWERPLATFORM": {"section": "Microsoft Power Platform",        "ref_prefix": "PPL"},
 }
 
-# Section ordering for Excel output — matches the Azure sheet in Output_Template.xlsx
+# Section ordering for Excel output.
+# Matches the Azure sheet in Output_Template.xlsx for existing headings;
+# new headings (SharePoint Online, Teams) are inserted by the renderer.
 SECTION_ORDER: list[str] = [
     "Microsoft Entra ID (previously Azure Active Directory)",
     "Microsoft 365 Defender",
     "Microsoft Exchange Online",
+    "Microsoft SharePoint Online",
+    "Microsoft Teams",
     "Microsoft Power Platform",
     "Azure Resources",
 ]

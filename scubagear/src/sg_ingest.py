@@ -252,11 +252,12 @@ def _section_to_service_name(section: str) -> str:
     """Short service name for display and LLM context."""
     _MAP = {
         "Microsoft Entra ID (previously Azure Active Directory)": "Entra ID",
-        "Microsoft 365 Defender":    "Defender",
-        "Microsoft Exchange Online": "Exchange Online",
-        "Microsoft SharePoint":      "SharePoint",
-        "Microsoft Teams":           "Teams",
-        "Microsoft Power Platform":  "Power Platform",
+        "Microsoft 365 Defender":       "Defender",
+        "Microsoft Exchange Online":    "Exchange Online",
+        "Microsoft SharePoint Online":  "SharePoint Online",
+        "Microsoft Teams":              "Teams",
+        "Microsoft Power Platform":     "Power Platform",
+        "Azure Resources":              "Azure Resources",
     }
     return _MAP.get(section, section)
 

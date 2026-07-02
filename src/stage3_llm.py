@@ -393,18 +393,62 @@ def _call_ollama(prompt: str, llm_cfg: dict[str, Any]) -> str:
     return result["message"]["content"]
 
 
+import hashlib as _hashlib
+import os as _os
+
+_CACHE_DIR_ENV = "PIPELINE_LLM_CACHE_DIR"
+
+
+def _llm_cache_path(prompt: str, llm_cfg: dict[str, Any]) -> "Path | None":
+    """
+    Return the cache file path for a given prompt, or None if caching
+    is disabled. Caching is controlled by the PIPELINE_LLM_CACHE_DIR env
+    var — set it once to reuse LLM responses across repeated test runs
+    without spending money on Bedrock calls.
+
+    Usage:
+        export PIPELINE_LLM_CACHE_DIR=.llm_cache
+        python3 src/run_pipeline.py --input ...   # first run: calls Bedrock, caches
+        python3 src/run_pipeline.py --input ...   # second run: reuses cache, $0 cost
+    """
+    cache_dir = _os.environ.get(_CACHE_DIR_ENV)
+    if not cache_dir:
+        return None
+    from pathlib import Path as _Path
+    cache_path = _Path(cache_dir)
+    cache_path.mkdir(parents=True, exist_ok=True)
+    model = llm_cfg.get("deployment_name", "unknown")
+    key   = _hashlib.sha256((model + "::" + prompt).encode("utf-8")).hexdigest()
+    return cache_path / f"{key}.txt"
+
+
 def _call_llm(prompt: str, llm_cfg: dict[str, Any]) -> str:
-    """Route to the correct LLM provider."""
+    """
+    Route to the correct LLM provider.
+
+    If PIPELINE_LLM_CACHE_DIR is set, checks the cache first and writes
+    to it after a successful call — lets you re-run the pipeline (e.g. to
+    test the review UI) without re-spending on Bedrock calls.
+    """
+    cache_file = _llm_cache_path(prompt, llm_cfg)
+    if cache_file and cache_file.exists():
+        return cache_file.read_text(encoding="utf-8")
+
     provider = llm_cfg.get("provider", "bedrock_runtime").lower()
     if provider in ("bedrock_runtime", "bedrock"):
-        return _call_bedrock_runtime(prompt, llm_cfg)
+        result = _call_bedrock_runtime(prompt, llm_cfg)
     elif provider == "local_ollama":
-        return _call_ollama(prompt, llm_cfg)
+        result = _call_ollama(prompt, llm_cfg)
     else:
         raise ValueError(
             f"Unknown LLM provider '{provider}'. "
             "Valid values: bedrock_runtime | local_ollama"
         )
+
+    if cache_file:
+        cache_file.write_text(result, encoding="utf-8")
+
+    return result
 
 
 # ── Placeholder writer ────────────────────────────────────────────────
@@ -566,25 +610,44 @@ def _enrich_group(
         actor="llm",
     )
 
-    # ── Compute risk_rating from matrix ──
+    # ── Compute risk_rating from matrix (or respect analyst override) ──
     likelihood  = group.likelihood_rating or "Medium"
     consequence = rep.consequence_rating
-    risk_rating = _compute_risk_rating(likelihood, consequence, risk_matrix)
-    rep.risk_rating = risk_rating
 
-    rep.add_audit(
-        stage="stage3_llm",
-        field="risk_rating",
-        old_value=None,
-        new_value=risk_rating,
-        reason=f"risk_matrix['{likelihood}_{consequence}'] = '{risk_rating}'",
-        actor="pipeline",
-    )
-
-    print(
-        f"         consequence={consequence} → risk_rating={risk_rating}",
-        flush=True,
-    )
+    if rep.risk_rating:
+        # Analyst set an override in the review UI before enrichment ran.
+        # Honour it — do not overwrite with the matrix computation.
+        risk_rating = rep.risk_rating
+        rep.add_audit(
+            stage="stage3_llm",
+            field="risk_rating",
+            old_value="analyst_override",
+            new_value=risk_rating,
+            reason=f"Analyst override preserved — matrix would have given: "
+                   f"risk_matrix['{likelihood}_{consequence}'] = '"
+                   f"{_compute_risk_rating(likelihood, consequence, risk_matrix)}'",
+            actor="pipeline",
+        )
+        print(
+            f"         consequence={consequence} → risk_rating={risk_rating} "
+            f"(analyst override — matrix skipped)",
+            flush=True,
+        )
+    else:
+        risk_rating     = _compute_risk_rating(likelihood, consequence, risk_matrix)
+        rep.risk_rating = risk_rating
+        rep.add_audit(
+            stage="stage3_llm",
+            field="risk_rating",
+            old_value=None,
+            new_value=risk_rating,
+            reason=f"risk_matrix['{likelihood}_{consequence}'] = '{risk_rating}'",
+            actor="pipeline",
+        )
+        print(
+            f"         consequence={consequence} → risk_rating={risk_rating}",
+            flush=True,
+        )
 
 
 # ── Result types ──────────────────────────────────────────────────────

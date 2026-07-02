@@ -540,6 +540,34 @@ def run(input_file: str, output_dir: str, config_path: str, fmt: str = "auto",
         gr = apply_approved_grouping(approved, gr)
         print(f"  ✓ Applied analyst grouping: {gr.group_count} groups", flush=True)
 
+    # ── Apply analyst risk rating overrides before enrichment ────────────
+    # If the analyst set a risk_rating_override on any group in the review UI,
+    # write it to the representative finding now so Stage 3's enrichment
+    # call sees it. Stage 3 skips the risk matrix computation if risk_rating
+    # is already set on the representative finding.
+    _override_count = 0
+    if hasattr(approved, "groups"):
+        _override_map = {
+            ap.group_name: ap.risk_rating_override
+            for ap in approved.groups
+            if ap.risk_rating_override
+        }
+        for g in gr.grouped_groups:
+            override = _override_map.get(g.group_name, "")
+            if override:
+                g.representative.risk_rating = override
+                g.representative.add_audit(
+                    stage="analyst_review",
+                    field="risk_rating",
+                    old_value="pending_enrichment",
+                    new_value=override,
+                    reason="Analyst override in review UI",
+                    actor="human",
+                )
+                _override_count += 1
+    if _override_count:
+        print(f"  ✓ Applied {_override_count} analyst risk rating override(s)", flush=True)
+
     # ── Stage 3: enrich ONLY the final approved groups ──────────────────
     print()
     print(f"[ Stage 3 ] Enriching {gr.group_count} final group(s) "

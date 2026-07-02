@@ -835,14 +835,16 @@ function regroupGlobal() {{
 }}
 
 function applyNewGrouping(newGroupsFromServer) {{
-  // Preserve resource context and analyst risk overrides when AI re-groups
+  // Snapshot current groups before overwriting — used to recover output_section
+  // and resource context after the server response (which strips both fields).
+  const prevGroups = groups.slice();
   const prevRiskByCheckId = {{}};
-  groups.forEach(g => g.check_ids.forEach(cid => {{ if (g.risk_rating) prevRiskByCheckId[cid] = g.risk_rating; }}));
+  prevGroups.forEach(g => g.check_ids.forEach(cid => {{ if (g.risk_rating) prevRiskByCheckId[cid] = g.risk_rating; }}));
 
   groups = newGroupsFromServer.map((g, i) => {{
     const resources = []; const seen = new Set();
     g.check_ids.forEach(cid => {{
-      const oldGroup = groups.find(og => og.check_ids.includes(cid));
+      const oldGroup = prevGroups.find(og => og.check_ids.includes(cid));
       if (oldGroup) {{
         (oldGroup.affected_resources || []).forEach(r => {{
           const key = r.resource + "|" + r.check_id;
@@ -853,12 +855,18 @@ function applyNewGrouping(newGroupsFromServer) {{
     // Carry forward risk override if all chips in the new group had the same override
     const risks = [...new Set(g.check_ids.map(cid => prevRiskByCheckId[cid] || "").filter(Boolean))];
     const inheritedRisk = risks.length === 1 ? risks[0] : "";
+    // Derive output_section from the first chip's original group — the server
+    // response never includes output_section, so g.output_section is always
+    // undefined here. Look it up from the pre-regroup group state instead.
+    const firstCid = g.check_ids[0];
+    const origGroup = prevGroups.find(og => og.check_ids.includes(firstCid));
+    const derivedSection = origGroup ? origGroup.output_section : (g.output_section || "Other");
     return {{
       id: "g" + i + "_" + Date.now(),
       group_name: g.group_name, rationale: g.rationale || "",
       check_ids: g.check_ids, is_merged: g.check_ids.length > 1,
       affected_resources: resources, resources_open: false,
-      output_section: g.output_section || "Other",
+      output_section: derivedSection,
       ref_label: g.ref_label || "",
       risk_rating: inheritedRisk,
     }};
