@@ -1,0 +1,49 @@
+{
+  "run_id": "febb205e-91fa-4503-a836-c87176e20e7d",
+  "completed_at": "2026-07-02T07:20:44.395033",
+  "engagement": {
+    "client_name": "SampleScuba",
+    "assessment_period": "July 2026",
+    "analyst": "analyst",
+    "tenant_id": "",
+    "output_filename": "M365_SecurityReport.xlsx"
+  },
+  "stages": {
+    "ingest": {
+      "findings": 14,
+      "warnings": 0
+    },
+    "process": {
+      "included": 14,
+      "excluded": 0,
+      "groups": 14
+    },
+    "grouping": {
+      "original_controls": 14,
+      "groups_proposed": 7,
+      "merges_applied": 4,
+      "chunks_used": 1,
+      "consolidation": true,
+      "warnings": 0
+    },
+    "review": {
+      "approved_groups": 7,
+      "approved_at": "2026-07-02T07:19:25.036Z"
+    },
+    "enrich": {
+      "enriched": 7,
+      "failed": 0,
+      "risk_counts": {
+        "High": 7,
+        "Medium": 0,
+        "Low": 0,
+        "Unknown": 0
+      }
+    },
+    "render": {
+      "output_file": "/home/shyam-balakrishnan/cloud-tool/data/sample-scuba-output/SampleScuba/M365_SecurityReport.xlsx",
+      "groups_written": 7,
+      "warnings": []
+    }
+  }
+}

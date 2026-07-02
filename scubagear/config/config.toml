@@ -4,11 +4,11 @@
 
 # ── Engagement (change every run) ──────────────────────────────────────
 [engagement]
-client_name       = "Balmain-test3"
+client_name       = "SampleScuba"
 assessment_period = "July 2026"
 analyst           = "analyst"
 tenant_id         = ""           # fallback if --tenant-id CLI flag not supplied
-output_filename   = "M365_SecurityReport-test3.xlsx"
+output_filename   = "M365_SecurityReport.xlsx"
 
 # ── LLM (set once at setup) ────────────────────────────────────────────
 [llm]

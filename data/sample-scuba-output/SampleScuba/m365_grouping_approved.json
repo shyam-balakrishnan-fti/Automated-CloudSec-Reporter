@@ -1,0 +1,76 @@
+{
+  "run_id": "febb205e-91fa-4503-a836-c87176e20e7d",
+  "approved_at": "2026-07-02T07:19:25.036Z",
+  "groups": [
+    {
+      "group_name": "Entra ID Application Registration and Consent Restrictions",
+      "check_ids": [
+        "MS.AAD.5.1v1",
+        "MS.AAD.5.2v1"
+      ],
+      "rationale": "Both controls address excessive permissions granted to standard users regarding application registration and consent within the Entra ID tenant settin",
+      "analyst_note": "",
+      "risk_rating": ""
+    },
+    {
+      "group_name": "Entra ID Authentication Methods Migration Incomplete",
+      "check_ids": [
+        "MS.AAD.3.4v1"
+      ],
+      "rationale": "This control stands alone as it addresses the specific administrative task of completing the migration from legacy MFA settings to the converged authe",
+      "analyst_note": "",
+      "risk_rating": ""
+    },
+    {
+      "group_name": "Entra ID Password Expiration Policy Misconfiguration",
+      "check_ids": [
+        "MS.AAD.6.1v1"
+      ],
+      "rationale": "This control is specific to the password expiration policy configuration in Entra ID and represents a distinct security posture issue rooted in outdat",
+      "analyst_note": "",
+      "risk_rating": ""
+    },
+    {
+      "group_name": "Entra ID Phishing-Resistant MFA Enforcement Gaps",
+      "check_ids": [
+        "MS.AAD.3.1v1",
+        "MS.AAD.3.6v1"
+      ],
+      "rationale": "Both controls address the absence of phishing-resistant MFA enforcement through Entra ID Conditional Access policies or authentication strength config",
+      "analyst_note": "",
+      "risk_rating": ""
+    },
+    {
+      "group_name": "Entra ID Privileged Identity Management Configuration Gaps",
+      "check_ids": [
+        "MS.AAD.7.2v1",
+        "MS.AAD.7.4v1",
+        "MS.AAD.7.5v1",
+        "MS.AAD.7.6v1",
+        "MS.AAD.7.7v1"
+      ],
+      "rationale": "All five controls stem from inadequate Privileged Identity Management (PIM) configuration and enforcement in Entra ID for highly privileged roles. The",
+      "analyst_note": "",
+      "risk_rating": ""
+    },
+    {
+      "group_name": "Defender Strict Preset Policy - Sensitive Account Coverage",
+      "check_ids": [
+        "MS.DEFENDER.1.4v1",
+        "MS.DEFENDER.1.5v1"
+      ],
+      "rationale": "Both controls address the same gap of sensitive accounts not being included in the strict preset security policy within Microsoft Defender. They share",
+      "analyst_note": "",
+      "risk_rating": ""
+    },
+    {
+      "group_name": "Power Platform Default Environment DLP Policy Missing",
+      "check_ids": [
+        "MS.POWERPLATFORM.2.1v1"
+      ],
+      "rationale": "This control is service-specific to Power Platform and addresses the absence of Data Loss Prevention policies restricting connector access in the defa",
+      "analyst_note": "",
+      "risk_rating": ""
+    }
+  ]
+}
