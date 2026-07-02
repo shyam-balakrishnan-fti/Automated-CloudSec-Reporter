@@ -691,8 +691,8 @@ Reference Excel reports generated from real pipeline runs are committed to the r
 
 | Pipeline | Path |
 |----------|------|
-| Prowler | `data/output/Sample-Output/SecurityReport.xlsx` |
-| ScubaGear | `data/sample-scuba-output/SampleScuba/M365_SecurityReport.xlsx` |
+| Prowler | [SecurityReport.xlsx](data/output/Sample-Output/SecurityReport.xlsx) |
+| ScubaGear | [M365_SecurityReport.xlsx](data/sample-scuba-output/SampleScuba/M365_SecurityReport.xlsx) |
 
 > These files contain synthetic or anonymised data only. Do not commit reports containing real client data to version control — `data/output/` and `scubagear/data/output/` are in `.gitignore`.
 
