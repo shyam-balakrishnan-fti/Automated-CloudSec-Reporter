@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Automated Cloud Security Reporter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── Design tokens (identical to review UIs) ────────────────────── */
+:root {
+  --navy:#002A54; --navy-light:#0a3d6e; --navy-pale:#e9eef4;
+  --teal:#007A87; --teal-light:#e3f1f3; --teal-dark:#005f69;
+  --bg:#f4f6f8; --sidebar:#002A54; --card:#fff; --border:#d8dee5;
+  --accent:#007A87; --accent-bg:#e3f1f3; --accent-2:#005f69;
+  --text:#1a2b3c; --text-2:#4a5b6c; --muted:#7a8a99;
+  --success:#0f7a3d; --success-bg:#eaf6ef;
+  --danger:#a8231f; --danger-bg:#fbeceb;
+  --warning:#9a5b00; --warning-bg:#fdf3e3;
+  --high-bg:#fbeceb; --high-fg:#a8231f;
+  --medium-bg:#fdf3e3; --medium-fg:#9a5b00;
+  --low-bg:#eaf6ef; --low-fg:#0f7a3d;
+  --info-bg:#eef1f4; --info-fg:#5a6b7a;
+  --fh:"Source Sans 3","Segoe UI",Arial,sans-serif;
+  --fb:"Source Sans 3","Segoe UI",Arial,sans-serif;
+  --mono:"IBM Plex Mono","Consolas",monospace;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; overflow:hidden; font-family:var(--fb); }
+body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width:230px; min-width:230px; background:var(--sidebar);
+  display:flex; flex-direction:column; height:100vh; overflow-y:auto;
+}
+.sb-logo {
+  padding:18px 16px 12px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.logo-ph {
+  height:32px; width:120px;
+  background:rgba(255,255,255,0.05);
+  border:1px dashed rgba(255,255,255,0.12);
+  border-radius:4px; display:flex; align-items:center;
+  justify-content:center; font-size:9px; color:#4a6080;
+  margin-bottom:10px;
+}
+.sb-product {
+  font-size:10px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#6b8cba; font-family:var(--fh);
+}
+.sb-tagline {
+  font-size:11px; color:#8896a5; margin-top:3px; line-height:1.4;
+}
+
+.sb-section { padding:12px 16px 6px; }
+.sb-section-title {
+  font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:#4a6080; margin-bottom:8px;
+  font-family:var(--fh);
+}
+
+.sb-nav { padding:8px 0; }
+.nav-item {
+  display:flex; align-items:center; gap:9px;
+  padding:8px 16px; font-size:13px; font-weight:500;
+  color:#8896a5; cursor:pointer; border:none; background:none;
+  width:100%; text-align:left; border-left:2px solid transparent;
+  transition:all .12s; font-family:var(--fb);
+}
+.nav-item:hover { color:#c8d6e8; background:rgba(255,255,255,0.04); }
+.nav-item.active {
+  color:#e8edf5; border-left-color:var(--teal);
+  background:rgba(0,122,135,0.12);
+}
+.nav-item .nav-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+.nav-item .nav-badge {
+  margin-left:auto; font-size:10px; font-weight:700;
+  background:var(--teal); color:#fff;
+  padding:1px 6px; border-radius:10px; font-family:var(--mono);
+}
+
+.sb-platform {
+  margin-top:auto; padding:12px 16px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.platform-row {
+  display:flex; align-items:center; gap:7px;
+  font-size:11px; color:#4a6080; padding:3px 0;
+}
+.platform-dot {
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+}
+.platform-dot.ok { background:#16a34a; }
+.platform-dot.warn { background:#d97706; }
+.platform-dot.err { background:#dc2626; }
+
+/* ── Main content area ── */
+.main {
+  flex:1; display:flex; flex-direction:column;
+  height:100vh; overflow:hidden;
+}
+
+/* ── Topbar ── */
+.topbar {
+  background:var(--card); border-bottom:1px solid var(--border);
+  padding:12px 24px; display:flex; align-items:center;
+  gap:12px; flex-shrink:0;
+}
+.topbar-title {
+  font-size:15px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.topbar-sub { font-size:12px; color:var(--muted); }
+.topbar-actions { margin-left:auto; display:flex; gap:8px; }
+
+/* ── Buttons ── */
+.btn {
+  padding:7px 16px; border-radius:5px; border:1px solid var(--border);
+  font-size:13px; font-weight:600; cursor:pointer;
+  font-family:var(--fb); transition:all .12s; white-space:nowrap;
+}
+.btn-primary {
+  background:var(--accent); color:#fff; border-color:var(--accent);
+}
+.btn-primary:hover { background:var(--accent-2); border-color:var(--accent-2); }
+.btn-primary:disabled { background:#94a3b8; border-color:#94a3b8; cursor:not-allowed; }
+.btn-ghost {
+  background:transparent; color:var(--text-2); border-color:var(--border);
+}
+.btn-ghost:hover { background:var(--bg); }
+.btn-danger {
+  background:transparent; color:var(--danger); border-color:#fecaca;
+}
+.btn-danger:hover { background:var(--danger-bg); }
+
+/* ── Content area ── */
+.content { flex:1; overflow-y:auto; padding:24px; }
+
+/* ── Page sections (views) ── */
+.view { display:none; }
+.view.active { display:block; }
+
+/* ── Page header ── */
+.page-header { margin-bottom:20px; }
+.page-title {
+  font-size:18px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.page-sub { font-size:13px; color:var(--muted); margin-top:3px; }
+
+/* ── Cards ── */
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:4px; padding:20px;
+}
+.card + .card { margin-top:14px; }
+.card-title {
+  font-size:13px; font-weight:700; color:var(--text);
+  font-family:var(--fh); margin-bottom:14px;
+}
+
+/* ── Engagement list ── */
+.eng-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
+  gap:14px;
+}
+.eng-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:4px; padding:16px 18px; cursor:pointer;
+  transition:border-color .12s, box-shadow .12s;
+  border-top:3px solid var(--border);
+}
+.eng-card:hover {
+  border-color:var(--accent);
+  box-shadow:0 2px 8px rgba(0,122,135,0.08);
+}
+.eng-card.has-runs { border-top-color:var(--teal); }
+.eng-name {
+  font-size:14px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.eng-meta { font-size:11px; color:var(--muted); margin-top:4px; }
+.eng-footer {
+  display:flex; align-items:center; gap:8px;
+  margin-top:12px; padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.eng-badge {
+  font-size:10px; padding:2px 7px; border-radius:3px;
+  font-weight:600; letter-spacing:.02em;
+}
+.eng-badge-prowler   { background:#dbeafe; color:#1d4ed8; }
+.eng-badge-scubagear { background:#f3e8ff; color:#7e22ce; }
+.eng-badge-both      { background:#fef9c3; color:#92400e; }
+.eng-run-count {
+  margin-left:auto; font-size:11px; color:var(--muted);
+  font-family:var(--mono);
+}
+
+/* ── Status badges ── */
+.status-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:11px; font-weight:600; padding:2px 8px;
+  border-radius:3px; letter-spacing:.02em;
+}
+.status-pending    { background:var(--info-bg);    color:var(--info-fg); }
+.status-running    { background:#dbeafe;            color:#1d4ed8; }
+.status-awaiting_review { background:var(--warning-bg); color:var(--warning); }
+.status-enriching  { background:#f0fdf4;            color:#15803d; }
+.status-complete   { background:var(--success-bg);  color:var(--success); }
+.status-failed     { background:var(--danger-bg);   color:var(--danger); }
+.status-cancelled  { background:var(--info-bg);     color:var(--info-fg); }
+
+/* ── Forms ── */
+.form-row { margin-bottom:14px; }
+.form-row label {
+  display:block; font-size:11px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:5px; font-family:var(--fh);
+}
+.form-row input,
+.form-row select,
+.form-row textarea {
+  width:100%; border:1px solid var(--border); border-radius:5px;
+  padding:8px 10px; font-size:13px; font-family:var(--fb);
+  background:#fff; color:var(--text); transition:border-color .12s;
+}
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+  outline:none; border-color:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-bg);
+}
+.form-row textarea { resize:vertical; min-height:60px; }
+.form-hint { font-size:11px; color:var(--muted); margin-top:4px; }
+.form-error {
+  font-size:11px; color:var(--danger); margin-top:4px; display:none;
+}
+.form-error.visible { display:block; }
+
+.form-grid-2 {
+  display:grid; grid-template-columns:1fr 1fr; gap:14px;
+}
+
+/* ── Credential toggle ── */
+.cred-toggle {
+  display:flex; gap:0; border:1px solid var(--border);
+  border-radius:5px; overflow:hidden; margin-bottom:14px;
+}
+.cred-opt {
+  flex:1; padding:7px 12px; font-size:12px; font-weight:600;
+  cursor:pointer; border:none; background:#fff; color:var(--text-2);
+  font-family:var(--fb); transition:all .12s; text-align:center;
+}
+.cred-opt.active { background:var(--accent); color:#fff; }
+.cred-section { display:none; }
+.cred-section.visible { display:block; }
+
+/* ── Preflight checks ── */
+.preflight-list { display:flex; flex-direction:column; gap:8px; }
+.preflight-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 12px; border-radius:4px;
+  border:1px solid var(--border); background:#fafbfc;
+}
+.preflight-item.ok     { border-color:#bbf7d0; background:#f0fdf4; }
+.preflight-item.warning{ border-color:#fed7aa; background:var(--warning-bg); }
+.preflight-item.error  { border-color:#fecaca; background:var(--danger-bg); }
+.pi-icon { font-size:15px; flex-shrink:0; margin-top:1px; }
+.pi-body { flex:1; min-width:0; }
+.pi-name {
+  font-size:12px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.pi-msg {
+  font-size:11px; color:var(--text-2); margin-top:2px;
+  line-height:1.5; white-space:pre-wrap; font-family:var(--mono);
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align:center; padding:60px 20px; color:var(--muted);
+}
+.empty-icon { font-size:40px; margin-bottom:12px; }
+.empty-title {
+  font-size:15px; font-weight:600; color:var(--text-2);
+  font-family:var(--fh); margin-bottom:6px;
+}
+.empty-sub { font-size:13px; }
+
+/* ── Modal overlay ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.4);
+  display:flex; align-items:center; justify-content:center;
+  z-index:200; display:none;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--card); border-radius:6px;
+  border:1px solid var(--border);
+  width:540px; max-width:calc(100vw - 48px);
+  max-height:calc(100vh - 80px); overflow-y:auto;
+  box-shadow:0 8px 32px rgba(0,0,0,0.18);
+}
+.modal-header {
+  padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.modal-title {
+  font-size:15px; font-weight:700; color:var(--text);
+  font-family:var(--fh); flex:1;
+}
+.modal-close {
+  background:none; border:none; color:var(--muted);
+  font-size:18px; cursor:pointer; padding:2px 6px;
+  border-radius:4px; line-height:1;
+}
+.modal-close:hover { background:var(--bg); color:var(--text); }
+.modal-body { padding:20px; }
+.modal-footer {
+  padding:14px 20px;
+  border-top:1px solid var(--border);
+  display:flex; justify-content:flex-end; gap:8px;
+}
+
+/* ── Alert banner ── */
+.alert {
+  padding:10px 14px; border-radius:4px; font-size:12px;
+  margin-bottom:14px; display:none; border:1px solid transparent;
+}
+.alert.visible { display:block; }
+.alert-info    { background:var(--accent-bg); color:var(--teal-dark); border-color:#a7d9dd; }
+.alert-success { background:var(--success-bg); color:var(--success); border-color:#86efac; }
+.alert-warn    { background:var(--warning-bg); color:var(--warning); border-color:#fed7aa; }
+.alert-error   { background:var(--danger-bg); color:var(--danger); border-color:#fecaca; }
+
+/* ── Spinner ── */
+@keyframes spin { to { transform:rotate(360deg); } }
+.spinner {
+  width:13px; height:13px;
+  border:2px solid #e5e7eb;
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+  display:inline-block; vertical-align:middle;
+}
+.spinner-lg {
+  width:24px; height:24px; border-width:3px;
+}
+
+/* ── Divider ── */
+.divider {
+  border:none; border-top:1px solid var(--border); margin:20px 0;
+}
+
+/* ── Platform unavailable notice ── */
+.unavailable-notice {
+  background:var(--info-bg); border:1px solid var(--border);
+  border-radius:4px; padding:12px 16px; font-size:12px;
+  color:var(--info-fg); display:flex; align-items:flex-start; gap:8px;
+}
+.unavailable-notice .un-icon { font-size:15px; flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="logo-ph">YOUR LOGO</div>
+    <div class="sb-product">Automated Cloud Security Reporter</div>
+    <div class="sb-tagline">Pipeline management &amp; reporting</div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-section">
+      <div class="sb-section-title">Workspace</div>
+    </div>
+    <button class="nav-item active" data-view="dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">⊞</span> Dashboard
+    </button>
+    <button class="nav-item" data-view="engagements" onclick="navigate('engagements')">
+      <span class="nav-icon">◫</span> Engagements
+      <span class="nav-badge" id="nav-eng-count" style="display:none"></span>
+    </button>
+
+    <div class="sb-section" style="margin-top:8px">
+      <div class="sb-section-title">Pipelines</div>
+    </div>
+    <button class="nav-item" data-view="new-run" onclick="navigate('new-run')">
+      <span class="nav-icon">▷</span> New Run
+    </button>
+  </nav>
+
+  <div class="sb-platform" id="sb-platform">
+    <!-- populated by JS after /api/platform -->
+  </div>
+</aside>
+
+<!-- ── Main area ── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+    <span class="topbar-sub" id="topbar-sub"></span>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── Dashboard view ── -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Overview of engagements and recent pipeline runs</div>
+      </div>
+      <div id="dashboard-content">
+        <div class="empty-state">
+          <div class="spinner spinner-lg"></div>
+          <div class="empty-sub" style="margin-top:12px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Engagements view ── -->
+    <div class="view" id="view-engagements">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Engagements</div>
+          <div class="page-sub">Each engagement represents one client assessment</div>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateEngagement()">+ New Engagement</button>
+      </div>
+      <div id="engagements-list">
+        <div class="empty-state">
+          <div class="spinner spinner-lg"></div>
+          <div class="empty-sub" style="margin-top:12px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── New Run view ── -->
+    <div class="view" id="view-new-run">
+      <div class="page-header">
+        <div class="page-title">New Pipeline Run</div>
+        <div class="page-sub">Configure and queue a Prowler or ScubaGear run</div>
+      </div>
+      <div id="new-run-content">
+        <!-- populated by JS once platform info is loaded -->
+      </div>
+    </div>
+
+    <!-- ── Engagement detail view ── -->
+    <div class="view" id="view-engagement-detail">
+      <div class="page-header" style="display:flex;align-items:flex-start">
+        <div>
+          <button class="btn btn-ghost" style="margin-bottom:10px;padding:4px 10px;font-size:12px"
+                  onclick="navigate('engagements')">← Back to Engagements</button>
+          <div class="page-title" id="detail-title">Engagement</div>
+          <div class="page-sub" id="detail-sub"></div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;padding-top:26px">
+          <button class="btn btn-primary" onclick="openNewRunForEngagement()" id="btn-new-run-for-eng">
+            + New Run
+          </button>
+        </div>
+      </div>
+      <div id="engagement-detail-content"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Create Engagement Modal ── -->
+<div class="modal-overlay" id="modal-create-eng">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">New Engagement</span>
+      <button class="modal-close" onclick="closeModal('modal-create-eng')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" id="eng-form-error"></div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Client Name *</label>
+          <input type="text" id="eng-client" placeholder="Acme Corp" maxlength="120">
+          <div class="form-error" id="err-client">Required</div>
+        </div>
+        <div class="form-row">
+          <label>Assessment Period *</label>
+          <input type="text" id="eng-period" placeholder="July 2026" maxlength="60">
+          <div class="form-error" id="err-period">Required</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Analyst</label>
+          <input type="text" id="eng-analyst" placeholder="Your name" maxlength="80">
+        </div>
+        <div class="form-row">
+          <label>Pipeline Type *</label>
+          <select id="eng-pipeline">
+            <option value="prowler">Prowler (AWS / Azure)</option>
+            <option value="scubagear" id="opt-scubagear">ScubaGear (M365)</option>
+            <option value="both" id="opt-both">Both</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Notes</label>
+        <textarea id="eng-notes" placeholder="Optional notes about this engagement..." maxlength="2000"></textarea>
+      </div>
+      <div class="unavailable-notice" id="scuba-unavailable-notice" style="display:none">
+        <span class="un-icon">ℹ</span>
+        <span>ScubaGear is only available on Windows. On this platform, only Prowler runs are supported.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-create-eng')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateEngagement()">Create Engagement</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Run Modal ── -->
+<div class="modal-overlay" id="modal-new-run">
+  <div class="modal" style="width:600px">
+    <div class="modal-header">
+      <span class="modal-title">Configure Run</span>
+      <button class="modal-close" onclick="closeModal('modal-new-run')">✕</button>
+    </div>
+    <div class="modal-body" id="new-run-modal-body">
+      <!-- populated by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-run')">Cancel</button>
+      <button class="btn btn-primary" id="btn-run-preflight" onclick="runPreflight()">
+        Check Preflight →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Preflight Results Modal ── -->
+<div class="modal-overlay" id="modal-preflight">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <span class="modal-title">Preflight Checks</span>
+      <button class="modal-close" onclick="closeModal('modal-preflight')">✕</button>
+    </div>
+    <div class="modal-body" id="preflight-results-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-preflight')">Back</button>
+      <button class="btn btn-primary" id="btn-confirm-run" onclick="confirmRun()" disabled>
+        Create Run Record
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────
+let platform = null;
+let engagements = [];
+let currentEngagementId = null;
+let pendingRunConfig = null;  // holds run form data between preflight and confirm
+let pendingRunRecord = null;  // holds created run record after confirm
+
+// ── Navigation ───────────────────────────────────────────────────────
+const VIEW_TITLES = {
+  'dashboard': 'Dashboard',
+  'engagements': 'Engagements',
+  'new-run': 'New Run',
+  'engagement-detail': '',
+};
+
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const el = document.getElementById(`view-${view}`);
+  if (el) el.classList.add('active');
+
+  const navEl = document.querySelector(`[data-view="${view}"]`);
+  if (navEl) navEl.classList.add('active');
+
+  document.getElementById('topbar-title').textContent = VIEW_TITLES[view] || 'Dashboard';
+  document.getElementById('topbar-sub').textContent = '';
+  document.getElementById('topbar-actions').innerHTML = '';
+
+  if (view === 'engagements') loadEngagements();
+  if (view === 'dashboard') loadDashboard();
+}
+
+// ── API helpers ───────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`/api${path}`, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || res.statusText);
+  }
+  return res.json();
+}
+
+// ── Platform load ────────────────────────────────────────────────────
+async function loadPlatform() {
+  try {
+    platform = await api('GET', '/platform');
+    renderSidebarPlatform();
+    applyPlatformConstraints();
+  } catch(e) {
+    document.getElementById('sb-platform').innerHTML =
+      `<div class="platform-row"><span class="platform-dot err"></span>Platform check failed</div>`;
+  }
+}
+
+function renderSidebarPlatform() {
+  if (!platform) return;
+  const rows = [
+    { label: `OS: ${platform.os}`, ok: true },
+    { label: `Prowler: ${platform.prowler_installed ? 'installed' : 'not installed'}`, ok: platform.prowler_installed },
+    { label: `ScubaGear: ${platform.scubagear_available ? (platform.scubagear_installed ? 'installed' : 'not installed') : 'N/A (non-Windows)'}`,
+      ok: !platform.scubagear_available || platform.scubagear_installed },
+    { label: `uv: ${platform.uv_available ? 'available' : 'not found'}`, ok: platform.uv_available, warn: !platform.uv_available },
+  ];
+
+  document.getElementById('sb-platform').innerHTML = `
+    <div class="sb-section-title" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4a6080;margin-bottom:8px;font-family:var(--fh);padding:12px 16px 0">Environment</div>
+    ${rows.map(r => `
+      <div class="platform-row" style="padding:3px 16px">
+        <span class="platform-dot ${r.ok ? 'ok' : (r.warn ? 'warn' : 'err')}"></span>
+        <span>${r.label}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+function applyPlatformConstraints() {
+  if (!platform) return;
+  if (!platform.scubagear_available) {
+    const optScuba = document.getElementById('opt-scubagear');
+    const optBoth  = document.getElementById('opt-both');
+    if (optScuba) { optScuba.disabled = true; optScuba.textContent += ' (Windows only)'; }
+    if (optBoth)  { optBoth.disabled  = true; optBoth.textContent  += ' (Windows only)'; }
+    const notice = document.getElementById('scuba-unavailable-notice');
+    if (notice) notice.style.display = 'flex';
+  }
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const container = document.getElementById('dashboard-content');
+  try {
+    const engs = await api('GET', '/engagements');
+    engagements = engs;
+
+    const active  = engs.filter(e => !e.archived_at);
+    const running = active.filter(e => ['running','awaiting_review','enriching'].includes(e.last_run_status));
+    const done    = active.filter(e => e.last_run_status === 'complete');
+
+    document.getElementById('nav-eng-count').textContent = active.length;
+    document.getElementById('nav-eng-count').style.display = active.length ? '' : 'none';
+
+    if (!active.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◫</div>
+          <div class="empty-title">No engagements yet</div>
+          <div class="empty-sub">Create your first engagement to get started</div>
+          <br>
+          <button class="btn btn-primary" onclick="navigate('engagements');openCreateEngagement()">
+            + New Engagement
+          </button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px">
+        ${statCard('Active Engagements', active.length, '◫')}
+        ${statCard('Runs In Progress', running.length, '▷')}
+        ${statCard('Completed Runs', done.length, '✓')}
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Engagements</div>
+        <div class="eng-grid">
+          ${active.slice(0,6).map(e => engCardHTML(e)).join('')}
+        </div>
+        ${active.length > 6 ? `<div style="margin-top:14px;text-align:center">
+          <button class="btn btn-ghost" onclick="navigate('engagements')">View all ${active.length} engagements →</button>
+        </div>` : ''}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load dashboard: ${e.message}</div>`;
+  }
+}
+
+function statCard(label, value, icon) {
+  return `
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:28px;margin-bottom:6px">${icon}</div>
+      <div style="font-size:28px;font-weight:700;color:var(--navy);font-family:var(--mono)">${value}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.06em">${label}</div>
+    </div>`;
+}
+
+// ── Engagements ───────────────────────────────────────────────────────
+async function loadEngagements() {
+  const container = document.getElementById('engagements-list');
+  try {
+    const engs = await api('GET', '/engagements');
+    engagements = engs;
+
+    document.getElementById('nav-eng-count').textContent = engs.length;
+    document.getElementById('nav-eng-count').style.display = engs.length ? '' : 'none';
+
+    if (!engs.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◫</div>
+          <div class="empty-title">No engagements yet</div>
+          <div class="empty-sub">Create your first engagement to begin a pipeline run</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="eng-grid">${engs.map(e => engCardHTML(e)).join('')}</div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load engagements: ${e.message}</div>`;
+  }
+}
+
+function engCardHTML(e) {
+  const pipeClass = `eng-badge-${e.pipeline_type}`;
+  const pipeLabel = { prowler:'Prowler', scubagear:'ScubaGear', both:'Both' }[e.pipeline_type] || e.pipeline_type;
+  const statusHtml = e.last_run_status
+    ? `<span class="status-badge status-${e.last_run_status}">${statusLabel(e.last_run_status)}</span>`
+    : `<span style="font-size:11px;color:var(--muted)">No runs yet</span>`;
+
+  return `
+    <div class="eng-card ${e.run_count > 0 ? 'has-runs' : ''}" onclick="openEngagementDetail('${e.id}')">
+      <div class="eng-name">${esc(e.client_name)}</div>
+      <div class="eng-meta">${esc(e.assessment_period)}${e.analyst ? ' · ' + esc(e.analyst) : ''}</div>
+      <div class="eng-footer">
+        <span class="eng-badge ${pipeClass}">${pipeLabel}</span>
+        ${statusHtml}
+        <span class="eng-run-count">${e.run_count} run${e.run_count !== 1 ? 's' : ''}</span>
+      </div>
+    </div>`;
+}
+
+function statusLabel(s) {
+  return { pending:'Pending', running:'Running', awaiting_review:'Awaiting Review',
+           enriching:'Enriching', complete:'Complete', failed:'Failed', cancelled:'Cancelled' }[s] || s;
+}
+
+// ── Engagement detail ─────────────────────────────────────────────────
+async function openEngagementDetail(engId) {
+  currentEngagementId = engId;
+  navigate('engagement-detail');
+
+  const eng = engagements.find(e => e.id === engId) || await api('GET', `/engagements/${engId}`);
+  document.getElementById('detail-title').textContent = eng.client_name;
+  document.getElementById('detail-sub').textContent =
+    `${eng.assessment_period}${eng.analyst ? ' · ' + eng.analyst : ''}`;
+  document.getElementById('topbar-title').textContent = eng.client_name;
+
+  const container = document.getElementById('engagement-detail-content');
+  container.innerHTML = `<div class="empty-state"><div class="spinner spinner-lg"></div></div>`;
+
+  try {
+    const runs = await api('GET', `/engagements/${engId}/runs`);
+    if (!runs.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">▷</div>
+          <div class="empty-title">No runs yet</div>
+          <div class="empty-sub">Start the first pipeline run for this engagement</div>
+          <br>
+          <button class="btn btn-primary" onclick="openNewRunModal('${engId}')">+ New Run</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="card">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          Run History
+          <button class="btn btn-primary" style="font-size:12px;padding:5px 12px"
+                  onclick="openNewRunModal('${engId}')">+ New Run</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${runs.map(r => runRowHTML(r)).join('')}
+        </div>
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load runs: ${e.message}</div>`;
+  }
+}
+
+function openNewRunForEngagement() {
+  if (currentEngagementId) openNewRunModal(currentEngagementId);
+}
+
+function runRowHTML(r) {
+  const created = new Date(r.created_at).toLocaleString();
+  const risk = (r.risk_high != null)
+    ? `<span style="color:var(--high-fg);font-weight:600">H:${r.risk_high}</span> `
+    + `<span style="color:var(--medium-fg);font-weight:600">M:${r.risk_medium}</span> `
+    + `<span style="color:var(--low-fg);font-weight:600">L:${r.risk_low}</span>`
+    : '—';
+
+  return `
+    <div style="padding:12px 14px;border:1px solid var(--border);border-radius:4px;background:#fafbfc">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="status-badge status-${r.status}">${statusLabel(r.status)}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono)">${r.pipeline}</span>
+        <span style="font-size:11px;color:var(--muted)">${created}</span>
+        <span style="margin-left:auto;font-size:11px;font-family:var(--mono)">${risk}</span>
+      </div>
+      ${r.input_file ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.input_file)}</div>` : ''}
+      ${r.status === 'pending' ? `
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn btn-primary" style="font-size:11px;padding:4px 10px"
+                  onclick="runPreflightForRun('${r.id}')">Run Preflight</button>
+        </div>` : ''}
+    </div>`;
+}
+
+// ── Create Engagement Modal ───────────────────────────────────────────
+function openCreateEngagement() {
+  document.getElementById('eng-client').value  = '';
+  document.getElementById('eng-period').value  = '';
+  document.getElementById('eng-analyst').value = '';
+  document.getElementById('eng-notes').value   = '';
+  document.getElementById('eng-pipeline').value = 'prowler';
+  document.getElementById('eng-form-error').classList.remove('visible');
+  document.querySelectorAll('.form-error').forEach(e => e.classList.remove('visible'));
+  openModal('modal-create-eng');
+}
+
+async function submitCreateEngagement() {
+  const client   = document.getElementById('eng-client').value.trim();
+  const period   = document.getElementById('eng-period').value.trim();
+  const analyst  = document.getElementById('eng-analyst').value.trim();
+  const pipeline = document.getElementById('eng-pipeline').value;
+  const notes    = document.getElementById('eng-notes').value.trim();
+
+  let valid = true;
+  if (!client)  { document.getElementById('err-client').classList.add('visible'); valid = false; }
+  else            document.getElementById('err-client').classList.remove('visible');
+  if (!period)  { document.getElementById('err-period').classList.add('visible'); valid = false; }
+  else            document.getElementById('err-period').classList.remove('visible');
+  if (!valid) return;
+
+  try {
+    const eng = await api('POST', '/engagements', { client_name:client, assessment_period:period,
+                                                     analyst, pipeline_type:pipeline, notes });
+    engagements.unshift(eng);
+    closeModal('modal-create-eng');
+    navigate('engagements');
+    loadEngagements();
+  } catch(e) {
+    const errEl = document.getElementById('eng-form-error');
+    errEl.textContent = `Failed to create engagement: ${e.message}`;
+    errEl.classList.add('visible');
+  }
+}
+
+// ── New Run Modal ─────────────────────────────────────────────────────
+function openNewRunModal(engId) {
+  currentEngagementId = engId;
+  const eng = engagements.find(e => e.id === engId);
+
+  const profiles = (platform && platform.aws_profiles.length) ? platform.aws_profiles : ['default'];
+  const profileOptions = profiles.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+
+  const scubaDisabled = platform && !platform.scubagear_available;
+  const pipelineOptions = `
+    <option value="prowler">Prowler</option>
+    ${scubaDisabled
+      ? `<option value="scubagear" disabled>ScubaGear (Windows only)</option>`
+      : `<option value="scubagear">ScubaGear</option>`}
+  `;
+
+  document.getElementById('new-run-modal-body').innerHTML = `
+    <div class="alert alert-error" id="run-form-error"></div>
+    <div class="form-row">
+      <label>Engagement</label>
+      <input type="text" value="${eng ? esc(eng.client_name) + ' — ' + esc(eng.assessment_period) : ''}" disabled>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Pipeline *</label>
+        <select id="run-pipeline" onchange="onRunPipelineChange()">${pipelineOptions}</select>
+      </div>
+      <div class="form-row">
+        <label>Input Format</label>
+        <select id="run-format">
+          <option value="auto">Auto-detect</option>
+          <option value="csv">CSV</option>
+          <option value="xlsx">XLSX</option>
+          <option value="json">JSON</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Input File Path *</label>
+      <input type="text" id="run-input" placeholder="/path/to/prowler-output.csv">
+      <div class="form-hint">Absolute path to the scanner output file on this machine</div>
+      <div class="form-error" id="err-run-input">Required</div>
+    </div>
+    <div class="form-row" id="row-tenant-id" style="display:none">
+      <label>Tenant ID *</label>
+      <input type="text" id="run-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      <div class="form-hint">Azure tenant UUID for ScubaGear</div>
+    </div>
+    <hr class="divider">
+    <div class="card-title" style="margin-bottom:12px">AWS Credentials</div>
+    <div class="cred-toggle">
+      <button class="cred-opt active" id="cred-opt-profile" onclick="setCredMode('profile')">Use Profile</button>
+      <button class="cred-opt" id="cred-opt-keys" onclick="setCredMode('keys')">Temporary Keys</button>
+    </div>
+    <div class="cred-section visible" id="cred-profile-section">
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>AWS Profile</label>
+          <select id="run-profile">${profileOptions}</select>
+        </div>
+        <div class="form-row">
+          <label>AWS Region</label>
+          <input type="text" id="run-region" value="ap-southeast-2">
+        </div>
+      </div>
+    </div>
+    <div class="cred-section" id="cred-keys-section">
+      <div class="form-row">
+        <label>Access Key ID *</label>
+        <input type="text" id="run-key-id" placeholder="AKIA...">
+      </div>
+      <div class="form-row">
+        <label>Secret Access Key *</label>
+        <input type="password" id="run-key-secret" placeholder="••••••••">
+      </div>
+      <div class="form-row">
+        <label>Session Token <span style="font-weight:400;text-transform:none">(optional — for MFA / assumed role)</span></label>
+        <input type="password" id="run-key-token" placeholder="Optional">
+      </div>
+      <div class="form-row">
+        <label>AWS Region</label>
+        <input type="text" id="run-region-keys" value="ap-southeast-2">
+      </div>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:20px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="run-skip-review"> Skip grouping review
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="run-skip-llm"> Skip LLM (Stage 1+2 only)
+      </label>
+    </div>
+  `;
+
+  openModal('modal-new-run');
+}
+
+function onRunPipelineChange() {
+  const pipeline = document.getElementById('run-pipeline').value;
+  const tenantRow = document.getElementById('row-tenant-id');
+  if (tenantRow) tenantRow.style.display = pipeline === 'scubagear' ? '' : 'none';
+}
+
+let _credMode = 'profile';
+function setCredMode(mode) {
+  _credMode = mode;
+  document.getElementById('cred-opt-profile').classList.toggle('active', mode === 'profile');
+  document.getElementById('cred-opt-keys').classList.toggle('active', mode === 'keys');
+  document.getElementById('cred-profile-section').classList.toggle('visible', mode === 'profile');
+  document.getElementById('cred-keys-section').classList.toggle('visible', mode === 'keys');
+}
+
+async function runPreflight() {
+  const pipeline   = document.getElementById('run-pipeline').value;
+  const inputFile  = document.getElementById('run-input').value.trim();
+  const tenantId   = document.getElementById('run-tenant') ? document.getElementById('run-tenant').value.trim() : '';
+
+  // Validate required fields
+  let valid = true;
+  if (!inputFile) {
+    document.getElementById('err-run-input').classList.add('visible');
+    valid = false;
+  } else {
+    document.getElementById('err-run-input').classList.remove('visible');
+  }
+  if (!valid) return;
+
+  // Build run config for preflight — store as pending
+  const awsProfile = _credMode === 'profile'
+    ? (document.getElementById('run-profile')?.value || 'default') : '';
+  const awsRegion  = _credMode === 'profile'
+    ? (document.getElementById('run-region')?.value || 'ap-southeast-2')
+    : (document.getElementById('run-region-keys')?.value || 'ap-southeast-2');
+
+  // First create the run record
+  const btn = document.getElementById('btn-run-preflight');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Checking...';
+
+  try {
+    const runPayload = {
+      pipeline, input_file: inputFile, input_format: document.getElementById('run-format').value,
+      tenant_id: tenantId, credential_source: _credMode,
+      aws_profile: awsProfile, aws_region: awsRegion,
+      skip_review: document.getElementById('run-skip-review').checked,
+      skip_llm: document.getElementById('run-skip-llm').checked,
+    };
+
+    // Add raw keys (never stored, passed separately)
+    if (_credMode === 'keys') {
+      runPayload.aws_access_key_id     = document.getElementById('run-key-id').value.trim();
+      runPayload.aws_secret_access_key = document.getElementById('run-key-secret').value.trim();
+      runPayload.aws_session_token     = document.getElementById('run-key-token').value.trim() || null;
+    }
+
+    const run = await api('POST', `/engagements/${currentEngagementId}/runs`, runPayload);
+    pendingRunRecord = run;
+
+    // Now run preflight against the created run
+    const preflight = await api('GET', `/runs/${run.id}/preflight`);
+
+    closeModal('modal-new-run');
+    showPreflightResults(preflight, run);
+  } catch(e) {
+    const errEl = document.getElementById('run-form-error');
+    if (errEl) {
+      errEl.textContent = `Error: ${e.message}`;
+      errEl.classList.add('visible');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Check Preflight →';
+  }
+}
+
+function showPreflightResults(preflight, run) {
+  const iconFor = s => ({ ok:'✓', warning:'⚠', error:'✕' })[s] || '?';
+  const checksHtml = preflight.checks.map(c => `
+    <div class="preflight-item ${c.status}">
+      <span class="pi-icon">${iconFor(c.status)}</span>
+      <div class="pi-body">
+        <div class="pi-name">${esc(c.name)}</div>
+        <div class="pi-msg">${esc(c.message)}</div>
+      </div>
+    </div>`).join('');
+
+  const banner = preflight.can_proceed
+    ? `<div class="alert alert-success visible" style="margin-bottom:16px">
+         All blocking checks passed. Run record created — ready to launch in Phase 3.
+       </div>`
+    : `<div class="alert alert-error visible" style="margin-bottom:16px">
+         One or more blocking checks failed. Resolve the issues above before starting this run.
+       </div>`;
+
+  document.getElementById('preflight-results-body').innerHTML = `
+    ${banner}
+    <div class="preflight-list">${checksHtml}</div>
+    ${run ? `<div style="margin-top:16px;padding:10px 12px;background:var(--bg);border-radius:4px;border:1px solid var(--border)">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px">Run ID</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${run.id}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">Config written to: ${esc(run.config_path || '—')}</div>
+    </div>` : ''}
+  `;
+
+  document.getElementById('btn-confirm-run').disabled = !preflight.can_proceed;
+  openModal('modal-preflight');
+}
+
+async function runPreflightForRun(runId) {
+  try {
+    const preflight = await api('GET', `/runs/${runId}/preflight`);
+    const run = await api('GET', `/runs/${runId}`);
+    pendingRunRecord = run;
+    showPreflightResults(preflight, run);
+  } catch(e) {
+    alert(`Preflight check failed: ${e.message}`);
+  }
+}
+
+function confirmRun() {
+  // Phase 3: will launch the subprocess.
+  // For now, just close and refresh the engagement detail.
+  closeModal('modal-preflight');
+  if (currentEngagementId) openEngagementDetail(currentEngagementId);
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ── Utilities ─────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────
+(async () => {
+  await loadPlatform();
+  loadDashboard();
+})();
+</script>
+</body>
+</html>
