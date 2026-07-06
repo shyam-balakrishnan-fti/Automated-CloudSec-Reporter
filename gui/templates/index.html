@@ -368,6 +368,45 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
   color:var(--info-fg); display:flex; align-items:flex-start; gap:8px;
 }
 .unavailable-notice .un-icon { font-size:15px; flex-shrink:0; }
+/* ── Install log panel ── */
+.install-log {
+  background:#0d1117; border-radius:4px; padding:12px;
+  font-family:var(--mono); font-size:11px; color:#c9d1d9;
+  max-height:280px; overflow-y:auto; margin-top:12px;
+  border:1px solid #30363d; display:none;
+}
+.install-log.visible { display:block; }
+.install-log .log-line { line-height:1.6; white-space:pre-wrap; word-break:break-all; }
+.install-log .log-err { color:#f85149; }
+.install-log .log-ok  { color:#3fb950; }
+
+/* ── Tool card (sidebar + setup) ── */
+.tool-card {
+  border:1px solid var(--border); border-radius:4px;
+  padding:14px 16px; background:#fafbfc;
+}
+.tool-card + .tool-card { margin-top:10px; }
+.tool-card-header {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.tool-name {
+  font-size:13px; font-weight:700; color:var(--text); font-family:var(--fh);
+}
+.tool-version {
+  font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:2px;
+}
+.tool-status-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.btn-install {
+  padding:5px 12px; border-radius:4px; border:1px solid var(--accent);
+  background:var(--accent-bg); color:var(--accent);
+  font-size:12px; font-weight:600; cursor:pointer; font-family:var(--fb);
+  white-space:nowrap; transition:all .12s;
+}
+.btn-install:hover { background:var(--accent); color:#fff; }
+.btn-install:disabled { opacity:.5; cursor:not-allowed; }
+
 </style>
 </head>
 <body>
@@ -397,6 +436,9 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
     </div>
     <button class="nav-item" data-view="new-run" onclick="navigate('new-run')">
       <span class="nav-icon">▷</span> New Run
+    </button>
+    <button class="nav-item" data-view="tools" onclick="navigate('tools')">
+      <span class="nav-icon">⚙</span> Tools &amp; Setup
     </button>
   </nav>
 
@@ -582,6 +624,7 @@ const VIEW_TITLES = {
   'dashboard': 'Dashboard',
   'engagements': 'Engagements',
   'new-run': 'New Run',
+  'tools': 'Tools & Setup',
   'engagement-detail': '',
 };
 
@@ -601,6 +644,7 @@ function navigate(view) {
 
   if (view === 'engagements') loadEngagements();
   if (view === 'dashboard') loadDashboard();
+  if (view === 'tools') loadTools();
 }
 
 // ── API helpers ───────────────────────────────────────────────────────
@@ -1061,14 +1105,26 @@ async function runPreflight() {
 
 function showPreflightResults(preflight, run) {
   const iconFor = s => ({ ok:'✓', warning:'⚠', error:'✕' })[s] || '?';
-  const checksHtml = preflight.checks.map(c => `
+  const checksHtml = preflight.checks.map(c => {
+    // Show install button for blocking tool errors
+    const isToolError = c.status === 'error' && c.blocking &&
+      (c.name === 'Prowler' || c.name === 'ScubaGear');
+    const tool = c.name === 'Prowler' ? 'prowler' : 'scubagear';
+    const installBtn = isToolError ? `
+      <button class="btn-install" style="margin-top:8px"
+              onclick="closeModal('modal-preflight');navigate('tools');setTimeout(()=>startInstall('${tool}'),300)">
+        Install ${esc(c.name)} →
+      </button>` : '';
+    return `
     <div class="preflight-item ${c.status}">
       <span class="pi-icon">${iconFor(c.status)}</span>
       <div class="pi-body">
         <div class="pi-name">${esc(c.name)}</div>
         <div class="pi-msg">${esc(c.message)}</div>
+        ${installBtn}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const banner = preflight.can_proceed
     ? `<div class="alert alert-success visible" style="margin-bottom:16px">
@@ -1132,6 +1188,195 @@ function esc(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+
+// ── Tools & Setup ─────────────────────────────────────────────────────
+
+async function loadTools() {
+  const container = document.getElementById('tools-content');
+  try {
+    const status = await api('GET', '/tools/status');
+    renderToolCards(status, container);
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load tool status: ${esc(e.message)}</div>`;
+  }
+}
+
+function renderToolCards(status, container) {
+  const os = platform ? platform.os : 'unknown';
+
+  const prowlerInstalled = status.prowler.installed;
+  const scubaAvailable   = status.scubagear.available;
+  const scubaInstalled   = status.scubagear.installed;
+
+  container.innerHTML = `
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">Scanner Tools</div>
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div>
+            <div class="tool-name">Prowler</div>
+            <div class="tool-version">
+              ${prowlerInstalled
+                ? `<span style="color:var(--success)">✓ Installed${status.prowler.version ? ' — ' + esc(status.prowler.version) : ''}</span>`
+                : `<span style="color:var(--danger)">✗ Not installed</span>`}
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">
+              AWS &amp; Azure infrastructure scanner. Required for Prowler pipeline runs.
+              ${os === 'windows' ? '<br><span style="color:var(--warning)">⚠ Windows: may require WSL if native install fails.</span>' : ''}
+            </div>
+          </div>
+          ${!prowlerInstalled
+            ? `<button class="btn-install" id="btn-install-prowler" onclick="startInstall('prowler')">Install Prowler</button>`
+            : `<span style="color:var(--success);font-size:18px">✓</span>`}
+        </div>
+        <div class="install-log" id="log-prowler"></div>
+      </div>
+
+      <div class="tool-card" style="margin-top:10px">
+        <div class="tool-card-header">
+          <div>
+            <div class="tool-name">ScubaGear</div>
+            <div class="tool-version">
+              ${!scubaAvailable
+                ? `<span style="color:var(--muted)">N/A — Windows only</span>`
+                : scubaInstalled
+                  ? `<span style="color:var(--success)">✓ Installed${status.scubagear.version ? ' — v' + esc(status.scubagear.version) : ''}</span>`
+                  : `<span style="color:var(--danger)">✗ Not installed</span>`}
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">
+              Microsoft 365 &amp; Entra ID scanner (CISA SCuBA baseline). Windows only.
+            </div>
+            ${!scubaAvailable ? `
+              <div class="unavailable-notice" style="margin-top:8px">
+                <span class="un-icon">ℹ</span>
+                <span>ScubaGear is a PowerShell module and cannot run on ${esc(os)}.
+                Run this application on Windows to use the ScubaGear pipeline.</span>
+              </div>` : ''}
+          </div>
+          ${scubaAvailable && !scubaInstalled
+            ? `<button class="btn-install" id="btn-install-scubagear" onclick="startInstall('scubagear')">Install ScubaGear</button>`
+            : scubaInstalled ? `<span style="color:var(--success);font-size:18px">✓</span>` : ''}
+        </div>
+        ${scubaAvailable ? `<div class="install-log" id="log-scubagear"></div>` : ''}
+        ${scubaAvailable && !scubaInstalled ? `
+          <div style="margin-top:10px;padding:10px 12px;background:var(--warning-bg);border-radius:4px;border:1px solid #fed7aa;font-size:11px;color:var(--warning)">
+            <strong>PowerShell Execution Policy:</strong> If installation fails with a policy error, open
+            PowerShell (not as Administrator) and run:<br>
+            <code style="font-family:var(--mono);background:#fff;padding:2px 6px;border-radius:3px;display:inline-block;margin-top:4px">
+              Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+            </code>
+          </div>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">uv Package Manager</div>
+      <div style="font-size:13px;color:var(--text-2)">
+        ${platform && platform.uv_available
+          ? `<span style="color:var(--success)">✓ uv is installed and on PATH.</span>
+             uv is used to install Prowler. If Prowler installation fails because uv is missing,
+             the installer will attempt to bootstrap uv automatically.`
+          : `<span style="color:var(--warning)">⚠ uv not found on PATH.</span>
+             The installer will attempt to bootstrap uv before installing Prowler.
+             To install manually: <code style="font-family:var(--mono)">curl -LsSf https://astral.sh/uv/install.sh | sh</code>`}
+      </div>
+    </div>
+  `;
+}
+
+async function startInstall(tool) {
+  const btn = document.getElementById(`btn-install-${tool}`);
+  const log = document.getElementById(`log-${tool}`);
+  if (!btn || !log) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Installing...';
+  log.classList.add('visible');
+  log.innerHTML = '';
+
+  try {
+    // Start installation — get task_id back
+    const { task_id } = await api('POST', `/tools/install/${tool}`, {});
+
+    // Connect to SSE stream
+    const evtSource = new EventSource(`/api/tools/install/${task_id}/stream`);
+
+    evtSource.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+
+      if (data.type === 'heartbeat') return;
+
+      if (data.type === 'log') {
+        const line = document.createElement('div');
+        line.className = 'log-line' + (data.stream === 'stderr' ? ' log-err' : '');
+        // Highlight success lines
+        if (data.text.startsWith('✓')) line.className = 'log-line log-ok';
+        line.textContent = data.text;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      if (data.type === 'status') {
+        if (data.value === 'complete') {
+          evtSource.close();
+          btn.textContent = '✓ Installed';
+          btn.style.background = 'var(--success-bg)';
+          btn.style.color = 'var(--success)';
+          btn.style.borderColor = '#86efac';
+          // Refresh tool status after a short delay
+          setTimeout(() => refreshToolStatus(), 1200);
+        }
+        if (data.value === 'failed') {
+          evtSource.close();
+          btn.disabled = false;
+          btn.textContent = 'Retry Install';
+        }
+      }
+
+      if (data.type === 'done') {
+        evtSource.close();
+      }
+    };
+
+    evtSource.onerror = () => {
+      evtSource.close();
+      const line = document.createElement('div');
+      line.className = 'log-line log-err';
+      line.textContent = '✗ Connection to install stream lost.';
+      log.appendChild(line);
+      btn.disabled = false;
+      btn.textContent = 'Retry Install';
+    };
+
+  } catch(e) {
+    const line = document.createElement('div');
+    line.className = 'log-line log-err';
+    line.textContent = `✗ Failed to start installation: ${e.message}`;
+    log.appendChild(line);
+    btn.disabled = false;
+    btn.textContent = 'Retry Install';
+  }
+}
+
+async function refreshToolStatus() {
+  try {
+    const status = await api('GET', '/tools/status');
+    const container = document.getElementById('tools-content');
+    if (container) renderToolCards(status, container);
+    // Also refresh platform info in sidebar
+    await loadPlatform();
+  } catch(e) {
+    console.warn('Tool status refresh failed:', e.message);
+  }
+}
+
+// ── Navigate hook — load tools when tools view is activated ───────────
+const _origNavigate = navigate;
+// Extend navigate to trigger view-specific loads
+const _viewLoaders = {
+  'tools': loadTools,
+};
 
 // ── Boot ──────────────────────────────────────────────────────────────
 (async () => {

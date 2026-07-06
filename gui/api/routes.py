@@ -10,6 +10,7 @@ Routers:
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +18,7 @@ from typing import Optional
 
 import aiosqlite
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 
 from api.models import (
     CredentialSource,
@@ -28,8 +30,13 @@ from api.models import (
     RunResponse,
     PlatformInfo,
 )
-from api.platform import get_platform_info, run_preflight
+from api.platform import (
+    get_platform_info, run_preflight,
+    prowler_installed, scubagear_installed, scubagear_supported,
+)
 from api.config_writer import write_prowler_config, write_scubagear_config
+from api.sse import register_stream, get_stream, remove_stream
+from api import installer
 from db.database import get_db
 
 router = APIRouter()
@@ -378,3 +385,72 @@ def _run_row_to_response(row: dict) -> RunResponse:
         config_path=row.get("config_path"),
         output_dir=row.get("output_dir"),
     )
+
+
+# ── Tool status ───────────────────────────────────────────────────────
+
+@router.get("/tools/status")
+async def tools_status():
+    """
+    Current installation status of Prowler and ScubaGear.
+    Called by the UI to refresh status after an install completes.
+    """
+    prowler_ok, prowler_ver   = prowler_installed()
+    scuba_ok,   scuba_ver     = scubagear_installed()
+    scuba_avail               = scubagear_supported()
+
+    return {
+        "prowler": {
+            "installed": prowler_ok,
+            "version":   prowler_ver,
+        },
+        "scubagear": {
+            "available":  scuba_avail,
+            "installed":  scuba_ok,
+            "version":    scuba_ver,
+        },
+    }
+
+
+# ── Tool installation (SSE streams) ──────────────────────────────────
+
+@router.post("/tools/install/{tool}")
+async def install_tool(tool: str):
+    """
+    Start a tool installation and return an SSE task_id.
+    The client then connects to GET /api/tools/install/{task_id}/stream
+    to receive live output.
+
+    tool: "prowler" | "scubagear"
+    """
+    if tool not in ("prowler", "scubagear"):
+        raise HTTPException(status_code=400, detail=f"Unknown tool: {tool}")
+
+    if tool == "scubagear" and not scubagear_supported():
+        raise HTTPException(
+            status_code=400,
+            detail="ScubaGear is only available on Windows",
+        )
+
+    task_id = str(uuid.uuid4())
+    stream  = register_stream(task_id)
+
+    # Launch install in background — client streams via GET below
+    if tool == "prowler":
+        asyncio.create_task(installer.install_prowler(stream))
+    else:
+        asyncio.create_task(installer.install_scubagear(stream))
+
+    return {"task_id": task_id}
+
+
+@router.get("/tools/install/{task_id}/stream")
+async def stream_install(task_id: str):
+    """
+    SSE endpoint — streams live output from a running installation.
+    Connect immediately after POST /tools/install/{tool} returns task_id.
+    """
+    stream = get_stream(task_id)
+    if not stream:
+        raise HTTPException(status_code=404, detail="Install task not found or already completed")
+    return stream.response()
