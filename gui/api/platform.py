@@ -158,11 +158,28 @@ def aws_credentials_configured(profile: str = "") -> tuple[bool, str]:
 
 # ── Full platform info ────────────────────────────────────────────────
 
-def get_platform_info() -> PlatformInfo:
+
+# ── Platform info cache ───────────────────────────────────────────────
+# prowler_installed() and scubagear_installed() run subprocesses.
+# Cache the result for 60 seconds so repeated /api/platform calls
+# don't re-run subprocess checks on every navigation event.
+
+import time as _time
+_platform_cache: dict = {}
+_platform_cache_ts: float = 0.0
+_PLATFORM_CACHE_TTL = 60.0  # seconds
+
+def get_platform_info(force: bool = False) -> PlatformInfo:
+    global _platform_cache, _platform_cache_ts
+
+    now = _time.monotonic()
+    if not force and _platform_cache and (now - _platform_cache_ts) < _PLATFORM_CACHE_TTL:
+        return PlatformInfo(**_platform_cache)
+
     prowler_ok, _ = prowler_installed()
     scuba_ok, _   = scubagear_installed()
 
-    return PlatformInfo(
+    info = PlatformInfo(
         os=get_os(),
         scubagear_available=scubagear_supported(),
         python_version=sys.version.split()[0],
@@ -171,6 +188,9 @@ def get_platform_info() -> PlatformInfo:
         scubagear_installed=scuba_ok,
         aws_profiles=aws_profiles(),
     )
+    _platform_cache    = info.model_dump()
+    _platform_cache_ts = now
+    return info
 
 
 # ── Preflight checks ──────────────────────────────────────────────────

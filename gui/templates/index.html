@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Automated Cloud Security Reporter</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap&font-display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"></noscript>
 <style>
 /* ── Design tokens (identical to review UIs) ────────────────────── */
 :root {
@@ -368,6 +369,99 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
   color:var(--info-fg); display:flex; align-items:flex-start; gap:8px;
 }
 .unavailable-notice .un-icon { font-size:15px; flex-shrink:0; }
+/* ── Output files list ── */
+.output-file-row {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.output-file-row:last-child { border-bottom:none; }
+.output-file-name {
+  font-family:var(--mono); font-weight:600; color:var(--text);
+  flex:0 0 auto; min-width:220px;
+}
+.output-file-type { color:var(--muted); flex:1; }
+.output-file-size {
+  font-family:var(--mono); font-size:11px; color:var(--muted);
+  flex:0 0 50px; text-align:right;
+}
+
+/* ── Run comparison table ── */
+.comparison-table {
+  width:100%; border-collapse:collapse; font-size:12px;
+}
+.comparison-table th {
+  text-align:left; padding:8px 10px;
+  font-size:10px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--border); font-family:var(--fh);
+}
+.comparison-table td {
+  padding:9px 10px; border-bottom:1px solid var(--border);
+  vertical-align:middle;
+}
+.comparison-table tr:last-child td { border-bottom:none; }
+.comparison-table tr:hover td { background:var(--bg); }
+.risk-cell-high   { color:var(--high-fg);   font-weight:700; font-family:var(--mono); }
+.risk-cell-medium { color:var(--medium-fg); font-weight:700; font-family:var(--mono); }
+.risk-cell-low    { color:var(--low-fg);    font-weight:700; font-family:var(--mono); }
+.risk-cell-none   { color:var(--muted);     font-family:var(--mono); }
+
+/* ── Run log panel ── */
+.run-log-panel {
+  background:#0d1117; border-radius:4px;
+  font-family:var(--mono); font-size:11px; color:#c9d1d9;
+  height:320px; overflow-y:auto;
+  border:1px solid #30363d; padding:10px 12px;
+}
+.run-log-panel .log-line { line-height:1.7; white-space:pre-wrap; word-break:break-all; }
+.run-log-panel .log-err  { color:#f85149; }
+.run-log-panel .log-ok   { color:#3fb950; }
+.run-log-panel .log-sep  { color:#484f58; }
+
+/* ── Stage progress ── */
+.stage-bar {
+  display:flex; align-items:center; gap:0;
+  margin-bottom:16px;
+}
+.stage-step {
+  flex:1; text-align:center; padding:7px 4px;
+  font-size:10px; font-weight:700; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--border);
+  font-family:var(--fh); transition:all .2s;
+}
+.stage-step.active {
+  color:var(--accent); border-bottom-color:var(--accent);
+}
+.stage-step.done {
+  color:var(--success); border-bottom-color:var(--success);
+}
+.stage-step.failed {
+  color:var(--danger); border-bottom-color:var(--danger);
+}
+
+/* ── Review ready banner ── */
+.review-banner {
+  background:var(--warning-bg); border:1px solid #fed7aa;
+  border-radius:4px; padding:12px 16px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:14px; display:none;
+}
+.review-banner.visible { display:flex; }
+.review-banner-text { flex:1; font-size:13px; color:var(--warning); }
+.review-banner-title { font-weight:700; margin-bottom:2px; font-family:var(--fh); }
+.review-banner-sub { font-size:11px; }
+
+/* ── Output ready banner ── */
+.output-banner {
+  background:var(--success-bg); border:1px solid #86efac;
+  border-radius:4px; padding:12px 16px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:14px; display:none;
+}
+.output-banner.visible { display:flex; }
+
 /* ── Install log panel ── */
 .install-log {
   background:#0d1117; border-radius:4px; padding:12px;
@@ -520,6 +614,77 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
       <div id="engagement-detail-content"></div>
     </div>
 
+
+    <!-- ── Tools & Setup view ── -->
+    <div class="view" id="view-tools">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Tools &amp; Setup</div>
+          <div class="page-sub">Install and verify scanner tools required by the pipelines</div>
+        </div>
+        <button class="btn btn-ghost" onclick="refreshToolStatus()" id="btn-refresh-tools">
+          ↻ Refresh Status
+        </button>
+      </div>
+      <div id="tools-content">
+        <div class="empty-state"><div class="spinner spinner-lg"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Run detail / live view ── -->
+    <div class="view" id="view-run-detail">
+      <div style="margin-bottom:14px">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+                id="btn-back-from-run" onclick="backFromRun()">← Back</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title" id="run-detail-title">Pipeline Run</div>
+          <div class="page-sub" id="run-detail-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px;padding-top:4px" id="run-detail-actions"></div>
+      </div>
+      <div class="stage-bar" id="stage-bar">
+        <div class="stage-step" id="stage-pending">Pending</div>
+        <div class="stage-step" id="stage-running">Running</div>
+        <div class="stage-step" id="stage-awaiting_review">Review</div>
+        <div class="stage-step" id="stage-enriching">Enriching</div>
+        <div class="stage-step" id="stage-complete">Complete</div>
+      </div>
+      <div class="review-banner" id="review-banner">
+        <div style="font-size:22px">⏸</div>
+        <div class="review-banner-text">
+          <div class="review-banner-title">Grouping Review Required</div>
+          <div class="review-banner-sub">The pipeline is paused waiting for your approval of the AI-proposed grouping. Open the review UI, approve or adjust the groups, then return here.</div>
+        </div>
+        <button class="btn btn-primary" id="btn-open-review" onclick="openReviewUI()">Open Review UI →</button>
+      </div>
+      <div class="output-banner" id="output-banner">
+        <div style="font-size:22px">✓</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--success);font-family:var(--fh)">Report Ready</div>
+          <div style="font-size:11px;color:var(--success);margin-top:2px" id="output-filename"></div>
+        </div>
+        <button class="btn btn-primary" id="btn-download-excel" onclick="downloadExcel()">Download Report</button>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="card-title" style="margin-bottom:0">
+            Live Output
+            <span class="spinner" id="log-spinner" style="margin-left:8px;display:none"></span>
+          </div>
+          <span style="font-size:11px;color:var(--muted)" id="log-elapsed"></span>
+        </div>
+        <div class="run-log-panel" id="run-log-panel"></div>
+      </div>
+
+      <!-- Output files panel (populated after run completes) -->
+      <div class="card" style="padding:14px;margin-top:14px;display:none" id="output-files-card">
+        <div class="card-title" style="margin-bottom:12px">Output Files</div>
+        <div id="output-files-list"></div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -605,7 +770,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-preflight')">Back</button>
       <button class="btn btn-primary" id="btn-confirm-run" onclick="confirmRun()" disabled>
-        Create Run Record
+        Start Run →
       </button>
     </div>
   </div>
@@ -625,6 +790,7 @@ const VIEW_TITLES = {
   'engagements': 'Engagements',
   'new-run': 'New Run',
   'tools': 'Tools & Setup',
+  'run-detail': 'Run',
   'engagement-detail': '',
 };
 
@@ -645,6 +811,16 @@ function navigate(view) {
   if (view === 'engagements') loadEngagements();
   if (view === 'dashboard') loadDashboard();
   if (view === 'tools') loadTools();
+  // Stop engagement detail polling when navigating away from it
+  if (view !== 'engagement-detail' && _engDetailPoll) {
+    clearInterval(_engDetailPoll);
+    _engDetailPoll = null;
+  }
+  // Stop run detail polling when navigating away from run detail
+  if (view !== 'run-detail' && _runDetailPoll) {
+    clearInterval(_runDetailPoll);
+    _runDetailPoll = null;
+  }
 }
 
 // ── API helpers ───────────────────────────────────────────────────────
@@ -663,7 +839,15 @@ async function api(method, path, body) {
 }
 
 // ── Platform load ────────────────────────────────────────────────────
-async function loadPlatform() {
+let _platformLoading = false;
+async function loadPlatform(force = false) {
+  if (_platformLoading) return;           // prevent concurrent calls
+  if (platform && !force) {               // use cache unless forced
+    renderSidebarPlatform();
+    applyPlatformConstraints();
+    return;
+  }
+  _platformLoading = true;
   try {
     platform = await api('GET', '/platform');
     renderSidebarPlatform();
@@ -671,6 +855,8 @@ async function loadPlatform() {
   } catch(e) {
     document.getElementById('sb-platform').innerHTML =
       `<div class="platform-row"><span class="platform-dot err"></span>Platform check failed</div>`;
+  } finally {
+    _platformLoading = false;
   }
 }
 
@@ -759,7 +945,7 @@ function statCard(label, value, icon) {
   return `
     <div class="card" style="text-align:center;padding:20px">
       <div style="font-size:28px;margin-bottom:6px">${icon}</div>
-      <div style="font-size:28px;font-weight:700;color:var(--navy);font-family:var(--mono)">${value}</div>
+      <div class="stat-value" style="font-size:28px;font-weight:700;color:var(--navy);font-family:var(--mono)">${value}</div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.06em">${label}</div>
     </div>`;
 }
@@ -816,6 +1002,9 @@ function statusLabel(s) {
 
 // ── Engagement detail ─────────────────────────────────────────────────
 async function openEngagementDetail(engId) {
+  // Stop any existing poll from a previous engagement view
+  if (_engDetailPoll) { clearInterval(_engDetailPoll); _engDetailPoll = null; }
+
   currentEngagementId = engId;
   navigate('engagement-detail');
 
@@ -825,11 +1014,39 @@ async function openEngagementDetail(engId) {
     `${eng.assessment_period}${eng.analyst ? ' · ' + eng.analyst : ''}`;
   document.getElementById('topbar-title').textContent = eng.client_name;
 
+  await _refreshEngagementRuns(engId);
+
+  // Poll every 4 seconds while any run is active
+  _engDetailPoll = setInterval(async () => {
+    // Stop polling if we've navigated away from this engagement
+    if (currentEngagementId !== engId) {
+      clearInterval(_engDetailPoll);
+      _engDetailPoll = null;
+      return;
+    }
+    await _refreshEngagementRuns(engId, /* silent= */ true);
+  }, 4000);
+}
+
+async function _refreshEngagementRuns(engId, silent = false) {
   const container = document.getElementById('engagement-detail-content');
-  container.innerHTML = `<div class="empty-state"><div class="spinner spinner-lg"></div></div>`;
+  if (!container) return;
+
+  if (!silent) {
+    container.innerHTML = `<div class="empty-state"><div class="spinner spinner-lg"></div></div>`;
+  }
 
   try {
     const runs = await api('GET', `/engagements/${engId}/runs`);
+
+    // Stop polling once all runs are in a terminal state
+    const activeStatuses = ['pending','running','awaiting_review','enriching'];
+    const hasActive = runs.some(r => activeStatuses.includes(r.status));
+    if (!hasActive && _engDetailPoll) {
+      clearInterval(_engDetailPoll);
+      _engDetailPoll = null;
+    }
+
     if (!runs.length) {
       container.innerHTML = `
         <div class="empty-state">
@@ -842,8 +1059,14 @@ async function openEngagementDetail(engId) {
       return;
     }
 
+    // Load summary for comparison table (non-blocking — don't let it delay the run list)
+    let summary = { runs };
+    try {
+      summary = await api('GET', `/engagements/${engId}/summary`);
+    } catch(e) { /* use runs as fallback */ }
+
     container.innerHTML = `
-      <div class="card">
+      <div class="card" style="margin-bottom:14px">
         <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
           Run History
           <button class="btn btn-primary" style="font-size:12px;padding:5px 12px"
@@ -852,9 +1075,13 @@ async function openEngagementDetail(engId) {
         <div style="display:flex;flex-direction:column;gap:10px">
           ${runs.map(r => runRowHTML(r)).join('')}
         </div>
-      </div>`;
+      </div>
+      ${runs.filter(r => r.risk_high != null).length > 1 ? runComparisonTable(summary.runs) : ''}
+    `;
   } catch(e) {
-    container.innerHTML = `<div class="alert alert-error visible">Failed to load runs: ${e.message}</div>`;
+    if (!silent) {
+      container.innerHTML = `<div class="alert alert-error visible">Failed to load runs: ${e.message}</div>`;
+    }
   }
 }
 
@@ -862,7 +1089,8 @@ function openNewRunForEngagement() {
   if (currentEngagementId) openNewRunModal(currentEngagementId);
 }
 
-function runRowHTML(r) {
+function runRowHTML(r, engId) {
+  engId = engId || currentEngagementId;
   const created = new Date(r.created_at).toLocaleString();
   const risk = (r.risk_high != null)
     ? `<span style="color:var(--high-fg);font-weight:600">H:${r.risk_high}</span> `
@@ -879,11 +1107,18 @@ function runRowHTML(r) {
         <span style="margin-left:auto;font-size:11px;font-family:var(--mono)">${risk}</span>
       </div>
       ${r.input_file ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.input_file)}</div>` : ''}
-      ${r.status === 'pending' ? `
-        <div style="margin-top:8px;display:flex;gap:8px">
+      <div style="margin-top:8px;display:flex;gap:8px">
+        ${r.status === 'pending' ? `
           <button class="btn btn-primary" style="font-size:11px;padding:4px 10px"
-                  onclick="runPreflightForRun('${r.id}')">Run Preflight</button>
-        </div>` : ''}
+                  onclick="runPreflightForRun('${r.id}')">Run Preflight</button>` : ''}
+        ${['running','awaiting_review','enriching','complete','failed','cancelled'].includes(r.status) ? `
+          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px"
+                  onclick="openRunDetail('${r.id}','${engId}')">
+            ${ r.status === 'awaiting_review' ? '⏸ Open Review'
+             : ['running','enriching'].includes(r.status) ? '▷ View Live'
+             : '▷ View Log'}
+          </button>` : ''}
+      </div>
     </div>`;
 }
 
@@ -1112,7 +1347,7 @@ function showPreflightResults(preflight, run) {
     const tool = c.name === 'Prowler' ? 'prowler' : 'scubagear';
     const installBtn = isToolError ? `
       <button class="btn-install" style="margin-top:8px"
-              onclick="closeModal('modal-preflight');navigate('tools');setTimeout(()=>startInstall('${tool}'),300)">
+              onclick="closeModal('modal-preflight');_pendingInstall='${tool}';navigate('tools')">
         Install ${esc(c.name)} →
       </button>` : '';
     return `
@@ -1160,10 +1395,20 @@ async function runPreflightForRun(runId) {
 }
 
 function confirmRun() {
-  // Phase 3: will launch the subprocess.
-  // For now, just close and refresh the engagement detail.
+  if (!pendingRunRecord) return;
   closeModal('modal-preflight');
-  if (currentEngagementId) openEngagementDetail(currentEngagementId);
+
+  // Collect raw credentials if keys mode was used
+  let rawCreds = {};
+  if (_credMode === 'keys') {
+    rawCreds = {
+      aws_access_key_id:     document.getElementById('run-key-id')?.value?.trim(),
+      aws_secret_access_key: document.getElementById('run-key-secret')?.value?.trim(),
+      aws_session_token:     document.getElementById('run-key-token')?.value?.trim() || null,
+    };
+  }
+
+  launchRun(pendingRunRecord.id, currentEngagementId, rawCreds);
 }
 
 // ── Modal helpers ─────────────────────────────────────────────────────
@@ -1194,9 +1439,18 @@ function esc(str) {
 
 async function loadTools() {
   const container = document.getElementById('tools-content');
+  container.innerHTML = '<div class="empty-state"><div class="spinner spinner-lg"></div></div>';
   try {
+    // Ensure platform info is loaded before rendering (may not be if navigating directly)
+    if (!platform) await loadPlatform();
     const status = await api('GET', '/tools/status');
     renderToolCards(status, container);
+    // Auto-start install if we arrived here via preflight install button
+    if (_pendingInstall) {
+      const tool = _pendingInstall;
+      _pendingInstall = null;
+      startInstall(tool);
+    }
   } catch(e) {
     container.innerHTML = `<div class="alert alert-error visible">Failed to load tool status: ${esc(e.message)}</div>`;
   }
@@ -1378,10 +1632,534 @@ const _viewLoaders = {
   'tools': loadTools,
 };
 
+
+// ── Phase 3: Run execution ────────────────────────────────────────────
+
+let _pendingInstall  = null;   // tool to auto-install when tools view loads
+let activeRunId      = null;   // run currently shown in run-detail view
+let _engDetailPoll   = null;   // setInterval handle for engagement detail auto-refresh
+let _globalPoll      = null;   // setInterval handle for global background refresh
+let _runDetailPoll   = null;   // setInterval handle for run detail status polling
+let activeEvtSource  = null;   // open EventSource for the active run
+let reviewUrl        = null;   // URL to open review UI
+let excelPath        = null;   // path to completed Excel file
+let runStartTime     = null;   // Date for elapsed timer
+let elapsedTimer     = null;   // setInterval handle
+let backToEngId      = null;   // which engagement to go back to
+
+// Stages in order — used to advance the progress bar
+const STAGE_ORDER = ['pending', 'running', 'awaiting_review', 'enriching', 'complete'];
+
+function updateStageBar(status) {
+  const stages = ['pending', 'running', 'awaiting_review', 'enriching', 'complete'];
+  const failStages = ['failed', 'cancelled'];
+  const currentIdx = STAGE_ORDER.indexOf(status);
+
+  stages.forEach((s, i) => {
+    const el = document.getElementById(`stage-${s}`);
+    if (!el) return;
+    el.className = 'stage-step';
+    if (failStages.includes(status)) {
+      if (i < currentIdx)       el.classList.add('done');
+      else if (i === currentIdx) el.classList.add('failed');
+    } else if (status === 'failed') {
+      if (i <= 1) el.classList.add('failed');
+    } else {
+      if (i < currentIdx)       el.classList.add('done');
+      else if (i === currentIdx) el.classList.add('active');
+    }
+  });
+
+  // Special: failed/cancelled — mark current active stage red
+  if (status === 'failed' || status === 'cancelled') {
+    const activeEl = document.getElementById('stage-running');
+    if (activeEl) activeEl.classList.add('failed');
+  }
+  if (status === 'complete') {
+    const el = document.getElementById('stage-complete');
+    if (el) { el.classList.remove('active'); el.classList.add('done'); }
+  }
+}
+
+function appendLogLine(text, streamName) {
+  const panel = document.getElementById('run-log-panel');
+  if (!panel) return;
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  if (streamName === 'stderr')       line.classList.add('log-err');
+  else if (text.startsWith('✓'))    line.classList.add('log-ok');
+  else if (text.startsWith('─'))    line.classList.add('log-sep');
+  line.textContent = text;
+  panel.appendChild(line);
+  panel.scrollTop = panel.scrollHeight;
+}
+
+function updateRunActions(status) {
+  const actions = document.getElementById('run-detail-actions');
+  if (!actions) return;
+  actions.innerHTML = '';
+
+  if (['running', 'awaiting_review', 'enriching'].includes(status)) {
+    actions.innerHTML = `
+      <button class="btn btn-danger" onclick="cancelActiveRun()">Cancel Run</button>`;
+  }
+  if (status === 'complete' && excelPath) {
+    actions.innerHTML = `
+      <button class="btn btn-primary" onclick="downloadExcel()">Download Report</button>`;
+  }
+}
+
+function startElapsedTimer() {
+  runStartTime = Date.now();
+  elapsedTimer = setInterval(() => {
+    const secs = Math.floor((Date.now() - runStartTime) / 1000);
+    const mins = Math.floor(secs / 60);
+    const s    = secs % 60;
+    const el   = document.getElementById('log-elapsed');
+    if (el) el.textContent = `${mins}m ${s}s elapsed`;
+  }, 1000);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+}
+
+function openReviewUI() {
+  if (reviewUrl) window.open(reviewUrl, '_blank');
+}
+
+async function downloadExcel() {
+  if (!activeRunId) return;
+  // Trigger browser file download via the download endpoint
+  window.location.href = `/api/runs/${activeRunId}/download`;
+}
+
+async function cancelActiveRun() {
+  if (!activeRunId) return;
+  if (!confirm('Cancel this run? The subprocess will be terminated. Checkpoint files on disk are preserved.')) return;
+  try {
+    await api('POST', `/runs/${activeRunId}/cancel`, {});
+    appendLogLine('Run cancelled by user.', 'stderr');
+  } catch(e) {
+    appendLogLine(`Cancel failed: ${e.message}`, 'stderr');
+  }
+}
+
+async function openRunDetail(runId, engId) {
+  // Stop any previous run detail poll
+  if (_runDetailPoll) { clearInterval(_runDetailPoll); _runDetailPoll = null; }
+
+  activeRunId  = runId;
+  backToEngId  = engId;
+  reviewUrl    = null;
+  excelPath    = null;
+
+  navigate('run-detail');
+
+  // Load the run record
+  let run;
+  try {
+    run = await api('GET', `/runs/${runId}`);
+  } catch(e) {
+    appendLogLine(`Failed to load run: ${e.message}`, 'stderr');
+    return;
+  }
+
+  document.getElementById('run-detail-title').textContent =
+    `${run.pipeline.charAt(0).toUpperCase() + run.pipeline.slice(1)} Run`;
+  document.getElementById('run-detail-sub').textContent =
+    `Run ID: ${runId.slice(0,8)}… · Created ${new Date(run.created_at).toLocaleString()}`;
+
+  updateStageBar(run.status);
+  updateRunActions(run.status);
+
+  // If run is already complete/failed, load stored logs and stop
+  if (['complete', 'failed', 'cancelled'].includes(run.status)) {
+    await replayRunLogs(runId);
+    stopElapsedTimer();
+    document.getElementById('log-spinner').style.display = 'none';
+    if (run.excel_path) {
+      excelPath = run.excel_path;
+      showOutputBanner(run.excel_path);
+    }
+    if (run.status === 'complete') loadOutputFiles(runId);
+    return;
+  }
+
+  // Active run — reconnect to SSE stream (run may have been active before nav away)
+  document.getElementById('log-spinner').style.display = 'inline-block';
+  startElapsedTimer();
+
+  // If run is active and no stream exists, reconnect via the reconnect endpoint
+  // which replays recent logs and restarts approval polling if needed.
+  try {
+    await api('POST', `/runs/${runId}/reconnect`, {});
+  } catch(e) {
+    // Reconnect endpoint returns 400 if run isn't active — that's fine,
+    // we'll try to connect to an existing stream directly.
+  }
+  connectRunStream(runId);
+
+  // Also poll DB every 5s as a safety net — catches status changes
+  // even if the SSE stream drops or misses an event
+  _runDetailPoll = setInterval(async () => {
+    if (!activeRunId) { clearInterval(_runDetailPoll); _runDetailPoll = null; return; }
+    try {
+      const run = await api('GET', `/runs/${activeRunId}`);
+      updateStageBar(run.status);
+      updateRunActions(run.status);
+      if (run.excel_path && !excelPath) {
+        excelPath = run.excel_path;
+        showOutputBanner(run.excel_path);
+        loadOutputFiles(activeRunId);
+      }
+      if (['complete', 'failed', 'cancelled'].includes(run.status)) {
+        clearInterval(_runDetailPoll);
+        _runDetailPoll = null;
+        stopElapsedTimer();
+        document.getElementById('log-spinner').style.display = 'none';
+      }
+    } catch(e) { /* silent */ }
+  }, 5000);
+}
+
+function connectRunStream(runId) {
+  if (activeEvtSource) { activeEvtSource.close(); activeEvtSource = null; }
+
+  const evtSource = new EventSource(`/api/runs/${runId}/stream`);
+  activeEvtSource = evtSource;
+
+  evtSource.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+
+    if (data.type === 'heartbeat') return;
+
+    if (data.type === 'log') {
+      appendLogLine(data.text, data.stream || 'stdout');
+    }
+
+    if (data.type === 'status') {
+      updateStageBar(data.value);
+      updateRunActions(data.value);
+      if (['complete', 'failed', 'cancelled'].includes(data.value)) {
+        stopElapsedTimer();
+        document.getElementById('log-spinner').style.display = 'none';
+        evtSource.close();
+        activeEvtSource = null;
+      }
+      // Hide review banner once pipeline moves past awaiting_review
+      if (data.value !== 'awaiting_review') {
+        const banner = document.getElementById('review-banner');
+        if (banner && data.value !== 'pending') banner.classList.remove('visible');
+      }
+    }
+
+    if (data.type === 'review_approved') {
+      appendLogLine('✓ ' + data.message, 'stdout');
+      const banner = document.getElementById('review-banner');
+      if (banner) banner.classList.remove('visible');
+    }
+
+    if (data.type === 'review_ready') {
+      reviewUrl = data.url;
+      showReviewBanner(data.url);
+    }
+
+    if (data.type === 'output_ready') {
+      excelPath = data.excel_path;
+      showOutputBanner(data.excel_path);
+      updateRunActions('complete');
+      loadOutputFiles(runId);
+    }
+
+    if (data.type === 'done') {
+      evtSource.close();
+      activeEvtSource = null;
+    }
+  };
+
+  evtSource.onerror = async () => {
+    // Stream closed — may be normal (run finished) or a connection drop.
+    // Poll the run status from DB to get the definitive final state.
+    evtSource.close();
+    activeEvtSource = null;
+    document.getElementById('log-spinner').style.display = 'none';
+    stopElapsedTimer();
+
+    if (!activeRunId) return;
+    try {
+      const run = await api('GET', `/runs/${activeRunId}`);
+      updateStageBar(run.status);
+      updateRunActions(run.status);
+      if (run.excel_path) {
+        excelPath = run.excel_path;
+        showOutputBanner(run.excel_path);
+      }
+      if (run.status === 'complete') loadOutputFiles(activeRunId);
+      // If run is still active after stream dropped, try to reconnect once
+      if (['running', 'awaiting_review', 'enriching'].includes(run.status)) {
+        setTimeout(() => {
+          if (activeRunId === run.id) connectRunStream(run.id);
+        }, 2000);
+      }
+    } catch(e) {
+      console.warn('Could not fetch run status after stream close:', e.message);
+    }
+  };
+}
+
+function showReviewBanner(url) {
+  const banner = document.getElementById('review-banner');
+  if (banner) {
+    banner.classList.add('visible');
+    const btn = document.getElementById('btn-open-review');
+    if (btn) btn.onclick = () => window.open(url, '_blank');
+  }
+}
+
+function showOutputBanner(filePath) {
+  const banner = document.getElementById('output-banner');
+  if (banner) {
+    banner.classList.add('visible');
+    const fn = document.getElementById('output-filename');
+    if (fn) fn.textContent = filePath;
+  }
+}
+
+async function replayRunLogs(runId) {
+  try {
+    const logs = await api('GET', `/runs/${runId}/logs`);
+    const panel = document.getElementById('run-log-panel');
+    if (panel) panel.innerHTML = '';
+    logs.forEach(l => appendLogLine(l.line, l.stream));
+  } catch(e) {
+    appendLogLine(`Could not load stored logs: ${e.message}`, 'stderr');
+  }
+}
+
+function backFromRun() {
+  if (activeEvtSource) { activeEvtSource.close(); activeEvtSource = null; }
+  if (_runDetailPoll) { clearInterval(_runDetailPoll); _runDetailPoll = null; }
+  stopElapsedTimer();
+  activeRunId = null;
+  if (backToEngId) openEngagementDetail(backToEngId);
+  else navigate('engagements');
+}
+
+// ── Launch run from engagement detail ─────────────────────────────────
+// Called by confirmRun() which was Phase 1's stub.
+// Now wired to actually start the pipeline.
+
+async function launchRun(runId, engId, rawCredentials) {
+  // Register raw credentials in memory if provided (keys mode)
+  if (rawCredentials && Object.keys(rawCredentials).length > 0) {
+    try {
+      await api('POST', `/runs/${runId}/credentials`, rawCredentials);
+    } catch(e) {
+      alert(`Failed to register credentials: ${e.message}`);
+      return;
+    }
+  }
+
+  // Start the run
+  try {
+    await api('POST', `/runs/${runId}/start`, {});
+  } catch(e) {
+    alert(`Failed to start run: ${e.message}`);
+    return;
+  }
+
+  // Navigate to run detail — will connect to SSE stream
+  openRunDetail(runId, engId);
+}
+
+
+
+// ── Phase 5: Output management ────────────────────────────────────────
+
+async function loadOutputFiles(runId) {
+  const card = document.getElementById('output-files-card');
+  const list = document.getElementById('output-files-list');
+  if (!card || !list) return;
+
+  try {
+    const data = await api('GET', `/runs/${runId}/outputs`);
+    if (!data.files || !data.files.length) return;
+
+    card.style.display = 'block';
+
+    // Separate Excel from other files
+    const excel  = data.files.filter(f => f.is_excel);
+    const others = data.files.filter(f => !f.is_excel);
+
+    const rows = [...excel, ...others].map(f => `
+      <div class="output-file-row">
+        <span class="output-file-name">${esc(f.name)}</span>
+        <span class="output-file-type">${esc(f.type)}</span>
+        <span class="output-file-size">${f.size_kb} KB</span>
+        ${f.is_excel
+          ? `<button class="btn btn-primary" style="font-size:11px;padding:3px 10px"
+                     onclick="window.location.href='/api/runs/${esc(runId)}/download'">
+               ↓ Download
+             </button>`
+          : ''}
+      </div>`).join('');
+
+    list.innerHTML = rows;
+  } catch(e) {
+    console.warn('Could not load output files:', e.message);
+  }
+}
+
+function runComparisonTable(runs) {
+  // Only show runs that have risk data
+  const withData = runs.filter(r => r.risk_high != null);
+  if (withData.length < 2) return '';
+
+  const rows = withData.map(r => {
+    const date     = new Date(r.created_at).toLocaleDateString();
+    const duration = r.completed_at
+      ? _formatDuration(r.created_at, r.completed_at)
+      : '—';
+    return `
+      <tr>
+        <td>${esc(r.pipeline)}</td>
+        <td style="font-size:11px;color:var(--muted)">${date}</td>
+        <td><span class="status-badge status-${r.status}">${statusLabel(r.status)}</span></td>
+        <td class="risk-cell-high">${r.risk_high ?? '—'}</td>
+        <td class="risk-cell-medium">${r.risk_medium ?? '—'}</td>
+        <td class="risk-cell-low">${r.risk_low ?? '—'}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">
+          ${r.findings_included ?? '—'} / ${r.findings_total ?? '—'}
+        </td>
+        <td style="font-size:11px;color:var(--muted)">${duration}</td>
+        <td>
+          ${r.excel_path
+            ? `<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px"
+                       onclick="window.location.href='/api/runs/${esc(r.id)}/download'">↓</button>`
+            : ''}
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Run Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Pipeline</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th style="color:var(--high-fg)">High</th>
+              <th style="color:var(--medium-fg)">Medium</th>
+              <th style="color:var(--low-fg)">Low</th>
+              <th>Findings</th>
+              <th>Duration</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function _formatDuration(startIso, endIso) {
+  const secs = Math.round((new Date(endIso) - new Date(startIso)) / 1000);
+  if (secs < 60)   return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs/60)}m ${secs%60}s`;
+  return `${Math.floor(secs/3600)}h ${Math.floor((secs%3600)/60)}m`;
+}
+
+
+
+// ── Global background refresh ─────────────────────────────────────────
+// Polls every 5 seconds regardless of which view is active.
+// Keeps nav badges, dashboard stats, and engagement cards current
+// without the analyst needing to manually refresh any page.
+
+function startGlobalPoll() {
+  if (_globalPoll) return;  // already running
+  _globalPoll = setInterval(_globalTick, 5000);
+}
+
+async function _globalTick() {
+  try {
+    const engs = await api('GET', '/engagements');
+    engagements = engs;
+
+    // Update nav badge
+    const active = engs.filter(e => !e.archived_at);
+    const badge = document.getElementById('nav-eng-count');
+    if (badge) {
+      badge.textContent = active.length;
+      badge.style.display = active.length ? '' : 'none';
+    }
+
+    // Refresh whichever view is currently active
+    const activeView = document.querySelector('.view.active');
+    if (!activeView) return;
+    const viewId = activeView.id;
+
+    if (viewId === 'view-dashboard') {
+      // Silently re-render dashboard stats without full reload
+      _refreshDashboardSilent(engs);
+    } else if (viewId === 'view-engagements') {
+      // Re-render engagement cards in place
+      _refreshEngagementListSilent(engs);
+    }
+    // engagement-detail has its own 4s poll via _engDetailPoll
+    // run-detail updates via SSE stream
+    // tools and new-run don't need polling
+  } catch(e) {
+    // Silent fail — don't show errors for background polling
+  }
+}
+
+function _refreshDashboardSilent(engs) {
+  const container = document.getElementById('dashboard-content');
+  // Only re-render if dashboard is showing real content (not loading spinner)
+  if (!container || container.querySelector('.spinner-lg')) return;
+
+  const active  = engs.filter(e => !e.archived_at);
+  const running = active.filter(e =>
+    ['running','awaiting_review','enriching'].includes(e.last_run_status));
+  const done    = active.filter(e => e.last_run_status === 'complete');
+
+  // Update stat cards without full re-render (avoid flicker)
+  const statEls = container.querySelectorAll('.stat-value');
+  if (statEls.length === 3) {
+    statEls[0].textContent = active.length;
+    statEls[1].textContent = running.length;
+    statEls[2].textContent = done.length;
+  }
+
+  // Re-render engagement cards (they're cheap and need fresh status badges)
+  const grid = container.querySelector('.eng-grid');
+  if (grid) {
+    grid.innerHTML = active.slice(0,6).map(e => engCardHTML(e)).join('');
+  }
+}
+
+function _refreshEngagementListSilent(engs) {
+  const container = document.getElementById('engagements-list');
+  if (!container || container.querySelector('.spinner-lg')) return;
+  const grid = container.querySelector('.eng-grid');
+  if (grid) {
+    grid.innerHTML = engs.map(e => engCardHTML(e)).join('');
+  }
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────
+// Run platform detection and dashboard load in parallel.
+// Platform detection involves subprocess calls (prowler -v, uv tool list etc.)
+// and must not block the initial render.
 (async () => {
-  await loadPlatform();
-  loadDashboard();
+  loadDashboard();           // start immediately — doesn't need platform
+  await loadPlatform();      // runs concurrently, updates sidebar when done
+  startGlobalPoll();         // background refresh for all views
 })();
 </script>
 </body>

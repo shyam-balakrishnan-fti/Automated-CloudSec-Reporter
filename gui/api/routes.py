@@ -234,11 +234,12 @@ async def create_run(
     run_id = str(uuid.uuid4())
     now    = _now()
 
-    # Determine output directory
-    safe_client = eng["client_name"].strip().replace(" ", "_")
-    pipeline_dir = "prowler" if body.pipeline == PipelineType.PROWLER else "scubagear"
-    output_dir = Path.cwd().parent / "data" / "output" / safe_client / run_id
-    output_dir = output_dir.resolve()
+    # Determine output base directory.
+    # The pipeline appends client_name as a subfolder automatically,
+    # so we pass the run-specific base and let the pipeline handle the rest.
+    # Final path: data/output/{run_id}/{client_slug}/
+    pipeline_base = "data" if body.pipeline == PipelineType.PROWLER else Path("scubagear") / "data"
+    output_dir = (Path.cwd().parent / pipeline_base / "output" / run_id).resolve()
 
     # Write config.toml
     # Template path: go up from gui/ to repo root, then into templates/
@@ -454,3 +455,369 @@ async def stream_install(task_id: str):
     if not stream:
         raise HTTPException(status_code=404, detail="Install task not found or already completed")
     return stream.response()
+
+
+# ── Run execution (Phase 3) ───────────────────────────────────────────
+
+# In-memory store of raw credentials keyed by run_id.
+# Never written to DB. Cleared when run completes/fails/cancels.
+_pending_credentials: dict[str, dict] = {}
+
+
+@router.post("/runs/{run_id}/start")
+async def start_run(
+    run_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Start a pending run.
+    Returns {task_id} — client connects to /runs/{run_id}/stream for live output.
+    Raw credentials must have been registered via POST /runs/{run_id}/credentials first.
+    """
+    from api import runner
+
+    cursor = await db.execute("SELECT * FROM runs WHERE id = ?", (run_id,))
+    row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    run = dict(row)
+
+    if run["status"] not in ("pending", "failed"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Run is in status '{run['status']}' — only pending or failed runs can be started",
+        )
+
+    # Register SSE stream
+    stream = register_stream(run_id)
+
+    # Retrieve raw credentials if provided
+    raw_creds = _pending_credentials.pop(run_id, None)
+
+    # Launch pipeline in background
+    asyncio.create_task(runner.execute_run(run, stream, raw_creds))
+
+    return {"task_id": run_id, "status": "starting"}
+
+
+@router.post("/runs/{run_id}/credentials")
+async def register_credentials(
+    run_id: str,
+    body: dict,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Register raw AWS credentials for a run, in memory only.
+    Must be called before POST /runs/{run_id}/start when credential_source == 'keys'.
+    Credentials are cleared from memory as soon as the run starts.
+    """
+    cursor = await db.execute("SELECT id, status FROM runs WHERE id = ?", (run_id,))
+    row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    # Only store the fields we actually need
+    creds = {}
+    for field in ("aws_access_key_id", "aws_secret_access_key", "aws_session_token"):
+        if body.get(field):
+            creds[field] = body[field]
+
+    _pending_credentials[run_id] = creds
+    return {"registered": True}
+
+
+@router.get("/runs/{run_id}/stream")
+async def stream_run(run_id: str):
+    """
+    SSE endpoint — streams live output from a running pipeline.
+    Connect immediately after POST /runs/{run_id}/start.
+    If the run has already completed, returns 404 (stream was consumed).
+    """
+    stream = get_stream(run_id)
+    if not stream:
+        raise HTTPException(
+            status_code=404,
+            detail="No active stream for this run. "
+                   "The run may not have started yet or the stream has already closed.",
+        )
+    return stream.response()
+
+
+@router.post("/runs/{run_id}/cancel")
+async def cancel_run(
+    run_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Cancel a running pipeline by sending SIGTERM to the subprocess.
+    Checkpoint files on disk are preserved for inspection.
+    """
+    from api import runner
+
+    cursor = await db.execute("SELECT status FROM runs WHERE id = ?", (run_id,))
+    row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    current_status = row[0]
+    if current_status not in ("running", "awaiting_review", "enriching"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Run is '{current_status}' — only active runs can be cancelled",
+        )
+
+    signalled = await runner.cancel_run(run_id)
+
+    # Update DB status — the background task may also set it,
+    # but setting it here ensures it's visible immediately.
+    now = datetime.now(timezone.utc).isoformat()
+    await db.execute(
+        "UPDATE runs SET status = 'cancelled', completed_at = ? WHERE id = ?",
+        (now, run_id),
+    )
+    await db.commit()
+
+    return {"cancelled": signalled, "run_id": run_id}
+
+
+@router.get("/runs/{run_id}/logs")
+async def get_run_logs(
+    run_id: str,
+    offset: int = 0,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Fetch stored log lines for a run (for replay after page refresh).
+    offset: skip the first N lines (for incremental fetching).
+    """
+    cursor = await db.execute(
+        "SELECT ts, stream, line FROM run_logs WHERE run_id = ? "
+        "ORDER BY id LIMIT 2000 OFFSET ?",
+        (run_id, offset),
+    )
+    rows = await cursor.fetchall()
+    return [{"ts": r[0], "stream": r[1], "line": r[2]} for r in rows]
+
+
+# ── Run stream reconnect (Phase 4) ───────────────────────────────────
+
+@router.post("/runs/{run_id}/reconnect")
+async def reconnect_run_stream(
+    run_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Reconnect to an active run after the client navigated away.
+
+    For runs in awaiting_review / running / enriching:
+      - Creates a new SSE stream
+      - Replays the last 50 log lines so the panel isn't empty
+      - If awaiting_review, starts approval polling in the background
+      - Returns task_id (== run_id) for the client to connect to /stream
+
+    The client calls GET /runs/{run_id}/stream after this to receive events.
+    """
+    from api import runner
+
+    cursor = await db.execute("SELECT * FROM runs WHERE id = ?", (run_id,))
+    row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    run = dict(row)
+    status = run["status"]
+
+    if status not in ("running", "awaiting_review", "enriching"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Run status is '{status}' — only active runs can be reconnected",
+        )
+
+    # Close any existing stream for this run (shouldn't exist, but be safe)
+    existing = get_stream(run_id)
+    if existing and not existing._closed:
+        await existing.close()
+    remove_stream(run_id)
+
+    # Create a fresh stream
+    stream = register_stream(run_id)
+
+    # Replay last 50 stored log lines so the panel isn't blank on reconnect
+    cursor2 = await db.execute(
+        """SELECT ts, stream, line FROM run_logs WHERE run_id = ?
+           ORDER BY id DESC LIMIT 50""",
+        (run_id,),
+    )
+    recent_rows = await cursor2.fetchall()
+    recent_rows = list(reversed(recent_rows))  # restore chronological order
+
+    async def _seed_and_poll():
+        # Send a reconnect notice first
+        await stream.send_log("─" * 60)
+        await stream.send_log("↩ Reconnected to active run")
+        await stream.send_log("─" * 60)
+
+        # Replay recent log lines
+        for log_row in recent_rows:
+            await stream.send_log(log_row[2], log_row[1])
+
+        # Re-emit current status so the stage bar updates
+        await stream.send_status(status)
+
+        # If still awaiting review, re-emit the review_ready event
+        # so the banner reappears, then start approval polling
+        if status == "awaiting_review":
+            port = 8742 if run["pipeline"] == "prowler" else 8743
+            await stream.send_json({
+                "type":     "review_ready",
+                "port":     port,
+                "url":      f"http://localhost:{port}/review",
+                "pipeline": run["pipeline"],
+            })
+            await runner.poll_for_approval(run_id, run["output_dir"], stream)
+
+    asyncio.create_task(_seed_and_poll())
+
+    return {"task_id": run_id, "status": status, "replayed_lines": len(recent_rows)}
+
+
+# ── Phase 5: Output management ────────────────────────────────────────
+
+@router.get("/runs/{run_id}/download")
+async def download_excel(
+    run_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Stream the completed Excel report to the browser as a file download.
+    Returns 404 if the run has no output file yet.
+    """
+    from fastapi.responses import FileResponse
+
+    cursor = await db.execute(
+        "SELECT excel_path, status FROM runs WHERE id = ?", (run_id,)
+    )
+    row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    excel_path, status = row[0], row[1]
+
+    if not excel_path:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No output file for this run (status: {status})",
+        )
+
+    p = Path(excel_path)
+    if not p.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Output file not found on disk: {excel_path}",
+        )
+
+    return FileResponse(
+        path=str(p),
+        filename=p.name,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+@router.get("/runs/{run_id}/outputs")
+async def list_run_outputs(
+    run_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    List all output files for a run (JSON checkpoints + Excel).
+    Returns file names, sizes, and types — used by the output panel.
+    """
+    cursor = await db.execute(
+        "SELECT output_dir, excel_path, status FROM runs WHERE id = ?", (run_id,)
+    )
+    row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    output_dir, excel_path, status = row[0], row[1], row[2]
+
+    files = []
+    if output_dir:
+        p = Path(output_dir)
+        if p.exists():
+            # Pipeline writes into a client_name subfolder — search recursively
+            for f in sorted(p.rglob("*")):
+                if f.is_file():
+                    files.append({
+                        "name":     f.name,
+                        "size_kb":  round(f.stat().st_size / 1024, 1),
+                        "type":     _classify_output_file(f.name),
+                        "is_excel": f.suffix == ".xlsx",
+                    })
+
+    return {
+        "run_id":     run_id,
+        "status":     status,
+        "output_dir": output_dir,
+        "files":      files,
+        "excel_path": excel_path,
+    }
+
+
+def _classify_output_file(name: str) -> str:
+    """Human-readable file type label for the output panel."""
+    mapping = {
+        "canonical_findings.json":  "All findings (audit trail)",
+        "output_groups.json":       "Dedup groups",
+        "grouping_proposal.json":   "AI grouping proposal",
+        "grouping_approved.json":   "Approved grouping",
+        "m365_grouping_approved.json": "Approved grouping (M365)",
+        "enriched_groups.json":     "Enriched groups",
+        "run_manifest.json":        "Run manifest",
+        "run_summary.json":         "Run summary",
+        "config.toml":              "Pipeline config",
+        "scubagear_config.toml":    "Pipeline config",
+    }
+    if name in mapping:
+        return mapping[name]
+    if name.endswith(".xlsx"):
+        return "Excel report"
+    if name.endswith(".json"):
+        return "JSON checkpoint"
+    if name.endswith(".toml"):
+        return "Config file"
+    return "File"
+
+
+@router.get("/engagements/{engagement_id}/summary")
+async def engagement_summary(
+    engagement_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Return all runs for an engagement with their risk distributions.
+    Used by the run comparison table.
+    """
+    cursor = await db.execute(
+        "SELECT * FROM engagements WHERE id = ?", (engagement_id,)
+    )
+    eng_row = await cursor.fetchone()
+    if not eng_row:
+        raise HTTPException(status_code=404, detail="Engagement not found")
+
+    cursor2 = await db.execute(
+        """SELECT id, pipeline, status, created_at, completed_at,
+                  findings_total, findings_included, groups_total,
+                  risk_high, risk_medium, risk_low, llm_failures,
+                  excel_path, input_file
+           FROM runs WHERE engagement_id = ?
+           ORDER BY created_at DESC""",
+        (engagement_id,),
+    )
+    runs = await cursor2.fetchall()
+
+    return {
+        "engagement": dict(eng_row),
+        "runs": [dict(r) for r in runs],
+    }

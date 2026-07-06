@@ -1,0 +1,51 @@
+{
+  "run_id": "e2b2d521-1340-45b2-8f3e-a2bd7d953407",
+  "source_file": "/home/shyam-balakrishnan/output/prowler-output-ausbeefchain.com-20260626023226.ocsf.json",
+  "source_file_hash": "edd00819b78f5bdb2766144b93f5c1fc026f6a16429835f7e2afdbb9e45b55f1",
+  "scanner": "prowler",
+  "scanner_version": "5.31.0",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-06T05:57:39.618581+00:00",
+  "config": {
+    "include_statuses": [
+      "FAIL",
+      "MUTED(FAIL)"
+    ],
+    "severity_rules": {
+      "critical": "High",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "informational": "Low",
+      "likelihood_high_if_categories": [
+        "internet-exposed"
+      ]
+    },
+    "risk_matrix": {
+      "High_Major": "High",
+      "High_Moderate": "High",
+      "High_Minor": "High",
+      "Medium_Major": "High",
+      "Medium_Moderate": "Medium",
+      "Medium_Minor": "Medium",
+      "Low_Major": "Medium",
+      "Low_Moderate": "Medium",
+      "Low_Minor": "Low"
+    }
+  },
+  "counts": {
+    "total_rows_read": 71,
+    "total_findings": 71,
+    "included": 16,
+    "excluded": 33,
+    "duplicates": 22,
+    "output_groups": 1
+  },
+  "stage1_warnings": [
+    {
+      "code": "OCSF_FORMAT_DETECTED",
+      "message": "Prowler v5 OCSF JSON detected in prowler-output-ausbeefchain.com-20260626023226.ocsf.json. Parsing nested structure (finding_info / resources / cloud)."
+    }
+  ],
+  "stage2_warnings": []
+}

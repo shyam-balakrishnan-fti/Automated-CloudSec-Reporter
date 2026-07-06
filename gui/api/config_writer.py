@@ -37,7 +37,7 @@ output_filename   = {output_filename!r}
 # ── LLM (set once at setup) ────────────────────────────────────────
 [llm]
 provider         = "bedrock_runtime"
-deployment_name  =
+deployment_name  = "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh"
 aws_region       = {aws_region!r}
 max_tokens       = 1500
 timeout_seconds  = 60

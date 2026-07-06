@@ -1,0 +1,93 @@
+{
+  "run_id": "e2b2d521-1340-45b2-8f3e-a2bd7d953407",
+  "group_count": 1,
+  "generated_at": "2026-07-06T05:57:39.617769+00:00",
+  "groups": [
+    {
+      "output_group_key": "unknown:AWS",
+      "check_id": "unknown",
+      "output_section": "AWS",
+      "instance_count": 16,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "ausbeefchain.com"
+      ],
+      "affected_account_uids": [
+        "ausbeefchain.com"
+      ],
+      "instance_ids": [
+        "1a897d2a-6399-46a6-82d0-262de8b7991e",
+        "8c1d463e-e9cd-46a4-9ae1-295474efea74",
+        "d9c72710-c027-474d-a91b-f015e1ba4df1",
+        "c41e6b3b-538a-4c98-a044-f369ef9f841e",
+        "c49ffcba-b0f3-483e-bf85-57f7dcaf6445",
+        "02452678-53c0-4284-8d9f-eb557e644d2b",
+        "84929e7b-2fc5-49dc-9a61-7df6bdc0189f",
+        "cbbf59b2-618b-40b9-8a18-423891253c32",
+        "300926ff-2c73-4edd-837b-ee4b4ac56b66",
+        "279232db-94ba-488e-9de7-00e8aa65e441",
+        "aa0d63ee-1835-4ae5-9a93-b51343273075",
+        "e012079d-031a-4ad5-9b49-1e9f6c97d9e1",
+        "b0b65189-6564-4561-9f5a-237fb5cd985c",
+        "4f0d1ceb-7804-4726-bf01-c0a2e54b6098",
+        "3715a1d0-49dd-4025-bc7e-8df7d3cead96",
+        "d190b0d5-6034-4a89-b549-5f1360c66ef6"
+      ],
+      "representative": {
+        "finding_instance_id": "1a897d2a-6399-46a6-82d0-262de8b7991e",
+        "source_row_id": "Sheet:json Row:2",
+        "check_id": null,
+        "check_title": "Microsoft 365 group has Private visibility",
+        "severity": "high",
+        "service_name": "admincenter",
+        "resource_type": "NotDefined",
+        "region": "global",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": null,
+        "check_title": "Microsoft 365 group has Private visibility",
+        "check_type": "Findings",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "Group Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512 has Public visibility and should be Private.",
+        "description": "**Microsoft 365 groups** are assessed for their visibility setting.\n\nThe finding highlights groups configured as `Public`; groups set to `Private` align with the intended privacy posture.",
+        "risk": "**Public visibility** lets any authenticated tenant user discover and self-join, accessing group files, conversations, SharePoint sites, and calendars.\n\nThis weakens **confidentiality** and can enable unauthorized changes that affect **integrity**.",
+        "remediation_recommendation_text": "Set groups to `Private` by default and allow `Public` only for clearly non-sensitive communities.\n\nApply **least privilege**: restrict who can create or change visibility, require owner approval for membership, review access regularly, and use **sensitivity labels** to reinforce classification.",
+        "remediation_recommendation_url": "https://hub.prowler.com/check/admincenter_groups_not_public_visibility",
+        "remediation_code_cli": null,
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "admincenter",
+        "subservice_name": null,
+        "resource_type": "NotDefined",
+        "resource_uid": "215036be-c7fa-4640-be69-454915bc42bf",
+        "resource_name": "Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512",
+        "region": "global",
+        "account_name": "ausbeefchain.com",
+        "categories": [
+          "identity-access",
+          "e3"
+        ],
+        "compliance": [
+          "CIS-6.0: 1.2.1",
+          "CIS-4.0: 1.2.1",
+          "ISO27001-2022: A.5.2",
+          "ISO27001-2022: A.5.33",
+          "ISO27001-2022: A.8.2",
+          "ProwlerThreatScore-1.0: 1.2.1"
+        ],
+        "resource_tags": {},
+        "instance_count": 16,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "ausbeefchain.com"
+        ]
+      }
+    }
+  ]
+}
