@@ -433,9 +433,32 @@ async def execute_run(
 
         watcher_task = asyncio.create_task(_status_watcher())
 
-        assert proc.stdout is not None
-        async for raw_line in proc.stdout:
-            line = raw_line.decode("utf-8", errors="replace").rstrip()
+        # Read stdout in a separate task so we can keep the SSE stream
+        # alive with heartbeats even when stdout is blocked (e.g. review wait)
+        stdout_lines: asyncio.Queue[str | None] = asyncio.Queue()
+
+        async def _read_stdout():
+            assert proc.stdout is not None
+            async for raw_line in proc.stdout:
+                line = raw_line.decode("utf-8", errors="replace").rstrip()
+                await stdout_lines.put(line)
+            await stdout_lines.put(None)  # sentinel
+
+        stdout_task = asyncio.create_task(_read_stdout())
+
+        # Process lines with a timeout — send heartbeats when pipeline is silent
+        while True:
+            try:
+                line = await asyncio.wait_for(stdout_lines.get(), timeout=10.0)
+            except asyncio.TimeoutError:
+                # Pipeline is silent (e.g. waiting for review approval)
+                # Send a heartbeat to keep the SSE connection alive
+                await stream.send_json({"type": "heartbeat"})
+                continue
+
+            if line is None:
+                break  # stdout closed — process has exited
+
             if not line:
                 continue
 
@@ -456,6 +479,7 @@ async def execute_run(
                 current_status = "enriching"
 
         watcher_task.cancel()
+        stdout_task.cancel()
 
         # ── Step 5: process exit ──────────────────────────────────────
         await proc.wait()

@@ -653,20 +653,10 @@ async def reconnect_run_stream(
     recent_rows = list(reversed(recent_rows))  # restore chronological order
 
     async def _seed_and_poll():
-        # Send a reconnect notice first
-        await stream.send_log("─" * 60)
-        await stream.send_log("↩ Reconnected to active run")
-        await stream.send_log("─" * 60)
-
-        # Replay recent log lines
-        for log_row in recent_rows:
-            await stream.send_log(log_row[2], log_row[1])
-
-        # Re-emit current status so the stage bar updates
+        # Emit current status so any listeners get an immediate update
         await stream.send_status(status)
 
-        # If still awaiting review, re-emit the review_ready event
-        # so the banner reappears, then start approval polling
+        # If awaiting review, emit review_ready and start approval polling
         if status == "awaiting_review":
             port = 8742 if run["pipeline"] == "prowler" else 8743
             await stream.send_json({
@@ -821,3 +811,97 @@ async def engagement_summary(
         "engagement": dict(eng_row),
         "runs": [dict(r) for r in runs],
     }
+
+
+# ── Debug / test endpoints ────────────────────────────────────────────
+
+@router.post("/debug/mock-run")
+async def create_mock_run(db: aiosqlite.Connection = Depends(get_db)):
+    """
+    Create a fake run that simulates the full pipeline lifecycle:
+    pending → running → awaiting_review → enriching → complete
+    with 5s delays between stages. No pipeline is actually executed.
+    Used to test SSE streaming and UI updates without AWS/LLM.
+    """
+    import uuid
+    from api.sse import register_stream
+
+    run_id = str(uuid.uuid4())
+    now    = datetime.now(timezone.utc).isoformat()
+
+    await db.execute(
+        """INSERT INTO runs
+           (id, engagement_id, pipeline, status, input_file, input_format,
+            tenant_id, credential_source, aws_profile, aws_region,
+            skip_review, skip_llm, config_path, output_dir, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (run_id, "debug", "prowler", "pending", "/tmp/mock.csv", "auto",
+         "", "profile", "default", "ap-southeast-2",
+         0, 0, "/tmp/config.toml", "/tmp/mock-output", now),
+    )
+    await db.commit()
+
+    stream = register_stream(run_id)
+
+    async def _mock_pipeline():
+        from db.database import _DB_PATH
+        async with aiosqlite.connect(_DB_PATH) as mdb:
+            await asyncio.sleep(2)
+            await stream.send_log("[ Stage 1 ] Ingesting mock findings...")
+            await mdb.execute("UPDATE runs SET status='running', started_at=? WHERE id=?",
+                              (datetime.now(timezone.utc).isoformat(), run_id))
+            await mdb.commit()
+            await stream.send_status("running")
+
+            for i in range(3):
+                await asyncio.sleep(3)
+                await stream.send_log(f"  Processing batch {i+1}/3...")
+
+            await asyncio.sleep(2)
+            await stream.send_log("[ Stage 2.5 ] Semantic grouping...")
+            await asyncio.sleep(4)
+            await stream.send_log("  → 8 group(s) proposed")
+            await stream.send_log("🌐 Grouping review: http://localhost:8742/review")
+            await mdb.execute("UPDATE runs SET status='awaiting_review' WHERE id=?", (run_id,))
+            await mdb.commit()
+            await stream.send_status("awaiting_review")
+            await stream.send_json({
+                "type": "review_ready",
+                "port": 8742,
+                "url":  "http://localhost:8742/review",
+                "pipeline": "prowler",
+            })
+
+            # Simulate analyst approving after 8s
+            await asyncio.sleep(8)
+            await stream.send_log("✓ Grouping approved — pipeline resuming")
+            await mdb.execute("UPDATE runs SET status='enriching' WHERE id=?", (run_id,))
+            await mdb.commit()
+            await stream.send_status("enriching")
+            await stream.send_json({"type": "review_approved", "message": "Grouping approved"})
+
+            await asyncio.sleep(2)
+            await stream.send_log("[ Stage 3 ] LLM enrichment — 8 groups...")
+            for i in range(4):
+                await asyncio.sleep(3)
+                await stream.send_log(f"  Enriched group {i*2+1}-{i*2+2}/8")
+
+            await asyncio.sleep(2)
+            await stream.send_log("[ Stage 5 ] Excel rendered → MockReport.xlsx")
+            await stream.send_log("=" * 60)
+            await stream.send_log("PIPELINE COMPLETE")
+            await mdb.execute(
+                "UPDATE runs SET status='complete', completed_at=?, risk_high=3, risk_medium=4, risk_low=1 WHERE id=?",
+                (datetime.now(timezone.utc).isoformat(), run_id),
+            )
+            await mdb.commit()
+            await stream.send_status("complete")
+            await stream.send_json({
+                "type": "output_ready",
+                "excel_path": "/tmp/MockReport.xlsx",
+                "filename": "MockReport.xlsx",
+            })
+            await stream.close()
+
+    asyncio.create_task(_mock_pipeline())
+    return {"run_id": run_id, "message": "Mock run started — connect to /api/runs/{run_id}/stream"}
