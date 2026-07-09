@@ -822,9 +822,13 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
             </div>
           </div>
           <div class="form-row">
-            <label>Bedrock Model ID</label>
-            <input type="text" id="setting-model-id" placeholder="anthropic.claude-opus-4-8">
-            <div class="form-hint">Used in generated config.toml for LLM enrichment calls</div>
+            <label>Bedrock Deployment Name</label>
+            <input type="text" id="setting-deployment-name" placeholder="arn:aws:bedrock:...">
+            <div class="form-hint">
+              Your private inference profile ARN or deployment name.
+              Written as <code style="font-family:var(--mono);font-size:11px">deployment_name</code>
+              in every generated config.toml. Required for LLM enrichment.
+            </div>
           </div>
         </div>
         <div class="card settings-section">
@@ -937,7 +941,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
     <div class="modal-body" id="preflight-results-body">
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-preflight')">Back</button>
+      <button class="btn btn-ghost" onclick="backFromPreflight()">Back</button>
       <button class="btn btn-primary" id="btn-confirm-run" onclick="confirmRun()" disabled>
         Start Run →
       </button>
@@ -1000,7 +1004,7 @@ async function api(method, path, body) {
     method,
     headers: { 'Content-Type': 'application/json' },
   };
-  if (body) opts.body = JSON.stringify(body);
+  if (body !== null && body !== undefined) opts.body = JSON.stringify(body);
   const res = await fetch(`/api${path}`, opts);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -1449,7 +1453,9 @@ function setCredMode(mode) {
 
 async function runPreflight() {
   const pipeline   = document.getElementById('run-pipeline').value;
-  const inputFile  = document.getElementById('run-input').value.trim();
+  // Strip surrounding quotes — Windows users often paste paths with quotes
+  const inputFile  = document.getElementById('run-input').value.trim().replace(/^["']|["']$/g, '');
+  document.getElementById('run-input').value = inputFile; // update field too
   const tenantId   = document.getElementById('run-tenant') ? document.getElementById('run-tenant').value.trim() : '';
 
   // Validate required fields
@@ -1475,10 +1481,12 @@ async function runPreflight() {
   btn.innerHTML = '<span class="spinner"></span> Checking...';
 
   try {
+    const _settings = getSettings();
     const runPayload = {
       pipeline, input_file: inputFile, input_format: document.getElementById('run-format').value,
       tenant_id: tenantId, credential_source: _credMode,
       aws_profile: awsProfile, aws_region: awsRegion,
+      deployment_name: _settings.deployment_name || '',
       skip_review: document.getElementById('run-skip-review').checked,
       skip_llm: document.getElementById('run-skip-llm').checked,
     };
@@ -2381,41 +2389,56 @@ function _refreshEngagementListSilent(engs) {
 
 const SETTINGS_KEY = 'csr_settings';
 const DEFAULT_SETTINGS = {
-  aws_region:   'ap-southeast-2',
-  aws_profile:  'default',
-  model_id:     'anthropic.claude-opus-4-8',
-  output_dir:   '',
-  skip_review:  false,
-  skip_llm:     false,
+  aws_region:       'ap-southeast-2',
+  aws_profile:      'default',
+  deployment_name:  'arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh',
+  output_dir:       '',
+  skip_review:      false,
+  skip_llm:         false,
 };
 
 function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     const s   = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
-    document.getElementById('setting-aws-region').value  = s.aws_region;
-    document.getElementById('setting-aws-profile').value = s.aws_profile;
-    document.getElementById('setting-model-id').value    = s.model_id;
-    document.getElementById('setting-output-dir').value  = s.output_dir;
-    document.getElementById('setting-skip-review').checked = s.skip_review;
-    document.getElementById('setting-skip-llm').checked    = s.skip_llm;
+    document.getElementById('setting-aws-region').value      = s.aws_region;
+    document.getElementById('setting-aws-profile').value     = s.aws_profile;
+    document.getElementById('setting-deployment-name').value = s.deployment_name || '';
+    document.getElementById('setting-output-dir').value      = s.output_dir;
+    document.getElementById('setting-skip-review').checked   = s.skip_review;
+    document.getElementById('setting-skip-llm').checked      = s.skip_llm;
   } catch(e) {}
 }
 
 function saveSettings() {
   const s = {
-    aws_region:  document.getElementById('setting-aws-region').value.trim() || 'ap-southeast-2',
-    aws_profile: document.getElementById('setting-aws-profile').value.trim() || 'default',
-    model_id:    document.getElementById('setting-model-id').value.trim() || 'anthropic.claude-opus-4-8',
-    output_dir:  document.getElementById('setting-output-dir').value.trim(),
-    skip_review: document.getElementById('setting-skip-review').checked,
-    skip_llm:    document.getElementById('setting-skip-llm').checked,
+    aws_region:      document.getElementById('setting-aws-region').value.trim() || 'ap-southeast-2',
+    aws_profile:     document.getElementById('setting-aws-profile').value.trim() || 'default',
+    deployment_name: document.getElementById('setting-deployment-name').value.trim(),
+    output_dir:      document.getElementById('setting-output-dir').value.trim(),
+    skip_review:     document.getElementById('setting-skip-review').checked,
+    skip_llm:        document.getElementById('setting-skip-llm').checked,
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-  const alert = document.getElementById('settings-alert');
-  alert.className = 'alert alert-success visible';
-  alert.textContent = 'Settings saved.';
-  setTimeout(() => alert.classList.remove('visible'), 2500);
+  // Show confirmation — use a dedicated element to avoid conflicts with
+  // the global 'alert' variable name which shadows the DOM method
+  const alertEl = document.getElementById('settings-alert');
+  if (alertEl) {
+    alertEl.className = 'alert alert-success visible';
+    alertEl.textContent = 'Settings saved successfully.';
+    alertEl.style.display = 'block';
+    alertEl.style.background = 'var(--success-bg)';
+    alertEl.style.color = 'var(--success)';
+    alertEl.style.border = '1px solid #86efac';
+    alertEl.style.padding = '10px 14px';
+    alertEl.style.borderRadius = '4px';
+    alertEl.style.fontSize = '13px';
+    alertEl.style.marginTop = '12px';
+    setTimeout(() => {
+      alertEl.style.display = 'none';
+      alertEl.className = 'alert';
+    }, 3000);
+  }
 }
 
 function getSettings() {
@@ -2669,6 +2692,26 @@ async function launchMockRun() {
     }, 3000);
   } catch(e) {
     alert('Mock run failed: ' + e.message);
+  }
+}
+
+
+// ── Preflight back button ─────────────────────────────────────────────
+async function backFromPreflight() {
+  closeModal('modal-preflight');
+
+  // Delete the stale pending run that was created just for preflight
+  // so it doesn't clutter the run history
+  if (pendingRunRecord) {
+    try {
+      await api('DELETE', `/runs/${pendingRunRecord.id}`, null);
+    } catch(e) { /* non-fatal */ }
+    pendingRunRecord = null;
+  }
+
+  // Reopen the run config modal so analyst can adjust and retry
+  if (currentEngagementId) {
+    openNewRunModal(currentEngagementId);
   }
 }
 

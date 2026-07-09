@@ -256,6 +256,7 @@ async def create_run(
             analyst=eng["analyst"],
             aws_region=body.aws_region,
             template_path=prowler_tmpl,
+            deployment_name=getattr(body, "deployment_name", "") or "",
         )
         config_path_str = str(config_path)
     elif body.pipeline == PipelineType.SCUBAGEAR:
@@ -267,6 +268,7 @@ async def create_run(
             aws_region=body.aws_region,
             tenant_id=body.tenant_id,
             template_path=scuba_tmpl,
+            deployment_name=getattr(body, "deployment_name", "") or "",
         )
         config_path_str = str(config_path)
 
@@ -905,3 +907,27 @@ async def create_mock_run(db: aiosqlite.Connection = Depends(get_db)):
 
     asyncio.create_task(_mock_pipeline())
     return {"run_id": run_id, "message": "Mock run started — connect to /api/runs/{run_id}/stream"}
+
+
+@router.delete("/runs/{run_id}")
+async def delete_run(
+    run_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Delete a pending run record and its logs.
+    Only pending runs can be deleted — active/complete runs are preserved.
+    """
+    cursor = await db.execute("SELECT status FROM runs WHERE id = ?", (run_id,))
+    row = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Run not found")
+    if row[0] != "pending":
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only pending runs can be deleted (status: {row[0]})",
+        )
+    await db.execute("DELETE FROM run_logs WHERE run_id = ?", (run_id,))
+    await db.execute("DELETE FROM runs WHERE id = ?", (run_id,))
+    await db.commit()
+    return {"deleted": True, "run_id": run_id}

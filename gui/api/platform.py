@@ -231,6 +231,20 @@ def run_preflight(
 
     # ── 2. Prowler installed ──────────────────────────────────────────
     if pipeline in ("prowler", "both"):
+        import sys as _sys
+        py_minor = _sys.version_info.minor
+        py_major = _sys.version_info.major
+        if py_major == 3 and py_minor > 12:
+            checks.append(PreflightCheck(
+                name="Python version",
+                status="warning",
+                message=(
+                    f"System Python is 3.{py_minor}. Prowler requires Python 3.12 or below. "
+                    f"The startup script installs Prowler using Python 3.12 automatically."
+                ),
+                blocking=False,
+            ))
+
         prowler_ok, prowler_ver = prowler_installed()
         if prowler_ok:
             checks.append(PreflightCheck(
@@ -240,12 +254,11 @@ def run_preflight(
                 blocking=False,
             ))
         else:
-            msg = "Prowler not installed. Install via: uv tool install prowler"
-            if os_name == "windows":
-                msg += (
-                    "\n\nNote: Prowler on Windows may have dependency issues. "
-                    "If installation fails, see https://docs.prowler.com for WSL instructions."
-                )
+            msg = (
+                "Prowler not installed. Run start.ps1 / start.sh which installs "
+                "Prowler using Python 3.12 automatically.\n\n"
+                "Or manually: uv tool install prowler --python 3.12"
+            )
             checks.append(PreflightCheck(
                 name="Prowler",
                 status="error",

@@ -147,6 +147,12 @@ def build_env(run: dict) -> dict[str, str]:
     """
     env = os.environ.copy()
 
+    # Force UTF-8 for subprocess stdout/stderr on Windows.
+    # Without this, the Windows console CP1252 codec crashes on Unicode
+    # characters printed by the pipeline (e.g. checkmarks, arrows).
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONUTF8"] = "1"  # Python 3.7+ UTF-8 mode
+
     cred_source = run.get("credential_source", "profile")
 
     if cred_source == "profile" and run.get("aws_profile"):

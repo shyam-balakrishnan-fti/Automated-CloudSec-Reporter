@@ -66,6 +66,9 @@ class RunCreate(BaseModel):
     input_format:      str = Field(default="auto")
     tenant_id:         str = Field(default="")
 
+    # Bedrock inference profile ARN or deployment name
+    deployment_name:   str = Field(default="")
+
     # AWS credentials
     credential_source: CredentialSource = CredentialSource.PROFILE
     aws_profile:       str = Field(default="")

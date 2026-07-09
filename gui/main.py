@@ -1,17 +1,16 @@
 """
-main.py — FastAPI application entry point for the Cloud Security Reporter GUI.
+main.py - FastAPI application entry point for the Cloud Security Reporter GUI.
 
 Start with:
-    uv run uvicorn main:app --reload --port 8000
-
-Or via the launcher:
     uv run python main.py
+
+Do NOT use --reload in production — it restarts the server on file changes,
+killing all active SSE streams and orphaning running pipeline subprocesses.
 """
 
 from __future__ import annotations
 
 import sys
-import webbrowser
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -43,24 +42,31 @@ app = FastAPI(
     redoc_url=None,
 )
 
-# ── Static files and templates ────────────────────────────────────────
+# Static files and templates
 app.mount("/static", StaticFiles(directory=_HERE / "static"), name="static")
 templates = Jinja2Templates(directory=_HERE / "templates")
 
-# ── API routes ────────────────────────────────────────────────────────
+# API routes
 app.include_router(router, prefix="/api")
 
 
-# ── Frontend catch-all — serve the SPA shell for all non-API routes ──
 @app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
 async def spa_shell(request: Request, full_path: str):
-    """Serve the SPA shell for all frontend routes."""
     return templates.TemplateResponse(request=request, name="index.html")
 
 
-# ── Dev launcher ──────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = 8000
     print(f"\n  Cloud Security Reporter GUI")
-    print(f"  http://localhost:{port}\n")
-    uvicorn.run("main:app", host="127.0.0.1", port=port, reload=True)
+    print(f"  http://localhost:{port}")
+    print(f"  Press Ctrl+C to stop\n")
+
+    uvicorn.run(
+        "main:app",
+        host="127.0.0.1",
+        port=port,
+        # NO reload=True — file watching kills active pipeline runs
+        # To apply code changes, stop and restart the server manually
+        reload=False,
+        log_level="warning",  # suppress INFO noise in production
+    )

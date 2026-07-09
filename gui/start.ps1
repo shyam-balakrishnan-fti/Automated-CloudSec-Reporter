@@ -58,6 +58,11 @@ foreach ($cmd in @("python", "python3", "py")) {
             if ($major -ge $PYTHON_MIN_MAJOR -and $minor -ge $PYTHON_MIN_MINOR) {
                 $pythonCmd = $cmd
                 Write-Success "Found: $cmd ($ver)"
+                if ($minor -gt 12) {
+                    Write-Warn "Python $ver detected. Prowler requires Python 3.12 or below."
+                    Write-Warn "uv will install Prowler using Python 3.12 automatically."
+                    Write-Warn "The GUI will continue using Python $ver."
+                }
                 break
             } else {
                 Write-Warn "$cmd version $ver is below minimum 3.11"
@@ -103,13 +108,22 @@ if (-not $uvCmd) {
 # -- 4. Prowler ------------------------------------------------
 Write-Header "Step 4: Prowler"
 
+# Fix OneDrive hardlink error (os error 396).
+# uv uses hardlinks for caching; OneDrive blocks hardlinks on synced paths.
+# Force copy mode and move cache outside OneDrive.
+$env:UV_LINK_MODE = "copy"
+$env:UV_CACHE_DIR = "C:\uv-cache"
+Write-Info "uv link mode: copy (avoids OneDrive hardlink conflicts)"
+
 $prowlerCmd = Get-Command prowler -ErrorAction SilentlyContinue
 if ($prowlerCmd) {
     Write-Success "Already installed"
 } else {
     Write-Info "Installing Prowler via uv tool install..."
     try {
-        uv tool install prowler
+        # Install Prowler using Python 3.12 -- pandas 2.x has no wheels for 3.14+
+        # uv will download Python 3.12 automatically if not present
+        uv tool install prowler --python 3.12 --link-mode copy
         Write-Success "Prowler installed"
         Write-Warn "Note: Prowler on Windows may require WSL for full functionality."
         Write-Warn "See https://docs.prowler.com if you encounter runtime errors."
@@ -145,14 +159,15 @@ $venvPath   = Join-Path $REPO_ROOT ".venv"
 $venvPython = Join-Path $venvPath "Scripts\python.exe"
 
 if (-not (Test-Path $venvPath)) {
-    Write-Info "Creating root venv at $venvPath..."
-    uv venv $venvPath --python $pythonCmd
+    Write-Info "Creating root venv at $venvPath (Python 3.12 for pandas compatibility)..."
+    # Use Python 3.12 for the pipeline venv -- pandas 2.x has no wheels for 3.14+
+    uv venv $venvPath --python 3.12
 }
 
 Write-Info "Installing openpyxl, pydantic, boto3, tomli..."
 try {
     uv pip install --python $venvPython openpyxl pydantic boto3 tomli `
-        "pandas>=2.0.0" --only-binary pandas --quiet
+        "pandas>=2.0.0" --only-binary pandas --link-mode copy --quiet
     Write-Success "Pipeline dependencies ready"
 } catch {
     Write-Warn "Some dependencies failed: $_"
