@@ -1,0 +1,144 @@
+======================================================================
+STAGE 2 — DETERMINISTIC PROCESS SUMMARY
+======================================================================
+Run ID              : e2b2d521-1340-45b2-8f3e-a2bd7d953407
+Total findings in   : 71
+Included (working)  : 16
+Excluded (filtered) : 33
+Duplicates removed  : 22
+Output groups       : 1
+
+EXCLUDED FINDINGS (33) — preserved in canonical JSON:
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  None | ausbeefchain.com | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+
+DUPLICATES (22) — preserved in canonical JSON:
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=10212e8d-3679-447b-912a-b29fb7a50405
+    Duplicate of: e012079d-031a-4ad5-9b49-1e9f6c97d9e1
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=10212e8d-3679-447b-912a-b29fb7a50405
+    Duplicate of: e012079d-031a-4ad5-9b49-1e9f6c97d9e1
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=conditionalAccessPolicies
+    Duplicate of: 279232db-94ba-488e-9de7-00e8aa65e441
+  None | ausbeefchain.com | resource=authorizationPolicy
+    Duplicate of: d190b0d5-6034-4a89-b549-5f1360c66ef6
+  None | ausbeefchain.com | resource=authorizationPolicy
+    Duplicate of: d190b0d5-6034-4a89-b549-5f1360c66ef6
+  None | ausbeefchain.com | resource=authorizationPolicy
+    Duplicate of: d190b0d5-6034-4a89-b549-5f1360c66ef6
+  None | ausbeefchain.com | resource=b01ca034-94aa-493c-a99f-219eae2ba690
+    Duplicate of: c49ffcba-b0f3-483e-bf85-57f7dcaf6445
+
+OUTPUT GROUPS (1) — one row per check in the final report:
+  #   Section  Severity       Likelihood   Inst  Check ID
+  --- -------- -------------- ------------ ----  ----------------------------------------
+  1   AWS      high          High          16  unknown
+
+GROUP DETAIL:
+  ── unknown ──
+     Instances       : 16
+     Accounts        : ['ausbeefchain.com']
+     Likelihood      : High
+     Severity        : high
+     Representative  : Sheet:json Row:2
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+WARNINGS (0):
+  None

@@ -1,0 +1,32 @@
+======================================================================
+STAGE 1 — INGEST & PARSE SUMMARY
+======================================================================
+Run ID           : e2b2d521-1340-45b2-8f3e-a2bd7d953407
+Source file      : /home/shyam-balakrishnan/output/prowler-output-ausbeefchain.com-20260626023226.ocsf.json
+SHA-256          : edd00819b78f5bdb2766144b93f5c1fc026f6a16429835f7e2afdbb9e45b55f1
+Scanner          : prowler v5.31.0
+Sheet detected   : json
+Rows read        : 71
+Findings parsed  : 71
+Unknown columns  : none
+Ingested at      : 2026-07-06T05:57:39.604945
+
+STATUS BREAKDOWN:
+  FAIL                     : 38
+  MANUAL                   : 3
+  PASS                     : 30
+
+BLANK VALUE CLASSIFICATIONS:
+  Category 2 — DESCRIPTION blank      : 0
+  Category 2 — RISK blank              : 0
+  Category 2 — REMEDIATION_TEXT blank  : 0
+  Category 1 — REGION blank (global)   : 0
+
+MUTED RECONCILIATIONS: 0
+
+ARN FALLBACKS (name used instead of ARN): 0
+
+FLAGGED FOR HUMAN REVIEW: 0
+
+WARNINGS (1):
+  OCSF_FORMAT_DETECTED               : 1

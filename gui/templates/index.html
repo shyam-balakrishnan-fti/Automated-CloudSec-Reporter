@@ -1,0 +1,2730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Automated Cloud Security Reporter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap&font-display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"></noscript>
+<style>
+/* ── Design tokens (identical to review UIs) ────────────────────── */
+:root {
+  --navy:#002A54; --navy-light:#0a3d6e; --navy-pale:#e9eef4;
+  --teal:#007A87; --teal-light:#e3f1f3; --teal-dark:#005f69;
+  --bg:#f4f6f8; --sidebar:#002A54; --card:#fff; --border:#d8dee5;
+  --accent:#007A87; --accent-bg:#e3f1f3; --accent-2:#005f69;
+  --text:#1a2b3c; --text-2:#4a5b6c; --muted:#7a8a99;
+  --success:#0f7a3d; --success-bg:#eaf6ef;
+  --danger:#a8231f; --danger-bg:#fbeceb;
+  --warning:#9a5b00; --warning-bg:#fdf3e3;
+  --high-bg:#fbeceb; --high-fg:#a8231f;
+  --medium-bg:#fdf3e3; --medium-fg:#9a5b00;
+  --low-bg:#eaf6ef; --low-fg:#0f7a3d;
+  --info-bg:#eef1f4; --info-fg:#5a6b7a;
+  --fh:"Source Sans 3","Segoe UI",Arial,sans-serif;
+  --fb:"Source Sans 3","Segoe UI",Arial,sans-serif;
+  --mono:"IBM Plex Mono","Consolas",monospace;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { height:100%; overflow:hidden; font-family:var(--fb); }
+body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width:230px; min-width:230px; background:var(--sidebar);
+  display:flex; flex-direction:column; height:100vh; overflow-y:auto;
+}
+.sb-logo {
+  padding:18px 16px 12px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.logo-ph {
+  height:32px; width:120px;
+  background:rgba(255,255,255,0.05);
+  border:1px dashed rgba(255,255,255,0.12);
+  border-radius:4px; display:flex; align-items:center;
+  justify-content:center; font-size:9px; color:#4a6080;
+  margin-bottom:10px;
+}
+.sb-product {
+  font-size:10px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#6b8cba; font-family:var(--fh);
+}
+.sb-tagline {
+  font-size:11px; color:#8896a5; margin-top:3px; line-height:1.4;
+}
+
+.sb-section { padding:12px 16px 6px; }
+.sb-section-title {
+  font-size:10px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:#4a6080; margin-bottom:8px;
+  font-family:var(--fh);
+}
+
+.sb-nav { padding:8px 0; }
+.nav-item {
+  display:flex; align-items:center; gap:9px;
+  padding:8px 16px; font-size:13px; font-weight:500;
+  color:#8896a5; cursor:pointer; border:none; background:none;
+  width:100%; text-align:left; border-left:2px solid transparent;
+  transition:all .12s; font-family:var(--fb);
+}
+.nav-item:hover { color:#c8d6e8; background:rgba(255,255,255,0.04); }
+.nav-item.active {
+  color:#e8edf5; border-left-color:var(--teal);
+  background:rgba(0,122,135,0.12);
+}
+.nav-item .nav-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+.nav-item .nav-badge {
+  margin-left:auto; font-size:10px; font-weight:700;
+  background:var(--teal); color:#fff;
+  padding:1px 6px; border-radius:10px; font-family:var(--mono);
+}
+
+.sb-platform {
+  margin-top:auto; padding:12px 16px;
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.platform-row {
+  display:flex; align-items:center; gap:7px;
+  font-size:11px; color:#4a6080; padding:3px 0;
+}
+.platform-dot {
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+}
+.platform-dot.ok { background:#16a34a; }
+.platform-dot.warn { background:#d97706; }
+.platform-dot.err { background:#dc2626; }
+
+/* ── Main content area ── */
+.main {
+  flex:1; display:flex; flex-direction:column;
+  height:100vh; overflow:hidden;
+}
+
+/* ── Topbar ── */
+.topbar {
+  background:var(--card); border-bottom:1px solid var(--border);
+  padding:12px 24px; display:flex; align-items:center;
+  gap:12px; flex-shrink:0;
+}
+.topbar-title {
+  font-size:15px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.topbar-sub { font-size:12px; color:var(--muted); }
+.topbar-actions { margin-left:auto; display:flex; gap:8px; }
+
+/* ── Buttons ── */
+.btn {
+  padding:7px 16px; border-radius:5px; border:1px solid var(--border);
+  font-size:13px; font-weight:600; cursor:pointer;
+  font-family:var(--fb); transition:all .12s; white-space:nowrap;
+}
+.btn-primary {
+  background:var(--accent); color:#fff; border-color:var(--accent);
+}
+.btn-primary:hover { background:var(--accent-2); border-color:var(--accent-2); }
+.btn-primary:disabled { background:#94a3b8; border-color:#94a3b8; cursor:not-allowed; }
+.btn-ghost {
+  background:transparent; color:var(--text-2); border-color:var(--border);
+}
+.btn-ghost:hover { background:var(--bg); }
+.btn-danger {
+  background:transparent; color:var(--danger); border-color:#fecaca;
+}
+.btn-danger:hover { background:var(--danger-bg); }
+
+/* ── Content area ── */
+.content { flex:1; overflow-y:auto; padding:24px; }
+
+/* ── Page sections (views) ── */
+.view { display:none; }
+.view.active { display:block; }
+
+/* ── Page header ── */
+.page-header { margin-bottom:20px; }
+.page-title {
+  font-size:18px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.page-sub { font-size:13px; color:var(--muted); margin-top:3px; }
+
+/* ── Cards ── */
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:4px; padding:20px;
+}
+.card + .card { margin-top:14px; }
+.card-title {
+  font-size:13px; font-weight:700; color:var(--text);
+  font-family:var(--fh); margin-bottom:14px;
+}
+
+/* ── Engagement list ── */
+.eng-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
+  gap:14px;
+}
+.eng-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:4px; padding:16px 18px; cursor:pointer;
+  transition:border-color .12s, box-shadow .12s;
+  border-top:3px solid var(--border);
+}
+.eng-card:hover {
+  border-color:var(--accent);
+  box-shadow:0 2px 8px rgba(0,122,135,0.08);
+}
+.eng-card.has-runs { border-top-color:var(--teal); }
+.eng-name {
+  font-size:14px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.eng-meta { font-size:11px; color:var(--muted); margin-top:4px; }
+.eng-footer {
+  display:flex; align-items:center; gap:8px;
+  margin-top:12px; padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.eng-badge {
+  font-size:10px; padding:2px 7px; border-radius:3px;
+  font-weight:600; letter-spacing:.02em;
+}
+.eng-badge-prowler   { background:#dbeafe; color:#1d4ed8; }
+.eng-badge-scubagear { background:#f3e8ff; color:#7e22ce; }
+.eng-badge-both      { background:#fef9c3; color:#92400e; }
+.eng-run-count {
+  margin-left:auto; font-size:11px; color:var(--muted);
+  font-family:var(--mono);
+}
+
+/* ── Status badges ── */
+.status-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:11px; font-weight:600; padding:2px 8px;
+  border-radius:3px; letter-spacing:.02em;
+}
+.status-pending    { background:var(--info-bg);    color:var(--info-fg); }
+.status-running    { background:#dbeafe;            color:#1d4ed8; }
+.status-awaiting_review { background:var(--warning-bg); color:var(--warning); }
+.status-enriching  { background:#f0fdf4;            color:#15803d; }
+.status-complete   { background:var(--success-bg);  color:var(--success); }
+.status-failed     { background:var(--danger-bg);   color:var(--danger); }
+.status-cancelled  { background:var(--info-bg);     color:var(--info-fg); }
+
+/* ── Forms ── */
+.form-row { margin-bottom:14px; }
+.form-row label {
+  display:block; font-size:11px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:5px; font-family:var(--fh);
+}
+.form-row input,
+.form-row select,
+.form-row textarea {
+  width:100%; border:1px solid var(--border); border-radius:5px;
+  padding:8px 10px; font-size:13px; font-family:var(--fb);
+  background:#fff; color:var(--text); transition:border-color .12s;
+}
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+  outline:none; border-color:var(--accent);
+  box-shadow:0 0 0 2px var(--accent-bg);
+}
+.form-row textarea { resize:vertical; min-height:60px; }
+.form-hint { font-size:11px; color:var(--muted); margin-top:4px; }
+.form-error {
+  font-size:11px; color:var(--danger); margin-top:4px; display:none;
+}
+.form-error.visible { display:block; }
+
+.form-grid-2 {
+  display:grid; grid-template-columns:1fr 1fr; gap:14px;
+}
+
+/* ── Credential toggle ── */
+.cred-toggle {
+  display:flex; gap:0; border:1px solid var(--border);
+  border-radius:5px; overflow:hidden; margin-bottom:14px;
+}
+.cred-opt {
+  flex:1; padding:7px 12px; font-size:12px; font-weight:600;
+  cursor:pointer; border:none; background:#fff; color:var(--text-2);
+  font-family:var(--fb); transition:all .12s; text-align:center;
+}
+.cred-opt.active { background:var(--accent); color:#fff; }
+.cred-section { display:none; }
+.cred-section.visible { display:block; }
+
+/* ── Preflight checks ── */
+.preflight-list { display:flex; flex-direction:column; gap:8px; }
+.preflight-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 12px; border-radius:4px;
+  border:1px solid var(--border); background:#fafbfc;
+}
+.preflight-item.ok     { border-color:#bbf7d0; background:#f0fdf4; }
+.preflight-item.warning{ border-color:#fed7aa; background:var(--warning-bg); }
+.preflight-item.error  { border-color:#fecaca; background:var(--danger-bg); }
+.pi-icon { font-size:15px; flex-shrink:0; margin-top:1px; }
+.pi-body { flex:1; min-width:0; }
+.pi-name {
+  font-size:12px; font-weight:700; color:var(--text);
+  font-family:var(--fh);
+}
+.pi-msg {
+  font-size:11px; color:var(--text-2); margin-top:2px;
+  line-height:1.5; white-space:pre-wrap; font-family:var(--mono);
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align:center; padding:60px 20px; color:var(--muted);
+}
+.empty-icon { font-size:40px; margin-bottom:12px; }
+.empty-title {
+  font-size:15px; font-weight:600; color:var(--text-2);
+  font-family:var(--fh); margin-bottom:6px;
+}
+.empty-sub { font-size:13px; }
+
+/* ── Modal overlay ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.4);
+  display:flex; align-items:center; justify-content:center;
+  z-index:200; display:none;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--card); border-radius:6px;
+  border:1px solid var(--border);
+  width:540px; max-width:calc(100vw - 48px);
+  max-height:calc(100vh - 80px); overflow-y:auto;
+  box-shadow:0 8px 32px rgba(0,0,0,0.18);
+}
+.modal-header {
+  padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.modal-title {
+  font-size:15px; font-weight:700; color:var(--text);
+  font-family:var(--fh); flex:1;
+}
+.modal-close {
+  background:none; border:none; color:var(--muted);
+  font-size:18px; cursor:pointer; padding:2px 6px;
+  border-radius:4px; line-height:1;
+}
+.modal-close:hover { background:var(--bg); color:var(--text); }
+.modal-body { padding:20px; }
+.modal-footer {
+  padding:14px 20px;
+  border-top:1px solid var(--border);
+  display:flex; justify-content:flex-end; gap:8px;
+}
+
+/* ── Alert banner ── */
+.alert {
+  padding:10px 14px; border-radius:4px; font-size:12px;
+  margin-bottom:14px; display:none; border:1px solid transparent;
+}
+.alert.visible { display:block; }
+.alert-info    { background:var(--accent-bg); color:var(--teal-dark); border-color:#a7d9dd; }
+.alert-success { background:var(--success-bg); color:var(--success); border-color:#86efac; }
+.alert-warn    { background:var(--warning-bg); color:var(--warning); border-color:#fed7aa; }
+.alert-error   { background:var(--danger-bg); color:var(--danger); border-color:#fecaca; }
+
+/* ── Spinner ── */
+@keyframes spin { to { transform:rotate(360deg); } }
+.spinner {
+  width:13px; height:13px;
+  border:2px solid #e5e7eb;
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+  display:inline-block; vertical-align:middle;
+}
+.spinner-lg {
+  width:24px; height:24px; border-width:3px;
+}
+
+/* ── Divider ── */
+.divider {
+  border:none; border-top:1px solid var(--border); margin:20px 0;
+}
+
+/* ── Platform unavailable notice ── */
+.unavailable-notice {
+  background:var(--info-bg); border:1px solid var(--border);
+  border-radius:4px; padding:12px 16px; font-size:12px;
+  color:var(--info-fg); display:flex; align-items:flex-start; gap:8px;
+}
+.unavailable-notice .un-icon { font-size:15px; flex-shrink:0; }
+/* ── Review iframe ── */
+.review-iframe-container {
+  width:100%; height:calc(100vh - 220px); min-height:500px;
+  border:1px solid var(--border); border-radius:4px;
+  background:#fff; overflow:hidden; display:none;
+  margin-top:14px;
+}
+.review-iframe-container.visible { display:block; }
+.review-iframe-container iframe {
+  width:100%; height:100%; border:none;
+}
+
+/* ── Progress timeline ── */
+.progress-timeline {
+  display:flex; flex-direction:column; gap:0;
+  margin-bottom:14px;
+}
+.timeline-item {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:10px 0; position:relative;
+}
+.timeline-item:not(:last-child)::after {
+  content:''; position:absolute;
+  left:10px; top:32px; bottom:-2px;
+  width:2px; background:var(--border);
+}
+.timeline-item.done::after  { background:var(--success); }
+.timeline-item.active::after { background:var(--accent); }
+.tl-dot {
+  width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; margin-top:1px; z-index:1;
+  border:2px solid var(--border); background:#fff; color:var(--muted);
+}
+.timeline-item.done  .tl-dot { background:var(--success); border-color:var(--success); color:#fff; }
+.timeline-item.active .tl-dot { background:var(--accent);  border-color:var(--accent);  color:#fff; }
+.timeline-item.failed .tl-dot { background:var(--danger);  border-color:var(--danger);  color:#fff; }
+.tl-body { flex:1; min-width:0; padding-top:1px; }
+.tl-title {
+  font-size:13px; font-weight:600; color:var(--text);
+  font-family:var(--fh);
+}
+.timeline-item.done  .tl-title { color:var(--success); }
+.timeline-item.active .tl-title { color:var(--accent); }
+.timeline-item.failed .tl-title { color:var(--danger); }
+.tl-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.tl-lines {
+  font-family:var(--mono); font-size:11px; color:var(--text-2);
+  margin-top:6px; max-height:120px; overflow-y:auto;
+  background:var(--bg); border-radius:3px; padding:6px 8px;
+  border:1px solid var(--border); display:none;
+  white-space:pre-wrap; word-break:break-all; line-height:1.6;
+}
+.tl-lines.visible { display:block; }
+.tl-toggle {
+  font-size:10px; color:var(--accent); cursor:pointer;
+  margin-top:4px; display:none; font-family:var(--fh);
+}
+.tl-toggle.visible { display:inline-block; }
+
+/* ── Settings page ── */
+.settings-section { margin-bottom:24px; }
+.settings-section-title {
+  font-size:11px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--muted);
+  font-family:var(--fh); margin-bottom:12px;
+  padding-bottom:6px; border-bottom:1px solid var(--border);
+}
+
+/* ── Error banner ── */
+.error-banner {
+  background:var(--danger-bg); border:1px solid #fecaca;
+  border-radius:4px; padding:12px 16px; margin-bottom:14px;
+  display:none;
+}
+.error-banner.visible { display:block; }
+.error-banner-title {
+  font-size:13px; font-weight:700; color:var(--danger);
+  font-family:var(--fh); margin-bottom:4px;
+}
+.error-banner-msg { font-size:12px; color:var(--danger); font-family:var(--mono); }
+
+/* ── Output files list ── */
+.output-file-row {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.output-file-row:last-child { border-bottom:none; }
+.output-file-name {
+  font-family:var(--mono); font-weight:600; color:var(--text);
+  flex:0 0 auto; min-width:220px;
+}
+.output-file-type { color:var(--muted); flex:1; }
+.output-file-size {
+  font-family:var(--mono); font-size:11px; color:var(--muted);
+  flex:0 0 50px; text-align:right;
+}
+
+/* ── Run comparison table ── */
+.comparison-table {
+  width:100%; border-collapse:collapse; font-size:12px;
+}
+.comparison-table th {
+  text-align:left; padding:8px 10px;
+  font-size:10px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--border); font-family:var(--fh);
+}
+.comparison-table td {
+  padding:9px 10px; border-bottom:1px solid var(--border);
+  vertical-align:middle;
+}
+.comparison-table tr:last-child td { border-bottom:none; }
+.comparison-table tr:hover td { background:var(--bg); }
+.risk-cell-high   { color:var(--high-fg);   font-weight:700; font-family:var(--mono); }
+.risk-cell-medium { color:var(--medium-fg); font-weight:700; font-family:var(--mono); }
+.risk-cell-low    { color:var(--low-fg);    font-weight:700; font-family:var(--mono); }
+.risk-cell-none   { color:var(--muted);     font-family:var(--mono); }
+
+/* ── Run log panel ── */
+.run-log-panel {
+  background:#0d1117; border-radius:4px;
+  font-family:var(--mono); font-size:11px; color:#c9d1d9;
+  height:320px; overflow-y:auto;
+  border:1px solid #30363d; padding:10px 12px;
+}
+.run-log-panel .log-line { line-height:1.7; white-space:pre-wrap; word-break:break-all; }
+.run-log-panel .log-err  { color:#f85149; }
+.run-log-panel .log-ok   { color:#3fb950; }
+.run-log-panel .log-sep  { color:#484f58; }
+
+/* ── Stage progress ── */
+.stage-bar {
+  display:flex; align-items:center; gap:0;
+  margin-bottom:16px;
+}
+.stage-step {
+  flex:1; text-align:center; padding:7px 4px;
+  font-size:10px; font-weight:700; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid var(--border);
+  font-family:var(--fh); transition:all .2s;
+}
+.stage-step.active {
+  color:var(--accent); border-bottom-color:var(--accent);
+}
+.stage-step.done {
+  color:var(--success); border-bottom-color:var(--success);
+}
+.stage-step.failed {
+  color:var(--danger); border-bottom-color:var(--danger);
+}
+
+/* ── Review ready banner ── */
+.review-banner {
+  background:var(--warning-bg); border:1px solid #fed7aa;
+  border-radius:4px; padding:12px 16px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:14px; display:none;
+}
+.review-banner.visible { display:flex; }
+.review-banner-text { flex:1; font-size:13px; color:var(--warning); }
+.review-banner-title { font-weight:700; margin-bottom:2px; font-family:var(--fh); }
+.review-banner-sub { font-size:11px; }
+
+/* ── Output ready banner ── */
+.output-banner {
+  background:var(--success-bg); border:1px solid #86efac;
+  border-radius:4px; padding:12px 16px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:14px; display:none;
+}
+.output-banner.visible { display:flex; }
+
+/* ── Install log panel ── */
+.install-log {
+  background:#0d1117; border-radius:4px; padding:12px;
+  font-family:var(--mono); font-size:11px; color:#c9d1d9;
+  max-height:280px; overflow-y:auto; margin-top:12px;
+  border:1px solid #30363d; display:none;
+}
+.install-log.visible { display:block; }
+.install-log .log-line { line-height:1.6; white-space:pre-wrap; word-break:break-all; }
+.install-log .log-err { color:#f85149; }
+.install-log .log-ok  { color:#3fb950; }
+
+/* ── Tool card (sidebar + setup) ── */
+.tool-card {
+  border:1px solid var(--border); border-radius:4px;
+  padding:14px 16px; background:#fafbfc;
+}
+.tool-card + .tool-card { margin-top:10px; }
+.tool-card-header {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.tool-name {
+  font-size:13px; font-weight:700; color:var(--text); font-family:var(--fh);
+}
+.tool-version {
+  font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:2px;
+}
+.tool-status-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.btn-install {
+  padding:5px 12px; border-radius:4px; border:1px solid var(--accent);
+  background:var(--accent-bg); color:var(--accent);
+  font-size:12px; font-weight:600; cursor:pointer; font-family:var(--fb);
+  white-space:nowrap; transition:all .12s;
+}
+.btn-install:hover { background:var(--accent); color:#fff; }
+.btn-install:disabled { opacity:.5; cursor:not-allowed; }
+
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="logo-ph">YOUR LOGO</div>
+    <div class="sb-product">Automated Cloud Security Reporter</div>
+    <div class="sb-tagline">Pipeline management &amp; reporting</div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-section">
+      <div class="sb-section-title">Workspace</div>
+    </div>
+    <button class="nav-item active" data-view="dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">⊞</span> Dashboard
+    </button>
+    <button class="nav-item" data-view="engagements" onclick="navigate('engagements')">
+      <span class="nav-icon">◫</span> Engagements
+      <span class="nav-badge" id="nav-eng-count" style="display:none"></span>
+    </button>
+
+    <div class="sb-section" style="margin-top:8px">
+      <div class="sb-section-title">Pipelines</div>
+    </div>
+    <button class="nav-item" data-view="new-run" onclick="navigate('new-run')">
+      <span class="nav-icon">▷</span> New Run
+    </button>
+    <button class="nav-item" data-view="tools" onclick="navigate('tools')">
+      <span class="nav-icon">⚙</span> Tools &amp; Setup
+    </button>
+    <button class="nav-item" data-view="settings" onclick="navigate('settings')">
+      <span class="nav-icon">◈</span> Settings
+    </button>
+  </nav>
+
+  <div class="sb-platform" id="sb-platform">
+    <!-- populated by JS after /api/platform -->
+  </div>
+</aside>
+
+<!-- ── Main area ── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+    <span class="topbar-sub" id="topbar-sub"></span>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── Dashboard view ── -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Overview of engagements and recent pipeline runs</div>
+      </div>
+      <div id="dashboard-content">
+        <div class="empty-state">
+          <div class="spinner spinner-lg"></div>
+          <div class="empty-sub" style="margin-top:12px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Engagements view ── -->
+    <div class="view" id="view-engagements">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Engagements</div>
+          <div class="page-sub">Each engagement represents one client assessment</div>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateEngagement()">+ New Engagement</button>
+      </div>
+      <div id="engagements-list">
+        <div class="empty-state">
+          <div class="spinner spinner-lg"></div>
+          <div class="empty-sub" style="margin-top:12px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── New Run view ── -->
+    <div class="view" id="view-new-run">
+      <div class="page-header">
+        <div class="page-title">New Pipeline Run</div>
+        <div class="page-sub">Configure and queue a Prowler or ScubaGear run</div>
+      </div>
+      <div id="new-run-content">
+        <!-- populated by JS once platform info is loaded -->
+      </div>
+    </div>
+
+    <!-- ── Engagement detail view ── -->
+    <div class="view" id="view-engagement-detail">
+      <div class="page-header" style="display:flex;align-items:flex-start">
+        <div>
+          <button class="btn btn-ghost" style="margin-bottom:10px;padding:4px 10px;font-size:12px"
+                  onclick="navigate('engagements')">← Back to Engagements</button>
+          <div class="page-title" id="detail-title">Engagement</div>
+          <div class="page-sub" id="detail-sub"></div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;padding-top:26px">
+          <button class="btn btn-primary" onclick="openNewRunForEngagement()" id="btn-new-run-for-eng">
+            + New Run
+          </button>
+        </div>
+      </div>
+      <div id="engagement-detail-content"></div>
+    </div>
+
+
+    <!-- ── Tools & Setup view ── -->
+    <div class="view" id="view-tools">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Tools &amp; Setup</div>
+          <div class="page-sub">Install and verify scanner tools required by the pipelines</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" style="font-size:12px" onclick="launchMockRun()">
+            ▷ Test SSE (Mock Run)
+          </button>
+          <button class="btn btn-ghost" onclick="refreshToolStatus()" id="btn-refresh-tools">
+            ↻ Refresh Status
+          </button>
+        </div>
+      </div>
+      <!-- Quick start banner -->
+      <div class="card" style="margin-bottom:14px;border-left:3px solid var(--teal)">
+        <div class="card-title" style="margin-bottom:8px">First Time Setup</div>
+        <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">
+          Run the startup script to automatically install all dependencies and launch the GUI.
+          On subsequent launches, double-click the same script — it skips already-installed tools.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 14px;flex:1;min-width:200px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Linux / macOS</div>
+            <code style="font-family:var(--mono);font-size:12px;color:var(--text)">bash gui/start.sh</code>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 14px;flex:1;min-width:200px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Windows</div>
+            <code style="font-family:var(--mono);font-size:12px;color:var(--text)">Right-click start.ps1 → Run with PowerShell</code>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px">
+          The script installs: uv · Prowler · ScubaGear (Windows only) · pipeline Python dependencies · GUI dependencies — then opens the browser automatically.
+        </div>
+      </div>
+      <div id="tools-content">
+        <div class="empty-state"><div class="spinner spinner-lg"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Run detail / live view ── -->
+    <div class="view" id="view-run-detail">
+      <div style="margin-bottom:14px">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+                id="btn-back-from-run" onclick="backFromRun()">← Back</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title" id="run-detail-title">Pipeline Run</div>
+          <div class="page-sub" id="run-detail-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px;padding-top:4px" id="run-detail-actions"></div>
+      </div>
+      <div class="stage-bar" id="stage-bar">
+        <div class="stage-step" id="stage-pending">Pending</div>
+        <div class="stage-step" id="stage-running">Running</div>
+        <div class="stage-step" id="stage-awaiting_review">Review</div>
+        <div class="stage-step" id="stage-enriching">Enriching</div>
+        <div class="stage-step" id="stage-complete">Complete</div>
+      </div>
+      <!-- Error banner -->
+      <div class="error-banner" id="run-error-banner">
+        <div class="error-banner-title" id="run-error-title">Pipeline Error</div>
+        <div class="error-banner-msg" id="run-error-msg"></div>
+      </div>
+
+      <!-- Output ready banner -->
+      <div class="output-banner" id="output-banner">
+        <div style="font-size:22px">✓</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--success);font-family:var(--fh)">Report Ready</div>
+          <div style="font-size:11px;color:var(--success);margin-top:2px" id="output-filename"></div>
+        </div>
+        <button class="btn btn-primary" id="btn-download-excel" onclick="downloadExcel()">Download Report</button>
+      </div>
+
+      <!-- Progress timeline (replaces raw terminal) -->
+      <div class="card" style="padding:16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">
+            Progress
+            <span class="spinner" id="log-spinner" style="margin-left:8px;display:none"></span>
+          </div>
+          <span style="font-size:11px;color:var(--muted)" id="log-elapsed"></span>
+        </div>
+        <div class="progress-timeline" id="progress-timeline"></div>
+      </div>
+
+      <!-- Review UI iframe (shown when awaiting_review) -->
+      <div class="review-iframe-container" id="review-iframe-container">
+        <iframe id="review-iframe" src="" title="Grouping Review"></iframe>
+      </div>
+
+      <!-- Output files panel -->
+      <div class="card" style="padding:14px;display:none" id="output-files-card">
+        <div class="card-title" style="margin-bottom:12px">Output Files</div>
+        <div id="output-files-list"></div>
+      </div>
+    </div>
+
+    <!-- ── Settings view ── -->
+    <div class="view" id="view-settings">
+      <div class="page-header">
+        <div class="page-title">Settings</div>
+        <div class="page-sub">Default values used when creating new runs</div>
+      </div>
+      <div id="settings-content">
+        <div class="card settings-section">
+          <div class="settings-section-title">AWS / Bedrock</div>
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label>Default AWS Region</label>
+              <input type="text" id="setting-aws-region" placeholder="ap-southeast-2">
+            </div>
+            <div class="form-row">
+              <label>Default AWS Profile</label>
+              <input type="text" id="setting-aws-profile" placeholder="default">
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Bedrock Deployment Name</label>
+            <input type="text" id="setting-deployment-name" placeholder="arn:aws:bedrock:...">
+            <div class="form-hint">
+              Your private inference profile ARN or deployment name.
+              Written as <code style="font-family:var(--mono);font-size:11px">deployment_name</code>
+              in every generated config.toml. Required for LLM enrichment.
+            </div>
+          </div>
+        </div>
+        <div class="card settings-section">
+          <div class="settings-section-title">Output</div>
+          <div class="form-row">
+            <label>Default Output Base Directory</label>
+            <input type="text" id="setting-output-dir" placeholder="Leave blank to use pipeline default">
+            <div class="form-hint">Absolute path. Pipeline appends client name as a subfolder.</div>
+          </div>
+        </div>
+        <div class="card settings-section">
+          <div class="settings-section-title">Pipeline Behaviour</div>
+          <div style="display:flex;gap:24px">
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="setting-skip-review"> Skip grouping review by default
+            </label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="setting-skip-llm"> Skip LLM enrichment by default
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          <button class="btn btn-ghost" onclick="loadSettings()">Reset</button>
+        </div>
+        <div class="alert" id="settings-alert" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Create Engagement Modal ── -->
+<div class="modal-overlay" id="modal-create-eng">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">New Engagement</span>
+      <button class="modal-close" onclick="closeModal('modal-create-eng')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" id="eng-form-error"></div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Client Name *</label>
+          <input type="text" id="eng-client" placeholder="Acme Corp" maxlength="120">
+          <div class="form-error" id="err-client">Required</div>
+        </div>
+        <div class="form-row">
+          <label>Assessment Period *</label>
+          <input type="text" id="eng-period" placeholder="July 2026" maxlength="60">
+          <div class="form-error" id="err-period">Required</div>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Analyst</label>
+          <input type="text" id="eng-analyst" placeholder="Your name" maxlength="80">
+        </div>
+        <div class="form-row">
+          <label>Pipeline Type *</label>
+          <select id="eng-pipeline">
+            <option value="prowler">Prowler (AWS / Azure)</option>
+            <option value="scubagear" id="opt-scubagear">ScubaGear (M365)</option>
+            <option value="both" id="opt-both">Both</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Notes</label>
+        <textarea id="eng-notes" placeholder="Optional notes about this engagement..." maxlength="2000"></textarea>
+      </div>
+      <div class="unavailable-notice" id="scuba-unavailable-notice" style="display:none">
+        <span class="un-icon">ℹ</span>
+        <span>ScubaGear is only available on Windows. On this platform, only Prowler runs are supported.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-create-eng')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateEngagement()">Create Engagement</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Run Modal ── -->
+<div class="modal-overlay" id="modal-new-run">
+  <div class="modal" style="width:600px">
+    <div class="modal-header">
+      <span class="modal-title">Configure Run</span>
+      <button class="modal-close" onclick="closeModal('modal-new-run')">✕</button>
+    </div>
+    <div class="modal-body" id="new-run-modal-body">
+      <!-- populated by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-run')">Cancel</button>
+      <button class="btn btn-primary" id="btn-run-preflight" onclick="runPreflight()">
+        Check Preflight →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Preflight Results Modal ── -->
+<div class="modal-overlay" id="modal-preflight">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <span class="modal-title">Preflight Checks</span>
+      <button class="modal-close" onclick="closeModal('modal-preflight')">✕</button>
+    </div>
+    <div class="modal-body" id="preflight-results-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="backFromPreflight()">Back</button>
+      <button class="btn btn-primary" id="btn-confirm-run" onclick="confirmRun()" disabled>
+        Start Run →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────
+let platform = null;
+let engagements = [];
+let currentEngagementId = null;
+let pendingRunConfig = null;  // holds run form data between preflight and confirm
+let pendingRunRecord = null;  // holds created run record after confirm
+
+// ── Navigation ───────────────────────────────────────────────────────
+const VIEW_TITLES = {
+  'dashboard': 'Dashboard',
+  'engagements': 'Engagements',
+  'new-run': 'New Run',
+  'tools': 'Tools & Setup',
+  'run-detail': 'Run',
+  'settings': 'Settings',
+  'engagement-detail': '',
+};
+
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const el = document.getElementById(`view-${view}`);
+  if (el) el.classList.add('active');
+
+  const navEl = document.querySelector(`[data-view="${view}"]`);
+  if (navEl) navEl.classList.add('active');
+
+  document.getElementById('topbar-title').textContent = VIEW_TITLES[view] || 'Dashboard';
+  document.getElementById('topbar-sub').textContent = '';
+  document.getElementById('topbar-actions').innerHTML = '';
+
+  if (view === 'engagements') loadEngagements();
+  if (view === 'dashboard') loadDashboard();
+  if (view === 'tools') loadTools();
+  if (view === 'settings') loadSettings();
+  // Stop engagement detail polling when navigating away from it
+  if (view !== 'engagement-detail' && _engDetailPoll) {
+    clearInterval(_engDetailPoll);
+    _engDetailPoll = null;
+  }
+  // Stop run detail polling when navigating away from run detail
+  if (view !== 'run-detail' && _runDetailPoll) {
+    clearInterval(_runDetailPoll);
+    _runDetailPoll = null;
+  }
+}
+
+// ── API helpers ───────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (body !== null && body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(`/api${path}`, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || res.statusText);
+  }
+  return res.json();
+}
+
+// ── Platform load ────────────────────────────────────────────────────
+let _platformLoading = false;
+async function loadPlatform(force = false) {
+  if (_platformLoading) return;           // prevent concurrent calls
+  if (platform && !force) {               // use cache unless forced
+    renderSidebarPlatform();
+    applyPlatformConstraints();
+    return;
+  }
+  _platformLoading = true;
+  try {
+    platform = await api('GET', '/platform');
+    renderSidebarPlatform();
+    applyPlatformConstraints();
+  } catch(e) {
+    document.getElementById('sb-platform').innerHTML =
+      `<div class="platform-row"><span class="platform-dot err"></span>Platform check failed</div>`;
+  } finally {
+    _platformLoading = false;
+  }
+}
+
+function renderSidebarPlatform() {
+  if (!platform) return;
+  const rows = [
+    { label: `OS: ${platform.os}`, ok: true },
+    { label: `Prowler: ${platform.prowler_installed ? 'installed' : 'not installed'}`, ok: platform.prowler_installed },
+    { label: `ScubaGear: ${platform.scubagear_available ? (platform.scubagear_installed ? 'installed' : 'not installed') : 'N/A (non-Windows)'}`,
+      ok: !platform.scubagear_available || platform.scubagear_installed },
+    { label: `uv: ${platform.uv_available ? 'available' : 'not found'}`, ok: platform.uv_available, warn: !platform.uv_available },
+  ];
+
+  document.getElementById('sb-platform').innerHTML = `
+    <div class="sb-section-title" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4a6080;margin-bottom:8px;font-family:var(--fh);padding:12px 16px 0">Environment</div>
+    ${rows.map(r => `
+      <div class="platform-row" style="padding:3px 16px">
+        <span class="platform-dot ${r.ok ? 'ok' : (r.warn ? 'warn' : 'err')}"></span>
+        <span>${r.label}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+function applyPlatformConstraints() {
+  if (!platform) return;
+  if (!platform.scubagear_available) {
+    const optScuba = document.getElementById('opt-scubagear');
+    const optBoth  = document.getElementById('opt-both');
+    if (optScuba) { optScuba.disabled = true; optScuba.textContent += ' (Windows only)'; }
+    if (optBoth)  { optBoth.disabled  = true; optBoth.textContent  += ' (Windows only)'; }
+    const notice = document.getElementById('scuba-unavailable-notice');
+    if (notice) notice.style.display = 'flex';
+  }
+}
+
+// ── Dashboard ────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const container = document.getElementById('dashboard-content');
+  try {
+    const engs = await api('GET', '/engagements');
+    engagements = engs;
+
+    const active  = engs.filter(e => !e.archived_at);
+    const running = active.filter(e => ['running','awaiting_review','enriching'].includes(e.last_run_status));
+    const done    = active.filter(e => e.last_run_status === 'complete');
+
+    document.getElementById('nav-eng-count').textContent = active.length;
+    document.getElementById('nav-eng-count').style.display = active.length ? '' : 'none';
+
+    if (!active.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◫</div>
+          <div class="empty-title">No engagements yet</div>
+          <div class="empty-sub">Create your first engagement to get started</div>
+          <br>
+          <button class="btn btn-primary" onclick="navigate('engagements');openCreateEngagement()">
+            + New Engagement
+          </button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px">
+        ${statCard('Active Engagements', active.length, '◫')}
+        ${statCard('Runs In Progress', running.length, '▷')}
+        ${statCard('Completed Runs', done.length, '✓')}
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Engagements</div>
+        <div class="eng-grid">
+          ${active.slice(0,6).map(e => engCardHTML(e)).join('')}
+        </div>
+        ${active.length > 6 ? `<div style="margin-top:14px;text-align:center">
+          <button class="btn btn-ghost" onclick="navigate('engagements')">View all ${active.length} engagements →</button>
+        </div>` : ''}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load dashboard: ${e.message}</div>`;
+  }
+}
+
+function statCard(label, value, icon) {
+  return `
+    <div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:28px;margin-bottom:6px">${icon}</div>
+      <div class="stat-value" style="font-size:28px;font-weight:700;color:var(--navy);font-family:var(--mono)">${value}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.06em">${label}</div>
+    </div>`;
+}
+
+// ── Engagements ───────────────────────────────────────────────────────
+async function loadEngagements() {
+  const container = document.getElementById('engagements-list');
+  try {
+    const engs = await api('GET', '/engagements');
+    engagements = engs;
+
+    document.getElementById('nav-eng-count').textContent = engs.length;
+    document.getElementById('nav-eng-count').style.display = engs.length ? '' : 'none';
+
+    if (!engs.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◫</div>
+          <div class="empty-title">No engagements yet</div>
+          <div class="empty-sub">Create your first engagement to begin a pipeline run</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="eng-grid">${engs.map(e => engCardHTML(e)).join('')}</div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load engagements: ${e.message}</div>`;
+  }
+}
+
+function engCardHTML(e) {
+  const pipeClass = `eng-badge-${e.pipeline_type}`;
+  const pipeLabel = { prowler:'Prowler', scubagear:'ScubaGear', both:'Both' }[e.pipeline_type] || e.pipeline_type;
+  const statusHtml = e.last_run_status
+    ? `<span class="status-badge status-${e.last_run_status}">${statusLabel(e.last_run_status)}</span>`
+    : `<span style="font-size:11px;color:var(--muted)">No runs yet</span>`;
+
+  return `
+    <div class="eng-card ${e.run_count > 0 ? 'has-runs' : ''}" onclick="openEngagementDetail('${e.id}')">
+      <div class="eng-name">${esc(e.client_name)}</div>
+      <div class="eng-meta">${esc(e.assessment_period)}${e.analyst ? ' · ' + esc(e.analyst) : ''}</div>
+      <div class="eng-footer">
+        <span class="eng-badge ${pipeClass}">${pipeLabel}</span>
+        ${statusHtml}
+        <span class="eng-run-count">${e.run_count} run${e.run_count !== 1 ? 's' : ''}</span>
+      </div>
+    </div>`;
+}
+
+function statusLabel(s) {
+  return { pending:'Pending', running:'Running', awaiting_review:'Awaiting Review',
+           enriching:'Enriching', complete:'Complete', failed:'Failed', cancelled:'Cancelled' }[s] || s;
+}
+
+// ── Engagement detail ─────────────────────────────────────────────────
+async function openEngagementDetail(engId) {
+  // Stop any existing poll from a previous engagement view
+  if (_engDetailPoll) { clearInterval(_engDetailPoll); _engDetailPoll = null; }
+
+  currentEngagementId = engId;
+  navigate('engagement-detail');
+
+  const eng = engagements.find(e => e.id === engId) || await api('GET', `/engagements/${engId}`);
+  document.getElementById('detail-title').textContent = eng.client_name;
+  document.getElementById('detail-sub').textContent =
+    `${eng.assessment_period}${eng.analyst ? ' · ' + eng.analyst : ''}`;
+  document.getElementById('topbar-title').textContent = eng.client_name;
+
+  await _refreshEngagementRuns(engId);
+
+  // Poll every 4 seconds while any run is active
+  _engDetailPoll = setInterval(async () => {
+    // Stop polling if we've navigated away from this engagement
+    if (currentEngagementId !== engId) {
+      clearInterval(_engDetailPoll);
+      _engDetailPoll = null;
+      return;
+    }
+    await _refreshEngagementRuns(engId, /* silent= */ true);
+  }, 4000);
+}
+
+async function _refreshEngagementRuns(engId, silent = false) {
+  const container = document.getElementById('engagement-detail-content');
+  if (!container) return;
+
+  if (!silent) {
+    container.innerHTML = `<div class="empty-state"><div class="spinner spinner-lg"></div></div>`;
+  }
+
+  try {
+    const runs = await api('GET', `/engagements/${engId}/runs`);
+
+    // Stop polling once all runs are in a terminal state
+    const activeStatuses = ['pending','running','awaiting_review','enriching'];
+    const hasActive = runs.some(r => activeStatuses.includes(r.status));
+    if (!hasActive && _engDetailPoll) {
+      clearInterval(_engDetailPoll);
+      _engDetailPoll = null;
+    }
+
+    if (!runs.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">▷</div>
+          <div class="empty-title">No runs yet</div>
+          <div class="empty-sub">Start the first pipeline run for this engagement</div>
+          <br>
+          <button class="btn btn-primary" onclick="openNewRunModal('${engId}')">+ New Run</button>
+        </div>`;
+      return;
+    }
+
+    // Load summary for comparison table (non-blocking — don't let it delay the run list)
+    let summary = { runs };
+    try {
+      summary = await api('GET', `/engagements/${engId}/summary`);
+    } catch(e) { /* use runs as fallback */ }
+
+    container.innerHTML = `
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+          Run History
+          <button class="btn btn-primary" style="font-size:12px;padding:5px 12px"
+                  onclick="openNewRunModal('${engId}')">+ New Run</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${runs.map(r => runRowHTML(r)).join('')}
+        </div>
+      </div>
+      ${runs.filter(r => r.risk_high != null).length > 1 ? runComparisonTable(summary.runs) : ''}
+    `;
+  } catch(e) {
+    if (!silent) {
+      container.innerHTML = `<div class="alert alert-error visible">Failed to load runs: ${e.message}</div>`;
+    }
+  }
+}
+
+function openNewRunForEngagement() {
+  if (currentEngagementId) openNewRunModal(currentEngagementId);
+}
+
+function runRowHTML(r, engId) {
+  engId = engId || currentEngagementId;
+  const created = new Date(r.created_at).toLocaleString();
+  const risk = (r.risk_high != null)
+    ? `<span style="color:var(--high-fg);font-weight:600">H:${r.risk_high}</span> `
+    + `<span style="color:var(--medium-fg);font-weight:600">M:${r.risk_medium}</span> `
+    + `<span style="color:var(--low-fg);font-weight:600">L:${r.risk_low}</span>`
+    : '—';
+
+  return `
+    <div style="padding:12px 14px;border:1px solid var(--border);border-radius:4px;background:#fafbfc">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="status-badge status-${r.status}">${statusLabel(r.status)}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono)">${r.pipeline}</span>
+        <span style="font-size:11px;color:var(--muted)">${created}</span>
+        <span style="margin-left:auto;font-size:11px;font-family:var(--mono)">${risk}</span>
+      </div>
+      ${r.input_file ? `<div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.input_file)}</div>` : ''}
+      <div style="margin-top:8px;display:flex;gap:8px">
+        ${r.status === 'pending' ? `
+          <button class="btn btn-primary" style="font-size:11px;padding:4px 10px"
+                  onclick="runPreflightForRun('${r.id}')">Run Preflight</button>` : ''}
+        ${['running','awaiting_review','enriching','complete','failed','cancelled'].includes(r.status) ? `
+          <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px"
+                  onclick="openRunDetail('${r.id}','${engId}')">
+            ${ r.status === 'awaiting_review' ? '⏸ Open Review'
+             : ['running','enriching'].includes(r.status) ? '▷ View Live'
+             : '▷ View Log'}
+          </button>` : ''}
+      </div>
+    </div>`;
+}
+
+// ── Create Engagement Modal ───────────────────────────────────────────
+function openCreateEngagement() {
+  document.getElementById('eng-client').value  = '';
+  document.getElementById('eng-period').value  = '';
+  document.getElementById('eng-analyst').value = '';
+  document.getElementById('eng-notes').value   = '';
+  document.getElementById('eng-pipeline').value = 'prowler';
+  document.getElementById('eng-form-error').classList.remove('visible');
+  document.querySelectorAll('.form-error').forEach(e => e.classList.remove('visible'));
+  openModal('modal-create-eng');
+}
+
+async function submitCreateEngagement() {
+  const client   = document.getElementById('eng-client').value.trim();
+  const period   = document.getElementById('eng-period').value.trim();
+  const analyst  = document.getElementById('eng-analyst').value.trim();
+  const pipeline = document.getElementById('eng-pipeline').value;
+  const notes    = document.getElementById('eng-notes').value.trim();
+
+  let valid = true;
+  if (!client)  { document.getElementById('err-client').classList.add('visible'); valid = false; }
+  else            document.getElementById('err-client').classList.remove('visible');
+  if (!period)  { document.getElementById('err-period').classList.add('visible'); valid = false; }
+  else            document.getElementById('err-period').classList.remove('visible');
+  if (!valid) return;
+
+  try {
+    const eng = await api('POST', '/engagements', { client_name:client, assessment_period:period,
+                                                     analyst, pipeline_type:pipeline, notes });
+    engagements.unshift(eng);
+    closeModal('modal-create-eng');
+    navigate('engagements');
+    loadEngagements();
+  } catch(e) {
+    const errEl = document.getElementById('eng-form-error');
+    errEl.textContent = `Failed to create engagement: ${e.message}`;
+    errEl.classList.add('visible');
+  }
+}
+
+// ── New Run Modal ─────────────────────────────────────────────────────
+function openNewRunModal(engId) {
+  currentEngagementId = engId;
+  const eng = engagements.find(e => e.id === engId);
+
+  const profiles = (platform && platform.aws_profiles.length) ? platform.aws_profiles : ['default'];
+  const profileOptions = profiles.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+
+  const scubaDisabled = platform && !platform.scubagear_available;
+  const pipelineOptions = `
+    <option value="prowler">Prowler</option>
+    ${scubaDisabled
+      ? `<option value="scubagear" disabled>ScubaGear (Windows only)</option>`
+      : `<option value="scubagear">ScubaGear</option>`}
+  `;
+
+  const _s = getSettings();
+  document.getElementById('new-run-modal-body').innerHTML = `
+    <div class="alert alert-error" id="run-form-error"></div>
+    <div class="form-row">
+      <label>Engagement</label>
+      <input type="text" value="${eng ? esc(eng.client_name) + ' — ' + esc(eng.assessment_period) : ''}" disabled>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Pipeline *</label>
+        <select id="run-pipeline" onchange="onRunPipelineChange()">${pipelineOptions}</select>
+      </div>
+      <div class="form-row">
+        <label>Input Format</label>
+        <select id="run-format">
+          <option value="auto">Auto-detect</option>
+          <option value="csv">CSV</option>
+          <option value="xlsx">XLSX</option>
+          <option value="json">JSON</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Input File Path *</label>
+      <input type="text" id="run-input" placeholder="/path/to/prowler-output.csv">
+      <div class="form-hint">Absolute path to the scanner output file on this machine</div>
+      <div class="form-error" id="err-run-input">Required</div>
+    </div>
+    <div class="form-row" id="row-tenant-id" style="display:none">
+      <label>Tenant ID *</label>
+      <input type="text" id="run-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      <div class="form-hint">Azure tenant UUID for ScubaGear</div>
+    </div>
+    <hr class="divider">
+    <div class="card-title" style="margin-bottom:12px">AWS Credentials</div>
+    <div class="cred-toggle">
+      <button class="cred-opt active" id="cred-opt-profile" onclick="setCredMode('profile')">Use Profile</button>
+      <button class="cred-opt" id="cred-opt-keys" onclick="setCredMode('keys')">Temporary Keys</button>
+    </div>
+    <div class="cred-section visible" id="cred-profile-section">
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>AWS Profile</label>
+          <select id="run-profile">${profileOptions}</select>
+        </div>
+        <div class="form-row">
+          <label>AWS Region</label>
+          <input type="text" id="run-region" value="${_s.aws_region}">
+        </div>
+      </div>
+    </div>
+    <div class="cred-section" id="cred-keys-section">
+      <div class="form-row">
+        <label>Access Key ID *</label>
+        <input type="text" id="run-key-id" placeholder="AKIA...">
+      </div>
+      <div class="form-row">
+        <label>Secret Access Key *</label>
+        <input type="password" id="run-key-secret" placeholder="••••••••">
+      </div>
+      <div class="form-row">
+        <label>Session Token <span style="font-weight:400;text-transform:none">(optional — for MFA / assumed role)</span></label>
+        <input type="password" id="run-key-token" placeholder="Optional">
+      </div>
+      <div class="form-row">
+        <label>AWS Region</label>
+        <input type="text" id="run-region-keys" value="${_s.aws_region}">
+      </div>
+    </div>
+    <hr class="divider">
+    <div style="display:flex;gap:20px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="run-skip-review" ${_s.skip_review ? 'checked' : ''}> Skip grouping review
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+        <input type="checkbox" id="run-skip-llm" ${_s.skip_llm ? 'checked' : ''}> Skip LLM (Stage 1+2 only)
+      </label>
+    </div>
+  `;
+
+  openModal('modal-new-run');
+}
+
+function onRunPipelineChange() {
+  const pipeline = document.getElementById('run-pipeline').value;
+  const tenantRow = document.getElementById('row-tenant-id');
+  if (tenantRow) tenantRow.style.display = pipeline === 'scubagear' ? '' : 'none';
+}
+
+let _credMode = 'profile';
+function setCredMode(mode) {
+  _credMode = mode;
+  document.getElementById('cred-opt-profile').classList.toggle('active', mode === 'profile');
+  document.getElementById('cred-opt-keys').classList.toggle('active', mode === 'keys');
+  document.getElementById('cred-profile-section').classList.toggle('visible', mode === 'profile');
+  document.getElementById('cred-keys-section').classList.toggle('visible', mode === 'keys');
+}
+
+async function runPreflight() {
+  const pipeline   = document.getElementById('run-pipeline').value;
+  // Strip surrounding quotes — Windows users often paste paths with quotes
+  const inputFile  = document.getElementById('run-input').value.trim().replace(/^["']|["']$/g, '');
+  document.getElementById('run-input').value = inputFile; // update field too
+  const tenantId   = document.getElementById('run-tenant') ? document.getElementById('run-tenant').value.trim() : '';
+
+  // Validate required fields
+  let valid = true;
+  if (!inputFile) {
+    document.getElementById('err-run-input').classList.add('visible');
+    valid = false;
+  } else {
+    document.getElementById('err-run-input').classList.remove('visible');
+  }
+  if (!valid) return;
+
+  // Build run config for preflight — store as pending
+  const awsProfile = _credMode === 'profile'
+    ? (document.getElementById('run-profile')?.value || 'default') : '';
+  const awsRegion  = _credMode === 'profile'
+    ? (document.getElementById('run-region')?.value || 'ap-southeast-2')
+    : (document.getElementById('run-region-keys')?.value || 'ap-southeast-2');
+
+  // First create the run record
+  const btn = document.getElementById('btn-run-preflight');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Checking...';
+
+  try {
+    const _settings = getSettings();
+    const runPayload = {
+      pipeline, input_file: inputFile, input_format: document.getElementById('run-format').value,
+      tenant_id: tenantId, credential_source: _credMode,
+      aws_profile: awsProfile, aws_region: awsRegion,
+      deployment_name: _settings.deployment_name || '',
+      skip_review: document.getElementById('run-skip-review').checked,
+      skip_llm: document.getElementById('run-skip-llm').checked,
+    };
+
+    // Add raw keys (never stored, passed separately)
+    if (_credMode === 'keys') {
+      runPayload.aws_access_key_id     = document.getElementById('run-key-id').value.trim();
+      runPayload.aws_secret_access_key = document.getElementById('run-key-secret').value.trim();
+      runPayload.aws_session_token     = document.getElementById('run-key-token').value.trim() || null;
+    }
+
+    const run = await api('POST', `/engagements/${currentEngagementId}/runs`, runPayload);
+    pendingRunRecord = run;
+
+    // Now run preflight against the created run
+    const preflight = await api('GET', `/runs/${run.id}/preflight`);
+
+    closeModal('modal-new-run');
+    showPreflightResults(preflight, run);
+  } catch(e) {
+    const errEl = document.getElementById('run-form-error');
+    if (errEl) {
+      errEl.textContent = `Error: ${e.message}`;
+      errEl.classList.add('visible');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Check Preflight →';
+  }
+}
+
+function showPreflightResults(preflight, run) {
+  const iconFor = s => ({ ok:'✓', warning:'⚠', error:'✕' })[s] || '?';
+  const checksHtml = preflight.checks.map(c => {
+    // Show install button for blocking tool errors
+    const isToolError = c.status === 'error' && c.blocking &&
+      (c.name === 'Prowler' || c.name === 'ScubaGear');
+    const tool = c.name === 'Prowler' ? 'prowler' : 'scubagear';
+    const installBtn = isToolError ? `
+      <button class="btn-install" style="margin-top:8px"
+              onclick="closeModal('modal-preflight');_pendingInstall='${tool}';navigate('tools')">
+        Install ${esc(c.name)} →
+      </button>` : '';
+    return `
+    <div class="preflight-item ${c.status}">
+      <span class="pi-icon">${iconFor(c.status)}</span>
+      <div class="pi-body">
+        <div class="pi-name">${esc(c.name)}</div>
+        <div class="pi-msg">${esc(c.message)}</div>
+        ${installBtn}
+      </div>
+    </div>`;
+  }).join('');
+
+  const banner = preflight.can_proceed
+    ? `<div class="alert alert-success visible" style="margin-bottom:16px">
+         All blocking checks passed. Run record created — ready to launch in Phase 3.
+       </div>`
+    : `<div class="alert alert-error visible" style="margin-bottom:16px">
+         One or more blocking checks failed. Resolve the issues above before starting this run.
+       </div>`;
+
+  document.getElementById('preflight-results-body').innerHTML = `
+    ${banner}
+    <div class="preflight-list">${checksHtml}</div>
+    ${run ? `<div style="margin-top:16px;padding:10px 12px;background:var(--bg);border-radius:4px;border:1px solid var(--border)">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px">Run ID</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${run.id}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">Config written to: ${esc(run.config_path || '—')}</div>
+    </div>` : ''}
+  `;
+
+  document.getElementById('btn-confirm-run').disabled = !preflight.can_proceed;
+  openModal('modal-preflight');
+}
+
+async function runPreflightForRun(runId) {
+  try {
+    const preflight = await api('GET', `/runs/${runId}/preflight`);
+    const run = await api('GET', `/runs/${runId}`);
+    pendingRunRecord = run;
+    showPreflightResults(preflight, run);
+  } catch(e) {
+    alert(`Preflight check failed: ${e.message}`);
+  }
+}
+
+function confirmRun() {
+  if (!pendingRunRecord) return;
+  closeModal('modal-preflight');
+
+  // Collect raw credentials if keys mode was used
+  let rawCreds = {};
+  if (_credMode === 'keys') {
+    rawCreds = {
+      aws_access_key_id:     document.getElementById('run-key-id')?.value?.trim(),
+      aws_secret_access_key: document.getElementById('run-key-secret')?.value?.trim(),
+      aws_session_token:     document.getElementById('run-key-token')?.value?.trim() || null,
+    };
+  }
+
+  launchRun(pendingRunRecord.id, currentEngagementId, rawCreds);
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ── Utilities ─────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+// ── Tools & Setup ─────────────────────────────────────────────────────
+
+async function loadTools() {
+  const container = document.getElementById('tools-content');
+  container.innerHTML = '<div class="empty-state"><div class="spinner spinner-lg"></div></div>';
+  try {
+    // Ensure platform info is loaded before rendering (may not be if navigating directly)
+    if (!platform) await loadPlatform();
+    const status = await api('GET', '/tools/status');
+    renderToolCards(status, container);
+    // Auto-start install if we arrived here via preflight install button
+    if (_pendingInstall) {
+      const tool = _pendingInstall;
+      _pendingInstall = null;
+      startInstall(tool);
+    }
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load tool status: ${esc(e.message)}</div>`;
+  }
+}
+
+function renderToolCards(status, container) {
+  const os = platform ? platform.os : 'unknown';
+
+  const prowlerInstalled = status.prowler.installed;
+  const scubaAvailable   = status.scubagear.available;
+  const scubaInstalled   = status.scubagear.installed;
+
+  container.innerHTML = `
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">Scanner Tools</div>
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <div>
+            <div class="tool-name">Prowler</div>
+            <div class="tool-version">
+              ${prowlerInstalled
+                ? `<span style="color:var(--success)">✓ Installed${status.prowler.version ? ' — ' + esc(status.prowler.version) : ''}</span>`
+                : `<span style="color:var(--danger)">✗ Not installed</span>`}
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">
+              AWS &amp; Azure infrastructure scanner. Required for Prowler pipeline runs.
+              ${os === 'windows' ? '<br><span style="color:var(--warning)">⚠ Windows: may require WSL if native install fails.</span>' : ''}
+            </div>
+          </div>
+          ${!prowlerInstalled
+            ? `<button class="btn-install" id="btn-install-prowler" onclick="startInstall('prowler')">Install Prowler</button>`
+            : `<span style="color:var(--success);font-size:18px">✓</span>`}
+        </div>
+        <div class="install-log" id="log-prowler"></div>
+      </div>
+
+      <div class="tool-card" style="margin-top:10px">
+        <div class="tool-card-header">
+          <div>
+            <div class="tool-name">ScubaGear</div>
+            <div class="tool-version">
+              ${!scubaAvailable
+                ? `<span style="color:var(--muted)">N/A — Windows only</span>`
+                : scubaInstalled
+                  ? `<span style="color:var(--success)">✓ Installed${status.scubagear.version ? ' — v' + esc(status.scubagear.version) : ''}</span>`
+                  : `<span style="color:var(--danger)">✗ Not installed</span>`}
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">
+              Microsoft 365 &amp; Entra ID scanner (CISA SCuBA baseline). Windows only.
+            </div>
+            ${!scubaAvailable ? `
+              <div class="unavailable-notice" style="margin-top:8px">
+                <span class="un-icon">ℹ</span>
+                <span>ScubaGear is a PowerShell module and cannot run on ${esc(os)}.
+                Run this application on Windows to use the ScubaGear pipeline.</span>
+              </div>` : ''}
+          </div>
+          ${scubaAvailable && !scubaInstalled
+            ? `<button class="btn-install" id="btn-install-scubagear" onclick="startInstall('scubagear')">Install ScubaGear</button>`
+            : scubaInstalled ? `<span style="color:var(--success);font-size:18px">✓</span>` : ''}
+        </div>
+        ${scubaAvailable ? `<div class="install-log" id="log-scubagear"></div>` : ''}
+        ${scubaAvailable && !scubaInstalled ? `
+          <div style="margin-top:10px;padding:10px 12px;background:var(--warning-bg);border-radius:4px;border:1px solid #fed7aa;font-size:11px;color:var(--warning)">
+            <strong>PowerShell Execution Policy:</strong> If installation fails with a policy error, open
+            PowerShell (not as Administrator) and run:<br>
+            <code style="font-family:var(--mono);background:#fff;padding:2px 6px;border-radius:3px;display:inline-block;margin-top:4px">
+              Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+            </code>
+          </div>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">uv Package Manager</div>
+      <div style="font-size:13px;color:var(--text-2)">
+        ${platform && platform.uv_available
+          ? `<span style="color:var(--success)">✓ uv is installed and on PATH.</span>
+             uv is used to install Prowler. If Prowler installation fails because uv is missing,
+             the installer will attempt to bootstrap uv automatically.`
+          : `<span style="color:var(--warning)">⚠ uv not found on PATH.</span>
+             The installer will attempt to bootstrap uv before installing Prowler.
+             To install manually: <code style="font-family:var(--mono)">curl -LsSf https://astral.sh/uv/install.sh | sh</code>`}
+      </div>
+    </div>
+  `;
+}
+
+async function startInstall(tool) {
+  const btn = document.getElementById(`btn-install-${tool}`);
+  const log = document.getElementById(`log-${tool}`);
+  if (!btn || !log) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Installing...';
+  log.classList.add('visible');
+  log.innerHTML = '';
+
+  try {
+    // Start installation — get task_id back
+    const { task_id } = await api('POST', `/tools/install/${tool}`, {});
+
+    // Connect to SSE stream
+    const evtSource = new EventSource(`/api/tools/install/${task_id}/stream`);
+
+    evtSource.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+
+      if (data.type === 'heartbeat') return;
+
+      if (data.type === 'log') {
+        const line = document.createElement('div');
+        line.className = 'log-line' + (data.stream === 'stderr' ? ' log-err' : '');
+        // Highlight success lines
+        if (data.text.startsWith('✓')) line.className = 'log-line log-ok';
+        line.textContent = data.text;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      if (data.type === 'status') {
+        if (data.value === 'complete') {
+          evtSource.close();
+          btn.textContent = '✓ Installed';
+          btn.style.background = 'var(--success-bg)';
+          btn.style.color = 'var(--success)';
+          btn.style.borderColor = '#86efac';
+          // Refresh tool status after a short delay
+          setTimeout(() => refreshToolStatus(), 1200);
+        }
+        if (data.value === 'failed') {
+          evtSource.close();
+          btn.disabled = false;
+          btn.textContent = 'Retry Install';
+        }
+      }
+
+      if (data.type === 'done') {
+        evtSource.close();
+      }
+    };
+
+    evtSource.onerror = () => {
+      evtSource.close();
+      const line = document.createElement('div');
+      line.className = 'log-line log-err';
+      line.textContent = '✗ Connection to install stream lost.';
+      log.appendChild(line);
+      btn.disabled = false;
+      btn.textContent = 'Retry Install';
+    };
+
+  } catch(e) {
+    const line = document.createElement('div');
+    line.className = 'log-line log-err';
+    line.textContent = `✗ Failed to start installation: ${e.message}`;
+    log.appendChild(line);
+    btn.disabled = false;
+    btn.textContent = 'Retry Install';
+  }
+}
+
+async function refreshToolStatus() {
+  try {
+    const status = await api('GET', '/tools/status');
+    const container = document.getElementById('tools-content');
+    if (container) renderToolCards(status, container);
+    // Also refresh platform info in sidebar
+    await loadPlatform();
+  } catch(e) {
+    console.warn('Tool status refresh failed:', e.message);
+  }
+}
+
+// ── Navigate hook — load tools when tools view is activated ───────────
+const _origNavigate = navigate;
+// Extend navigate to trigger view-specific loads
+const _viewLoaders = {
+  'tools': loadTools,
+};
+
+
+// ── Phase 3: Run execution ────────────────────────────────────────────
+
+let _pendingInstall  = null;   // tool to auto-install when tools view loads
+let activeRunId      = null;   // run currently shown in run-detail view
+let _engDetailPoll   = null;   // setInterval handle for engagement detail auto-refresh
+let _globalPoll      = null;   // setInterval handle for global background refresh
+let _runDetailPoll   = null;   // setInterval handle for run detail status polling
+let activeEvtSource  = null;   // open EventSource for the active run
+let reviewUrl        = null;   // URL to open review UI
+let excelPath        = null;   // path to completed Excel file
+let runStartTime     = null;   // Date for elapsed timer
+let elapsedTimer     = null;   // setInterval handle
+let backToEngId      = null;   // which engagement to go back to
+
+// Stages in order — used to advance the progress bar
+const STAGE_ORDER = ['pending', 'running', 'awaiting_review', 'enriching', 'complete'];
+
+function updateStageBar(status) {
+  const stages = ['pending', 'running', 'awaiting_review', 'enriching', 'complete'];
+  const failStages = ['failed', 'cancelled'];
+  const currentIdx = STAGE_ORDER.indexOf(status);
+
+  stages.forEach((s, i) => {
+    const el = document.getElementById(`stage-${s}`);
+    if (!el) return;
+    el.className = 'stage-step';
+    if (failStages.includes(status)) {
+      if (i < currentIdx)       el.classList.add('done');
+      else if (i === currentIdx) el.classList.add('failed');
+    } else if (status === 'failed') {
+      if (i <= 1) el.classList.add('failed');
+    } else {
+      if (i < currentIdx)       el.classList.add('done');
+      else if (i === currentIdx) el.classList.add('active');
+    }
+  });
+
+  // Special: failed/cancelled — mark current active stage red
+  if (status === 'failed' || status === 'cancelled') {
+    const activeEl = document.getElementById('stage-running');
+    if (activeEl) activeEl.classList.add('failed');
+  }
+  if (status === 'complete') {
+    const el = document.getElementById('stage-complete');
+    if (el) { el.classList.remove('active'); el.classList.add('done'); }
+  }
+}
+
+function appendLogLine(text, streamName) {
+  // Redirected to timeline in Phase 6
+  _timelineAddLine(text, streamName);
+}
+
+function updateRunActions(status) {
+  const actions = document.getElementById('run-detail-actions');
+  if (!actions) return;
+  actions.innerHTML = '';
+
+  if (['running', 'awaiting_review', 'enriching'].includes(status)) {
+    actions.innerHTML = `
+      <button class="btn btn-danger" onclick="cancelActiveRun()">Cancel Run</button>`;
+  }
+  if (status === 'complete' && excelPath) {
+    actions.innerHTML = `
+      <button class="btn btn-primary" onclick="downloadExcel()">Download Report</button>`;
+  }
+}
+
+function startElapsedTimer() {
+  runStartTime = Date.now();
+  elapsedTimer = setInterval(() => {
+    const secs = Math.floor((Date.now() - runStartTime) / 1000);
+    const mins = Math.floor(secs / 60);
+    const s    = secs % 60;
+    const el   = document.getElementById('log-elapsed');
+    if (el) el.textContent = `${mins}m ${s}s elapsed`;
+  }, 1000);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+}
+
+function openReviewUI() {
+  if (reviewUrl) showReviewIframe(reviewUrl);
+}
+
+async function downloadExcel() {
+  if (!activeRunId) return;
+  // Trigger browser file download via the download endpoint
+  window.location.href = `/api/runs/${activeRunId}/download`;
+}
+
+async function cancelActiveRun() {
+  if (!activeRunId) return;
+  if (!confirm('Cancel this run? The subprocess will be terminated. Checkpoint files on disk are preserved.')) return;
+  try {
+    await api('POST', `/runs/${activeRunId}/cancel`, {});
+    appendLogLine('Run cancelled by user.', 'stderr');
+  } catch(e) {
+    appendLogLine(`Cancel failed: ${e.message}`, 'stderr');
+  }
+}
+
+async function openRunDetail(runId, engId) {
+  // Stop any previous run detail poll
+  if (_runDetailPoll) { clearInterval(_runDetailPoll); _runDetailPoll = null; }
+
+  // Reset all run detail state so previous run never bleeds in
+  _resetRunDetailState();
+  activeRunId = runId;   // set immediately — poll and reconnect check this
+  backToEngId = engId;
+
+  navigate('run-detail');
+
+  // Load the run record
+  let run;
+  try {
+    run = await api('GET', `/runs/${runId}`);
+  } catch(e) {
+    appendLogLine(`Failed to load run: ${e.message}`, 'stderr');
+    return;
+  }
+
+  document.getElementById('run-detail-title').textContent =
+    `${run.pipeline.charAt(0).toUpperCase() + run.pipeline.slice(1)} Run`;
+  document.getElementById('run-detail-sub').textContent =
+    `Run ID: ${runId.slice(0,8)}… · Created ${new Date(run.created_at).toLocaleString()}`;
+
+  updateStageBar(run.status);
+  updateRunActions(run.status);
+
+  // Initialise timeline
+  _initTimeline();
+  _advanceTimeline(run.status);
+
+  // If run is already complete/failed, replay logs into timeline and stop
+  if (['complete', 'failed', 'cancelled'].includes(run.status)) {
+    updateStageBar(run.status);
+    updateRunActions(run.status);
+    stopElapsedTimer();
+    document.getElementById('log-spinner').style.display = 'none';
+    if (run.excel_path) {
+      excelPath = run.excel_path;
+      showOutputBanner(normalisePath(run.excel_path));
+    }
+    if (run.status === 'complete') loadOutputFiles(runId);
+    // Replay stored logs into timeline
+    try {
+      const logs = await api('GET', `/runs/${runId}/logs`);
+      logs.forEach(l => _timelineAddLine(l.line, l.stream));
+    } catch(e) {}
+    if (run.status === 'failed') {
+      const logs = (await api('GET', `/runs/${runId}/logs`).catch(() => ({}))).map ? 
+        (await api('GET', `/runs/${runId}/logs`)) : [];
+      const err = _classifyError(logs.map(l => l.line));
+      if (err) showRunError(err.title, err.msg);
+    }
+    return;
+  }
+
+  // Active run — sync current state then connect to live SSE stream
+  document.getElementById('log-spinner').style.display = 'inline-block';
+  startElapsedTimer();
+
+  // Sync current status immediately so UI shows correct stage without waiting for SSE
+  updateStageBar(run.status);
+  updateRunActions(run.status);
+  _advanceTimeline(run.status);
+
+  // If run is awaiting review, show the iframe immediately
+  if (run.status === 'awaiting_review') {
+    const port = run.pipeline === 'scubagear' ? 8743 : 8742;
+    reviewUrl = `http://localhost:${port}/review`;
+    showReviewIframe(reviewUrl);
+  }
+
+  // Replay stored logs into the timeline so history is visible
+  try {
+    const logs = await api('GET', `/runs/${runId}/logs`);
+    logs.forEach(l => _timelineAddLine(l.line, l.stream));
+  } catch(e) { /* non-fatal */ }
+
+  // Now connect to live SSE for new events going forward
+  // Don't call reconnect endpoint — it would replay logs again (already done above)
+  connectRunStream(runId);
+
+  // Also poll DB every 5s as a safety net — catches status changes
+  // even if the SSE stream drops or misses an event
+  _runDetailPoll = setInterval(async () => {
+    if (!activeRunId) { clearInterval(_runDetailPoll); _runDetailPoll = null; return; }
+    try {
+      const run = await api('GET', `/runs/${activeRunId}`);
+      updateStageBar(run.status);
+      updateRunActions(run.status);
+      _advanceTimeline(run.status);
+      if (run.excel_path && !excelPath) {
+        excelPath = run.excel_path;
+        showOutputBanner(normalisePath(run.excel_path));
+        loadOutputFiles(activeRunId);
+      }
+      // If run just became active and we have no SSE, connect now
+      if (['running','awaiting_review','enriching'].includes(run.status) && !activeEvtSource) {
+        connectRunStream(activeRunId);
+      }
+      if (run.status === 'awaiting_review' && reviewUrl) {
+        showReviewIframe(reviewUrl);
+      }
+      if (['complete', 'failed', 'cancelled'].includes(run.status)) {
+        clearInterval(_runDetailPoll);
+        _runDetailPoll = null;
+        stopElapsedTimer();
+        const sp = document.getElementById('log-spinner');
+        if (sp) sp.style.display = 'none';
+        hideReviewIframe();
+        if (run.status === 'failed') {
+          const lines = Object.values(_timelineLines).flat().map(l => l.text);
+          const err = _classifyError(lines);
+          if (err) showRunError(err.title, err.msg);
+        }
+      }
+    } catch(e) { /* silent */ }
+  }, 3000);
+}
+
+// SSE reconnect state
+let _sseReconnectTimer = null;
+let _sseReconnectCount = 0;
+
+function _handleSseEvent(data, runId) {
+  if (data.type === 'heartbeat') return;
+
+  if (data.type === 'log') {
+    _timelineAddLine(data.text, data.stream || 'stdout');
+  }
+
+  if (data.type === 'status') {
+    updateStageBar(data.value);
+    updateRunActions(data.value);
+    _advanceTimeline(data.value);
+    if (['complete', 'failed', 'cancelled'].includes(data.value)) {
+      stopElapsedTimer();
+      const sp = document.getElementById('log-spinner');
+      if (sp) sp.style.display = 'none';
+      hideReviewIframe();
+      if (data.value === 'failed') {
+        const lines = Object.values(_timelineLines).flat().map(l => l.text);
+        const err = _classifyError(lines);
+        if (err) showRunError(err.title, err.msg);
+      }
+    }
+    if (data.value !== 'awaiting_review') hideReviewIframe();
+  }
+
+  if (data.type === 'review_approved') {
+    _timelineAddLine('✓ ' + (data.message || 'Approved'), 'stdout');
+    hideReviewIframe();
+  }
+
+  if (data.type === 'review_ready') {
+    reviewUrl = data.url;
+    showReviewIframe(data.url);
+  }
+
+  if (data.type === 'output_ready') {
+    excelPath = data.excel_path;
+    showOutputBanner(normalisePath(data.excel_path));
+    updateRunActions('complete');
+    loadOutputFiles(runId);
+  }
+}
+
+function connectRunStream(runId) {
+  if (activeEvtSource) { activeEvtSource.close(); activeEvtSource = null; }
+  if (_sseReconnectTimer) { clearTimeout(_sseReconnectTimer); _sseReconnectTimer = null; }
+
+  const evtSource = new EventSource(`/api/runs/${runId}/stream`);
+  activeEvtSource = evtSource;
+
+  evtSource.onmessage = (e) => {
+    _sseReconnectCount = 0;
+    try { _handleSseEvent(JSON.parse(e.data), runId); } catch(err) {}
+  };
+
+  evtSource.onerror = () => {
+    evtSource.close();
+    activeEvtSource = null;
+    if (!activeRunId || activeRunId !== runId) return;
+
+    // Exponential backoff: 2s, 3s, 4.5s, max 10s
+    _sseReconnectCount = Math.min(_sseReconnectCount + 1, 5);
+    const delay = Math.min(2000 * Math.pow(1.5, _sseReconnectCount - 1), 10000);
+
+    _sseReconnectTimer = setTimeout(async () => {
+      if (!activeRunId || activeRunId !== runId) return;
+      try {
+        const run = await api('GET', `/runs/${runId}`);
+        // Sync whatever state we missed while disconnected
+        updateStageBar(run.status);
+        updateRunActions(run.status);
+        _advanceTimeline(run.status);
+        if (run.excel_path && !excelPath) {
+          excelPath = run.excel_path;
+          showOutputBanner(normalisePath(run.excel_path));
+          loadOutputFiles(runId);
+        }
+        if (['complete', 'failed', 'cancelled'].includes(run.status)) {
+          stopElapsedTimer();
+          const sp = document.getElementById('log-spinner');
+          if (sp) sp.style.display = 'none';
+          if (run.status === 'failed') {
+            const lines = Object.values(_timelineLines).flat().map(l => l.text);
+            const err = _classifyError(lines);
+            if (err) showRunError(err.title, err.msg);
+          }
+          return; // don't reconnect — run is done
+        }
+        // Still active — reconnect SSE
+        try { await api('POST', `/runs/${runId}/reconnect`, {}); } catch(e) {}
+        connectRunStream(runId);
+      } catch(e) {
+        // API unreachable — retry
+        if (activeRunId === runId) connectRunStream(runId);
+      }
+    }, delay);
+  };
+}
+
+function showReviewBanner(url) {
+  // Replaced by showReviewIframe in Phase 6 — kept as no-op for compat
+  showReviewIframe(url);
+}
+
+function showOutputBanner(filePath) {
+  const banner = document.getElementById('output-banner');
+  if (banner) {
+    banner.classList.add('visible');
+    const fn = document.getElementById('output-filename');
+    if (fn) fn.textContent = filePath;
+  }
+}
+
+async function replayRunLogs(runId) {
+  try {
+    const logs = await api('GET', `/runs/${runId}/logs`);
+    const panel = document.getElementById('run-log-panel');
+    if (panel) panel.innerHTML = '';
+    logs.forEach(l => appendLogLine(l.line, l.stream));
+  } catch(e) {
+    appendLogLine(`Could not load stored logs: ${e.message}`, 'stderr');
+  }
+}
+
+function backFromRun() {
+  if (activeEvtSource) { activeEvtSource.close(); activeEvtSource = null; }
+  if (_runDetailPoll) { clearInterval(_runDetailPoll); _runDetailPoll = null; }
+  stopElapsedTimer();
+  activeRunId = null;
+  if (backToEngId) openEngagementDetail(backToEngId);
+  else navigate('engagements');
+}
+
+// ── Launch run from engagement detail ─────────────────────────────────
+// Called by confirmRun() which was Phase 1's stub.
+// Now wired to actually start the pipeline.
+
+async function launchRun(runId, engId, rawCredentials) {
+  // Register raw credentials in memory if provided (keys mode)
+  if (rawCredentials && Object.keys(rawCredentials).length > 0) {
+    try {
+      await api('POST', `/runs/${runId}/credentials`, rawCredentials);
+    } catch(e) {
+      alert(`Failed to register credentials: ${e.message}`);
+      return;
+    }
+  }
+
+  // Start the run — this registers the SSE stream server-side
+  try {
+    await api('POST', `/runs/${runId}/start`, {});
+  } catch(e) {
+    alert(`Failed to start run: ${e.message}`);
+    return;
+  }
+
+  // Small delay to ensure the SSE stream is registered before we try to connect
+  await new Promise(r => setTimeout(r, 300));
+
+  // Navigate to run detail — connects to the now-registered SSE stream
+  openRunDetail(runId, engId);
+}
+
+
+
+// ── Phase 5: Output management ────────────────────────────────────────
+
+async function loadOutputFiles(runId) {
+  const card = document.getElementById('output-files-card');
+  const list = document.getElementById('output-files-list');
+  if (!card || !list) return;
+
+  try {
+    const data = await api('GET', `/runs/${runId}/outputs`);
+    if (!data.files || !data.files.length) return;
+
+    card.style.display = 'block';
+
+    // Separate Excel from other files
+    const excel  = data.files.filter(f => f.is_excel);
+    const others = data.files.filter(f => !f.is_excel);
+
+    const rows = [...excel, ...others].map(f => `
+      <div class="output-file-row">
+        <span class="output-file-name">${esc(f.name)}</span>
+        <span class="output-file-type">${esc(f.type)}</span>
+        <span class="output-file-size">${f.size_kb} KB</span>
+        ${f.is_excel
+          ? `<button class="btn btn-primary" style="font-size:11px;padding:3px 10px"
+                     onclick="window.location.href='/api/runs/${esc(runId)}/download'">
+               ↓ Download
+             </button>`
+          : ''}
+      </div>`).join('');
+
+    list.innerHTML = rows;
+  } catch(e) {
+    console.warn('Could not load output files:', e.message);
+  }
+}
+
+function runComparisonTable(runs) {
+  // Only show runs that have risk data
+  const withData = runs.filter(r => r.risk_high != null);
+  if (withData.length < 2) return '';
+
+  const rows = withData.map(r => {
+    const date     = new Date(r.created_at).toLocaleDateString();
+    const duration = r.completed_at
+      ? _formatDuration(r.created_at, r.completed_at)
+      : '—';
+    return `
+      <tr>
+        <td>${esc(r.pipeline)}</td>
+        <td style="font-size:11px;color:var(--muted)">${date}</td>
+        <td><span class="status-badge status-${r.status}">${statusLabel(r.status)}</span></td>
+        <td class="risk-cell-high">${r.risk_high ?? '—'}</td>
+        <td class="risk-cell-medium">${r.risk_medium ?? '—'}</td>
+        <td class="risk-cell-low">${r.risk_low ?? '—'}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">
+          ${r.findings_included ?? '—'} / ${r.findings_total ?? '—'}
+        </td>
+        <td style="font-size:11px;color:var(--muted)">${duration}</td>
+        <td>
+          ${r.excel_path
+            ? `<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px"
+                       onclick="window.location.href='/api/runs/${esc(r.id)}/download'">↓</button>`
+            : ''}
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Run Comparison</div>
+      <div style="overflow-x:auto">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Pipeline</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th style="color:var(--high-fg)">High</th>
+              <th style="color:var(--medium-fg)">Medium</th>
+              <th style="color:var(--low-fg)">Low</th>
+              <th>Findings</th>
+              <th>Duration</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function _formatDuration(startIso, endIso) {
+  const secs = Math.round((new Date(endIso) - new Date(startIso)) / 1000);
+  if (secs < 60)   return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs/60)}m ${secs%60}s`;
+  return `${Math.floor(secs/3600)}h ${Math.floor((secs%3600)/60)}m`;
+}
+
+
+
+// ── Global background refresh ─────────────────────────────────────────
+// Polls every 5 seconds regardless of which view is active.
+// Keeps nav badges, dashboard stats, and engagement cards current
+// without the analyst needing to manually refresh any page.
+
+function startGlobalPoll() {
+  if (_globalPoll) return;  // already running
+  _globalPoll = setInterval(_globalTick, 5000);
+}
+
+async function _globalTick() {
+  try {
+    const engs = await api('GET', '/engagements');
+    engagements = engs;
+
+    // Update nav badge
+    const active = engs.filter(e => !e.archived_at);
+    const badge = document.getElementById('nav-eng-count');
+    if (badge) {
+      badge.textContent = active.length;
+      badge.style.display = active.length ? '' : 'none';
+    }
+
+    // Refresh whichever view is currently active
+    const activeView = document.querySelector('.view.active');
+    if (!activeView) return;
+    const viewId = activeView.id;
+
+    if (viewId === 'view-dashboard') {
+      // Silently re-render dashboard stats without full reload
+      _refreshDashboardSilent(engs);
+    } else if (viewId === 'view-engagements') {
+      // Re-render engagement cards in place
+      _refreshEngagementListSilent(engs);
+    }
+    // engagement-detail has its own 4s poll via _engDetailPoll
+    // run-detail updates via SSE stream
+    // tools and new-run don't need polling
+  } catch(e) {
+    // Silent fail — don't show errors for background polling
+  }
+}
+
+function _refreshDashboardSilent(engs) {
+  const container = document.getElementById('dashboard-content');
+  // Only re-render if dashboard is showing real content (not loading spinner)
+  if (!container || container.querySelector('.spinner-lg')) return;
+
+  const active  = engs.filter(e => !e.archived_at);
+  const running = active.filter(e =>
+    ['running','awaiting_review','enriching'].includes(e.last_run_status));
+  const done    = active.filter(e => e.last_run_status === 'complete');
+
+  // Update stat cards without full re-render (avoid flicker)
+  const statEls = container.querySelectorAll('.stat-value');
+  if (statEls.length === 3) {
+    statEls[0].textContent = active.length;
+    statEls[1].textContent = running.length;
+    statEls[2].textContent = done.length;
+  }
+
+  // Re-render engagement cards (they're cheap and need fresh status badges)
+  const grid = container.querySelector('.eng-grid');
+  if (grid) {
+    grid.innerHTML = active.slice(0,6).map(e => engCardHTML(e)).join('');
+  }
+}
+
+function _refreshEngagementListSilent(engs) {
+  const container = document.getElementById('engagements-list');
+  if (!container || container.querySelector('.spinner-lg')) return;
+  const grid = container.querySelector('.eng-grid');
+  if (grid) {
+    grid.innerHTML = engs.map(e => engCardHTML(e)).join('');
+  }
+}
+
+
+// ── Phase 6: Settings ─────────────────────────────────────────────────
+
+const SETTINGS_KEY = 'csr_settings';
+const DEFAULT_SETTINGS = {
+  aws_region:       'ap-southeast-2',
+  aws_profile:      'default',
+  deployment_name:  'arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh',
+  output_dir:       '',
+  skip_review:      false,
+  skip_llm:         false,
+};
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    const s   = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+    document.getElementById('setting-aws-region').value      = s.aws_region;
+    document.getElementById('setting-aws-profile').value     = s.aws_profile;
+    document.getElementById('setting-deployment-name').value = s.deployment_name || '';
+    document.getElementById('setting-output-dir').value      = s.output_dir;
+    document.getElementById('setting-skip-review').checked   = s.skip_review;
+    document.getElementById('setting-skip-llm').checked      = s.skip_llm;
+  } catch(e) {}
+}
+
+function saveSettings() {
+  const s = {
+    aws_region:      document.getElementById('setting-aws-region').value.trim() || 'ap-southeast-2',
+    aws_profile:     document.getElementById('setting-aws-profile').value.trim() || 'default',
+    deployment_name: document.getElementById('setting-deployment-name').value.trim(),
+    output_dir:      document.getElementById('setting-output-dir').value.trim(),
+    skip_review:     document.getElementById('setting-skip-review').checked,
+    skip_llm:        document.getElementById('setting-skip-llm').checked,
+  };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  // Show confirmation — use a dedicated element to avoid conflicts with
+  // the global 'alert' variable name which shadows the DOM method
+  const alertEl = document.getElementById('settings-alert');
+  if (alertEl) {
+    alertEl.className = 'alert alert-success visible';
+    alertEl.textContent = 'Settings saved successfully.';
+    alertEl.style.display = 'block';
+    alertEl.style.background = 'var(--success-bg)';
+    alertEl.style.color = 'var(--success)';
+    alertEl.style.border = '1px solid #86efac';
+    alertEl.style.padding = '10px 14px';
+    alertEl.style.borderRadius = '4px';
+    alertEl.style.fontSize = '13px';
+    alertEl.style.marginTop = '12px';
+    setTimeout(() => {
+      alertEl.style.display = 'none';
+      alertEl.className = 'alert';
+    }, 3000);
+  }
+}
+
+function getSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+  } catch(e) { return { ...DEFAULT_SETTINGS }; }
+}
+
+// ── Phase 6: Progress timeline ────────────────────────────────────────
+
+// Stage definitions — each stage accumulates its own log lines
+const TIMELINE_STAGES = [
+  { id:'pending',         label:'Queued',           icon:'○', sub:'Waiting to start' },
+  { id:'running',         label:'Processing',        icon:'▷', sub:'Ingesting and grouping findings' },
+  { id:'awaiting_review', label:'Awaiting Review',   icon:'⏸', sub:'Waiting for grouping approval' },
+  { id:'enriching',       label:'Enriching',         icon:'✦', sub:'LLM generating narratives' },
+  { id:'complete',        label:'Complete',          icon:'✓', sub:'Report ready' },
+];
+
+const FAIL_STAGES = { failed: 'Failed', cancelled: 'Cancelled' };
+
+// Accumulate log lines per stage
+let _timelineStage   = 'pending';  // current stage being written to
+let _timelineLines   = {};         // { stage_id: [line, ...] }
+let _timelineExpanded = {};        // { stage_id: bool }
+
+function _initTimeline() {
+  _timelineStage    = 'pending';
+  _timelineLines    = {};
+  _timelineExpanded = {};
+  TIMELINE_STAGES.forEach(s => { _timelineLines[s.id] = []; });
+  renderTimeline('pending');
+}
+
+function _timelineAddLine(text, streamName) {
+  // Route to current stage's bucket
+  if (!_timelineLines[_timelineStage]) _timelineLines[_timelineStage] = [];
+  const trimmed = text.trim();
+  if (trimmed) _timelineLines[_timelineStage].push({ text: trimmed, err: streamName === 'stderr' });
+  _updateTimelineStageLines(_timelineStage);
+}
+
+function _updateTimelineStageLines(stageId) {
+  const el = document.getElementById(`tl-lines-${stageId}`);
+  const tog = document.getElementById(`tl-toggle-${stageId}`);
+  if (!el) return;
+  const lines = _timelineLines[stageId] || [];
+  if (!lines.length) return;
+  el.innerHTML = lines.map(l =>
+    `<span style="color:${l.err ? 'var(--danger)' : 'inherit'}">${esc(l.text)}</span>`
+  ).join('\n');
+  el.scrollTop = el.scrollHeight;
+  if (tog) tog.classList.add('visible');
+}
+
+function toggleTimelineLines(stageId) {
+  const el  = document.getElementById(`tl-lines-${stageId}`);
+  const tog = document.getElementById(`tl-toggle-${stageId}`);
+  if (!el) return;
+  const isVisible = el.classList.toggle('visible');
+  if (tog) tog.textContent = isVisible ? '▲ Hide details' : '▼ Show details';
+}
+
+function renderTimeline(currentStatus) {
+  const container = document.getElementById('progress-timeline');
+  if (!container) return;
+
+  const stageOrder = TIMELINE_STAGES.map(s => s.id);
+  const currentIdx = stageOrder.indexOf(currentStatus);
+  const isFailed   = currentStatus === 'failed' || currentStatus === 'cancelled';
+
+  let html = '';
+  TIMELINE_STAGES.forEach((stage, i) => {
+    let cls = '';
+    if (isFailed) {
+      cls = i < currentIdx ? 'done' : i === currentIdx ? 'failed' : '';
+    } else if (currentStatus === 'complete') {
+      cls = 'done';
+    } else {
+      cls = i < currentIdx ? 'done' : i === currentIdx ? 'active' : '';
+    }
+
+    const icon = cls === 'done' ? '✓' : cls === 'failed' ? '✕' : cls === 'active' ? '●' : '○';
+    const lines = _timelineLines[stage.id] || [];
+    const hasLines = lines.length > 0;
+
+    html += `
+      <div class="timeline-item ${cls}" id="tl-item-${stage.id}">
+        <div class="tl-dot">${icon}</div>
+        <div class="tl-body">
+          <div class="tl-title">${esc(stage.label)}</div>
+          <div class="tl-sub" id="tl-sub-${stage.id}">${esc(stage.sub)}</div>
+          <div class="tl-lines${hasLines && _timelineExpanded[stage.id] ? ' visible' : ''}"
+               id="tl-lines-${stage.id}">${lines.map(l =>
+                 `<span style="color:${l.err ? 'var(--danger)' : 'inherit'}">${esc(l.text)}</span>`
+               ).join('\n')}</div>
+          <div class="tl-toggle${hasLines ? ' visible' : ''}"
+               id="tl-toggle-${stage.id}"
+               onclick="toggleTimelineLines('${stage.id}')">
+            ${_timelineExpanded[stage.id] ? '▲ Hide details' : '▼ Show details'}
+          </div>
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function _advanceTimeline(newStatus) {
+  // Save expanded state before re-render
+  TIMELINE_STAGES.forEach(s => {
+    const el = document.getElementById(`tl-lines-${s.id}`);
+    if (el) _timelineExpanded[s.id] = el.classList.contains('visible');
+  });
+  _timelineStage = newStatus;
+  renderTimeline(newStatus);
+  _updateTimelineStageLines(newStatus);
+}
+
+// ── Phase 6: Fix new run state bleed ─────────────────────────────────
+
+function _resetRunDetailState() {
+  activeRunId    = null;
+  reviewUrl      = null;
+  excelPath      = null;
+  runStartTime   = null;
+  _timelineStage = 'pending';
+  _timelineLines = {};
+  _timelineExpanded = {};
+
+  const panel = document.getElementById('progress-timeline');
+  if (panel) panel.innerHTML = '';
+  const spinner = document.getElementById('log-spinner');
+  if (spinner) spinner.style.display = 'none';
+  const elapsed = document.getElementById('log-elapsed');
+  if (elapsed) elapsed.textContent = '';
+  const outputBanner = document.getElementById('output-banner');
+  if (outputBanner) outputBanner.classList.remove('visible');
+  const outputCard = document.getElementById('output-files-card');
+  if (outputCard) outputCard.style.display = 'none';
+  const errorBanner = document.getElementById('run-error-banner');
+  if (errorBanner) errorBanner.classList.remove('visible');
+  const iframeContainer = document.getElementById('review-iframe-container');
+  if (iframeContainer) {
+    iframeContainer.classList.remove('visible');
+    const iframe = document.getElementById('review-iframe');
+    if (iframe) iframe.src = '';
+  }
+  const actions = document.getElementById('run-detail-actions');
+  if (actions) actions.innerHTML = '';
+  const stageBar = document.querySelector('.stage-bar');
+  if (stageBar) {
+    stageBar.querySelectorAll('.stage-step').forEach(el => {
+      el.className = 'stage-step';
+    });
+  }
+}
+
+// ── Phase 6: Error handling ───────────────────────────────────────────
+
+function showRunError(title, message) {
+  const banner = document.getElementById('run-error-banner');
+  const titleEl = document.getElementById('run-error-title');
+  const msgEl   = document.getElementById('run-error-msg');
+  if (!banner) return;
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl)   msgEl.textContent   = message;
+  banner.classList.add('visible');
+}
+
+function _classifyError(logLines) {
+  const text = logLines.join(' ').toLowerCase();
+  if (text.includes('no module named'))
+    return { title:'Missing Python dependency', msg:'Run: pip install -r requirements.txt in the repo root venv.' };
+  if (text.includes('tomldecodeerror') || text.includes('invalid value'))
+    return { title:'Config file error', msg:'The generated config.toml has an invalid value. Check the config.' };
+  if (text.includes('credentialserror') || text.includes('no credentials') || text.includes('unable to locate credentials'))
+    return { title:'AWS credentials error', msg:'Check your AWS profile or access keys.' };
+  if (text.includes('could not connect') || text.includes('endpoint url') || text.includes('bedrock'))
+    return { title:'AWS Bedrock connection error', msg:'Check your AWS region and Bedrock access.' };
+  if (text.includes('filenotfounderror') || text.includes('no such file'))
+    return { title:'File not found', msg:'Check the input file path is correct and readable.' };
+  if (text.includes('port') && (text.includes('in use') || text.includes('address already')))
+    return { title:'Port conflict', msg:'Review UI port (8742/8743) is already in use. Stop other pipeline instances.' };
+  return null;
+}
+
+// ── Phase 6: Review iframe ────────────────────────────────────────────
+
+function showReviewIframe(url) {
+  const container = document.getElementById('review-iframe-container');
+  const iframe    = document.getElementById('review-iframe');
+  if (!container || !iframe) return;
+  iframe.src = url;
+  container.classList.add('visible');
+  // Scroll to iframe
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function hideReviewIframe() {
+  const container = document.getElementById('review-iframe-container');
+  const iframe    = document.getElementById('review-iframe');
+  if (container) container.classList.remove('visible');
+  if (iframe)    iframe.src = '';
+}
+
+// ── Phase 6: Windows path normalisation ──────────────────────────────
+
+function normalisePath(p) {
+  if (!p) return p;
+  // Normalise Windows backslashes for display only
+  return p.replace(/\\/g, '/');
+}
+
+
+
+// ── Mock run (SSE test) ───────────────────────────────────────────────
+async function launchMockRun() {
+  try {
+    const res = await api('POST', '/debug/mock-run', {});
+    // Open run detail directly — bypasses engagement requirement
+    activeRunId  = res.run_id;
+    backToEngId  = null;
+    _resetRunDetailState();
+    activeRunId  = res.run_id;
+    navigate('run-detail');
+    document.getElementById('run-detail-title').textContent = 'Mock Run (SSE Test)';
+    document.getElementById('run-detail-sub').textContent =
+      `Run ID: ${res.run_id.slice(0,8)}… · Simulated pipeline — no AWS calls`;
+    updateStageBar('pending');
+    _initTimeline();
+    _advanceTimeline('pending');
+    document.getElementById('log-spinner').style.display = 'inline-block';
+    startElapsedTimer();
+    // Start poll + SSE
+    connectRunStream(res.run_id);
+    _runDetailPoll = setInterval(async () => {
+      if (!activeRunId) { clearInterval(_runDetailPoll); _runDetailPoll = null; return; }
+      try {
+        const run = await api('GET', `/runs/${activeRunId}`);
+        updateStageBar(run.status);
+        updateRunActions(run.status);
+        _advanceTimeline(run.status);
+        if (['complete','failed','cancelled'].includes(run.status)) {
+          clearInterval(_runDetailPoll); _runDetailPoll = null;
+          stopElapsedTimer();
+          document.getElementById('log-spinner').style.display = 'none';
+        }
+      } catch(e) {}
+    }, 3000);
+  } catch(e) {
+    alert('Mock run failed: ' + e.message);
+  }
+}
+
+
+// ── Preflight back button ─────────────────────────────────────────────
+async function backFromPreflight() {
+  closeModal('modal-preflight');
+
+  // Delete the stale pending run that was created just for preflight
+  // so it doesn't clutter the run history
+  if (pendingRunRecord) {
+    try {
+      await api('DELETE', `/runs/${pendingRunRecord.id}`, null);
+    } catch(e) { /* non-fatal */ }
+    pendingRunRecord = null;
+  }
+
+  // Reopen the run config modal so analyst can adjust and retry
+  if (currentEngagementId) {
+    openNewRunModal(currentEngagementId);
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────
+// Run platform detection and dashboard load in parallel.
+// Platform detection involves subprocess calls (prowler -v, uv tool list etc.)
+// and must not block the initial render.
+(async () => {
+  loadSettings();            // load saved settings before anything else
+  loadDashboard();           // start immediately — doesn't need platform
+  await loadPlatform();      // runs concurrently, updates sidebar when done
+  startGlobalPoll();         // background refresh for all views
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,369 @@
+{
+  "run_id": "096e8708-daca-4d59-bfa3-b03f4758ea72",
+  "original_count": 16,
+  "merged_count": 16,
+  "merges_applied": 0,
+  "chunks_used": 1,
+  "consolidation_applied": true,
+  "warnings": [
+    {
+      "code": "CHUNK_GROUPING_FAILED",
+      "message": "Chunk 1/1 failed after retry: RuntimeError: Bedrock response was truncated (stopReason='max_tokens', max_tokens=1740). Response so far (7356 chars): '```json\\n[\\n  {\\n    \"group_name\": \"IAM MFA Not Enforced for Root and Console Users\",\\n    \"check_ids\": [\"iam_root_mfa_enabled\", \"iam_user_mfa_enabled_con'. Increase max_tokens in config.toml or reduce prompt size.. Checks in this chunk fall back to standalone groups."
+    }
+  ],
+  "groups": [
+    {
+      "group_name": "Ensure MFA is enabled for all IAM users with console access",
+      "check_ids": [
+        "iam_user_mfa_enabled_console_access"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 4,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::111122223333:user/john.smith",
+          "resource_name": "john.smith",
+          "resource_type": "AWSIAMUser",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "global",
+          "check_id": "iam_user_mfa_enabled_console_access"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure MFA is enabled for the root account",
+      "check_ids": [
+        "iam_root_mfa_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": []
+    },
+    {
+      "group_name": "Ensure RDS instances are not publicly accessible",
+      "check_ids": [
+        "rds_instance_no_public_access"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres",
+          "resource_name": "prod-postgres",
+          "resource_type": "AWSRDSDBInstance",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_no_public_access"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:111122223333:security-group/sg-0prod1234",
+          "resource_name": "sg-0prod1234",
+          "resource_type": "AWSEC2SecurityGroup",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure CloudTrail is enabled in all regions",
+      "check_ids": [
+        "cloudtrail_multi_region_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:cloudtrail:ap-southeast-2:111122223333:trail/management-trail",
+          "resource_name": "management-trail",
+          "resource_type": "AWSCloudTrailTrail",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "cloudtrail_multi_region_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure EBS volumes are encrypted",
+      "check_ids": [
+        "ec2_ebs_volume_encryption_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 3,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:111122223333:volume/vol-0aaa1111",
+          "resource_name": "vol-0aaa1111",
+          "resource_type": "AWSEC2Volume",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_ebs_volume_encryption_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure EC2 instances use IMDSv2",
+      "check_ids": [
+        "ec2_instance_imdsv2_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "i-0aabbccdd",
+          "resource_name": "i-0aabbccdd",
+          "resource_type": "AWSEC2Instance",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_instance_imdsv2_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure RDS instances are encrypted at rest",
+      "check_ids": [
+        "rds_instance_storage_encrypted"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:rds:ap-southeast-2:111122223333:db:prod-postgres",
+          "resource_name": "prod-postgres",
+          "resource_type": "AWSRDSDBInstance",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "rds_instance_storage_encrypted"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure S3 bucket does not allow public access",
+      "check_ids": [
+        "s3_bucket_public_access"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 4,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-dev",
+        "acme-legacy"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:s3:::acme-prod-logs",
+          "resource_name": "acme-prod-logs",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_public_access"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure AWS Config is enabled in all regions",
+      "check_ids": [
+        "config_recorder_all_regions_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": []
+    },
+    {
+      "group_name": "Ensure AWS Security Hub is enabled",
+      "check_ids": [
+        "securityhub_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "security-hub",
+          "resource_name": "security-hub",
+          "resource_type": "AWSSecurityHub",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "securityhub_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure IAM password policy requires at least one lowercase letter",
+      "check_ids": [
+        "iam_password_policy_lowercase"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::111122223333:account",
+          "resource_name": "password-policy",
+          "resource_type": "AWSIAMPasswordPolicy",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "global",
+          "check_id": "iam_password_policy_lowercase"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure IAM user access keys are rotated every 90 days or less",
+      "check_ids": [
+        "iam_user_access_key_age_90_days"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::111122223333:user/svc-deploy",
+          "resource_name": "svc-deploy",
+          "resource_type": "AWSIAMUser",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "global",
+          "check_id": "iam_user_access_key_age_90_days"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure S3 bucket has default encryption enabled",
+      "check_ids": [
+        "s3_bucket_default_encryption"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod",
+        "acme-legacy"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:s3:::acme-prod-archive",
+          "resource_name": "acme-prod-archive",
+          "resource_type": "AWSS3Bucket",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "s3_bucket_default_encryption"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure VPC flow logging is enabled in all VPCs",
+      "check_ids": [
+        "vpc_flow_logs_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:111122223333:vpc/vpc-0prod5678",
+          "resource_name": "vpc-0prod5678",
+          "resource_type": "AWSVPC",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "vpc_flow_logs_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Ensure CloudWatch log groups have retention policies set",
+      "check_ids": [
+        "cloudwatch_log_group_retention_policy_specific_days_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:logs:ap-southeast-2:111122223333:log-group:/aws/lambda/prod-api",
+          "resource_name": "/aws/lambda/prod-api",
+          "resource_type": "AWSCloudWatchLogGroup",
+          "account_name": "acme-prod",
+          "account_uid": "111122223333",
+          "region": "ap-southeast-2",
+          "check_id": "cloudwatch_log_group_retention_policy_specific_days_enabled"
+        }
+      ]
+    }
+  ]
+}

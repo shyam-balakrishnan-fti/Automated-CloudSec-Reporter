@@ -1,0 +1,160 @@
+{
+  "run_id": "a0805043-1a6d-4542-a8d6-3cf4ed49b83b",
+  "approved_at": "2026-07-06T05:29:54.453Z",
+  "groups": [
+    {
+      "group_name": "Privileged User Credentials Exposed on Defender XDR Endpoints",
+      "check_ids": [
+        "defenderxdr_endpoint_privileged_user_exposed_credentials"
+      ],
+      "rationale": "This check identifies critical security incidents where privileged user credentials have been exposed on endpoints monitored by Microsoft Defender XDR.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Administrative Users Maintain Minimal Licensing Footprint",
+      "check_ids": [
+        "admincenter_users_admins_reduced_license_footprint"
+      ],
+      "rationale": "This check ensures administrative users are assigned only necessary licenses to reduce attack surface and licensing costs. This represents a unique control focused on resource optimization and attack surface reduction.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Admin Users Require Enhanced Authentication Controls",
+      "check_ids": [
+        "entra_admin_users_phishing_resistant_mfa_enabled",
+        "entra_admin_users_sign_in_frequency_enabled"
+      ],
+      "rationale": "Both checks verify that administrator accounts have enhanced authentication requirements through Conditional Access policies targeting admin roles specifically.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Conditional Access Policies Enforce Security Controls",
+      "check_ids": [
+        "entra_conditional_access_policy_app_enforced_restrictions",
+        "entra_conditional_access_policy_approved_client_app_required_for_mobile",
+        "entra_conditional_access_policy_block_unknown_device_platforms",
+        "entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required",
+        "entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced",
+        "entra_conditional_access_policy_device_code_flow_blocked",
+        "entra_conditional_access_policy_device_registration_mfa_required",
+        "entra_conditional_access_policy_mdm_compliant_device_required",
+        "entra_conditional_access_policy_directory_sync_account_excluded",
+        "entra_intune_enrollment_sign_in_frequency_every_time",
+        "entra_managed_device_required_for_authentication",
+        "entra_managed_device_required_for_mfa_registration",
+        "entra_conditional_access_policy_block_elevated_insider_risk",
+        "entra_conditional_access_policy_block_o365_elevated_insider_risk",
+        "entra_identity_protection_sign_in_risk_enabled",
+        "entra_identity_protection_user_risk_enabled"
+      ],
+      "rationale": "All these checks validate that Entra ID Conditional Access policies are properly configured to enforce various security controls including device compliance, authentication requirements, risk-based access controls, and identity protection. They share the same remediation approach of configuring or enabling specific Conditional Access policy settings within the Entra ID portal and represent a comprehensive set of policy-based security controls managed through the same service interface.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Default Policy Restricts Non-Admin User Privileges",
+      "check_ids": [
+        "entra_policy_ensure_default_user_cannot_create_tenants",
+        "entra_policy_guest_invite_only_for_admin_roles",
+        "entra_policy_restricts_user_consent_for_apps",
+        "entra_thirdparty_integrated_apps_not_allowed"
+      ],
+      "rationale": "These checks all enforce the principle of least privilege by restricting default user capabilities through Entra ID authorization and user settings policies.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Emergency Access Account Configuration and Protection",
+      "check_ids": [
+        "entra_emergency_access_exclusion"
+      ],
+      "rationale": "This check validates that emergency access accounts are properly excluded from Conditional Access policies to prevent administrative lockout scenarios.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Users Enrolled in Multi-Factor Authentication",
+      "check_ids": [
+        "entra_users_mfa_capable"
+      ],
+      "rationale": "This check validates that users have registered for and are capable of performing multi-factor authentication. This is a user-level enrollment status check.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Microsoft 365 Groups Configured with Private Visibility",
+      "check_ids": [
+        "admincenter_groups_not_public_visibility"
+      ],
+      "rationale": "This check validates that Microsoft 365 groups are not configured with public visibility, which would expose group membership and content to unauthorized users.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Defender XDR Critical Asset Classifications Approved",
+      "check_ids": [
+        "defenderxdr_critical_asset_management_pending_approvals"
+      ],
+      "rationale": "This check validates that critical asset classifications within Microsoft Defender XDR have been reviewed and approved rather than remaining in pending status.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Defender for Identity Service Health Monitoring",
+      "check_ids": [
+        "defenderidentity_health_issues_no_open"
+      ],
+      "rationale": "This check validates that Microsoft Defender for Identity has no unresolved health issues that could impact hybrid infrastructure monitoring capabilities.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Admin Portal Access Restricted to Administrative Roles",
+      "check_ids": [
+        "entra_admin_portals_access_restriction"
+      ],
+      "rationale": "This check validates that administrative portals are only accessible to users with administrative roles, preventing regular users from accessing sensitive configuration interfaces.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra App Registration Has No Unused Privileged API Permissions",
+      "check_ids": [
+        "entra_app_registration_no_unused_privileged_permissions"
+      ],
+      "rationale": "This check ensures application registrations do not retain excessive or unused privileged API permissions that could be exploited if the application is compromised.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Application Credential Management Policy Configured",
+      "check_ids": [
+        "entra_default_app_management_policy_enabled"
+      ],
+      "rationale": "This check validates that the tenant enforces credential restrictions on applications and service principals through the default app management policy.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Password Hash Synchronization Enabled for Hybrid Identity",
+      "check_ids": [
+        "entra_password_hash_sync_enabled"
+      ],
+      "rationale": "This check validates that password hash synchronization is enabled for hybrid identity deployments to ensure authentication resilience and enable cloud-based authentication capabilities.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Entra Guest User Management Through Dynamic Groups",
+      "check_ids": [
+        "entra_dynamic_group_for_guests_created"
+      ],
+      "rationale": "This check validates the existence of a dynamic membership group for guest users to enable centralized guest user management and policy application.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}

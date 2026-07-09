@@ -1,0 +1,81 @@
+-- schema.sql
+-- Ground truth for all table definitions.
+-- Applied once at startup via db/init.py if tables don't exist.
+
+-- ── Engagements ───────────────────────────────────────────────────────
+-- Top-level entity. One engagement per client assessment.
+-- Multiple runs can exist under one engagement (e.g. re-scan after remediation).
+
+CREATE TABLE IF NOT EXISTS engagements (
+    id              TEXT PRIMARY KEY,           -- UUID
+    client_name     TEXT NOT NULL,
+    assessment_period TEXT NOT NULL,            -- e.g. "July 2026"
+    analyst         TEXT NOT NULL DEFAULT '',
+    pipeline_type   TEXT NOT NULL,              -- "prowler" | "scubagear" | "both"
+    created_at      TEXT NOT NULL,              -- ISO-8601
+    archived_at     TEXT,                       -- NULL = active
+    notes           TEXT NOT NULL DEFAULT ''
+);
+
+-- ── Runs ─────────────────────────────────────────────────────────────
+-- One execution of one pipeline for one engagement.
+
+CREATE TABLE IF NOT EXISTS runs (
+    id              TEXT PRIMARY KEY,           -- UUID
+    engagement_id   TEXT NOT NULL REFERENCES engagements(id),
+    pipeline        TEXT NOT NULL,              -- "prowler" | "scubagear"
+    status          TEXT NOT NULL DEFAULT 'pending',
+    -- pending | running | awaiting_review | enriching | complete | failed | cancelled
+
+    -- Input
+    input_file      TEXT NOT NULL DEFAULT '',   -- absolute path to scanner output file
+    input_format    TEXT NOT NULL DEFAULT 'auto', -- auto | csv | xlsx | json
+    tenant_id       TEXT NOT NULL DEFAULT '',   -- ScubaGear only
+
+    -- Config snapshot (written before run starts)
+    config_path     TEXT NOT NULL DEFAULT '',   -- absolute path to config.toml used
+    output_dir      TEXT NOT NULL DEFAULT '',   -- absolute path to output directory
+
+    -- AWS credentials (session-scoped, never persisted to disk by the GUI)
+    -- The credential_source tells the subprocess launcher how to auth.
+    credential_source TEXT NOT NULL DEFAULT 'profile',  -- "profile" | "keys"
+    aws_profile     TEXT NOT NULL DEFAULT '',
+    aws_region      TEXT NOT NULL DEFAULT 'ap-southeast-2',
+
+    -- Flags
+    skip_review     INTEGER NOT NULL DEFAULT 0,
+    skip_llm        INTEGER NOT NULL DEFAULT 0,
+
+    -- Timing
+    created_at      TEXT NOT NULL,
+    started_at      TEXT,
+    completed_at    TEXT,
+
+    -- Results summary (populated on completion)
+    findings_total  INTEGER,
+    findings_included INTEGER,
+    groups_total    INTEGER,
+    groups_enriched INTEGER,
+    risk_high       INTEGER,
+    risk_medium     INTEGER,
+    risk_low        INTEGER,
+    llm_failures    INTEGER,
+
+    -- Output
+    excel_path      TEXT                        -- absolute path to final .xlsx
+);
+
+-- ── RunLogs ──────────────────────────────────────────────────────────
+-- Append-only stdout/stderr from the subprocess. Used for log replay.
+
+CREATE TABLE IF NOT EXISTS run_logs (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id          TEXT NOT NULL REFERENCES runs(id),
+    ts              TEXT NOT NULL,              -- ISO-8601 with ms
+    stream          TEXT NOT NULL DEFAULT 'stdout', -- "stdout" | "stderr" | "gui"
+    line            TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_run_logs_run_id ON run_logs(run_id);
+CREATE INDEX IF NOT EXISTS idx_runs_engagement ON runs(engagement_id);
+CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
