@@ -113,7 +113,7 @@ def build_command(run: dict, repo_root: Path) -> list[str]:
         if run.get("skip_review"):
             cmd.append("--skip-review")
         if run.get("skip_llm"):
-            cmd.append("--skip-llm")
+            cmd.append("--skip-grouping")  # scubagear uses --skip-grouping not --skip-llm
 
     elif pipeline == "scubagear":
         entry = repo_root / "scubagear" / "src" / "run_scubagear.py"
@@ -126,11 +126,11 @@ def build_command(run: dict, repo_root: Path) -> list[str]:
             cmd += ["--tenant-id", run["tenant_id"]]
         cmd += ["--output-dir", run["output_dir"]]  # run-specific dir
         cmd.append("--no-browser")   # GUI handles browser opening via review banner
-        cmd.append("--force-review") # always start fresh
+        # Note: --force-review is not supported by run_scubagear.py
         if run.get("skip_review"):
             cmd.append("--skip-review")
         if run.get("skip_llm"):
-            cmd.append("--skip-llm")
+            cmd.append("--skip-grouping")  # scubagear uses --skip-grouping not --skip-llm
 
     else:
         raise ValueError(f"Unknown pipeline: {pipeline}")
@@ -181,6 +181,8 @@ def _detect_review_ready(line: str, pipeline: str) -> bool:
 _ENRICHING_MARKERS = [
     "stage 3", "[ stage 3 ]", "enriching", "llm enrichment",
     "starting enrichment",
+    "approved grouping:",
+    "approved grouping:", "stage 3", "enrich",
 ]
 
 def _detect_enriching(line: str) -> bool:
@@ -190,6 +192,8 @@ def _detect_enriching(line: str) -> bool:
 _COMPLETE_MARKERS = [
     "stage 5", "[ stage 5 ]", "excel rendered", "report written",
     "pipeline complete", "run complete",
+    # ScubaGear uses "pipeline complete" (already in line 193)
+    "pipeline complete", "✓ pipeline complete",
 ]
 
 def _detect_complete(line: str) -> bool:
@@ -391,6 +395,31 @@ async def execute_run(
             return
 
         _register_process(run_id, proc)
+
+        # Brief wait to catch immediate failures (bad flags, missing file, etc.)
+        # argparse errors exit in <1s with code 2
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=2.0)
+            if proc.returncode is not None and proc.returncode != 0:
+                # Process already died — read any output before reporting failure
+                if proc.stdout:
+                    out = await proc.stdout.read(4096)
+                    err_text = out.decode("utf-8", errors="replace").strip()
+                    if err_text:
+                        await stream.send_log(err_text, stream="stderr")
+                await stream.send_log(
+                    f"Process exited immediately with code {proc.returncode}. "
+                    f"Check the command flags and input file path.",
+                    stream="stderr",
+                )
+                await _update_run_status(run_id, "failed", db)
+                await stream.send_status("failed")
+                _deregister_process(run_id)
+                await stream.close()
+                return
+        except asyncio.TimeoutError:
+            pass  # Process still running after 2s — good, proceed normally
+
         await _update_run_status(run_id, "running", db)
         await stream.send_status("running")
 
