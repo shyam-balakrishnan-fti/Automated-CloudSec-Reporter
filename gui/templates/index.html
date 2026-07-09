@@ -590,7 +590,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
 <!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="sb-logo">
-    <img src="/static/logo.jpeg" alt="Logo" style="height:32px;width:auto;object-fit:contain;margin-bottom:10px">
+    <div class="logo-ph">YOUR LOGO</div>
     <div class="sb-product">Automated Cloud Security Reporter</div>
     <div class="sb-tagline">Pipeline management &amp; reporting</div>
   </div>
@@ -714,6 +714,27 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
           <button class="btn btn-ghost" onclick="refreshToolStatus()" id="btn-refresh-tools">
             ↻ Refresh Status
           </button>
+        </div>
+      </div>
+      <!-- Quick start banner -->
+      <div class="card" style="margin-bottom:14px;border-left:3px solid var(--teal)">
+        <div class="card-title" style="margin-bottom:8px">First Time Setup</div>
+        <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">
+          Run the startup script to automatically install all dependencies and launch the GUI.
+          On subsequent launches, double-click the same script — it skips already-installed tools.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 14px;flex:1;min-width:200px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Linux / macOS</div>
+            <code style="font-family:var(--mono);font-size:12px;color:var(--text)">bash gui/start.sh</code>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 14px;flex:1;min-width:200px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Windows</div>
+            <code style="font-family:var(--mono);font-size:12px;color:var(--text)">Right-click start.ps1 → Run with PowerShell</code>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px">
+          The script installs: uv · Prowler · ScubaGear (Windows only) · pipeline Python dependencies · GUI dependencies — then opens the browser automatically.
         </div>
       </div>
       <div id="tools-content">
