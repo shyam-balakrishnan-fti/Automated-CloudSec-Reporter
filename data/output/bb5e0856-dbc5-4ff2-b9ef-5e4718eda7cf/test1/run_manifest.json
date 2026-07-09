@@ -1,0 +1,51 @@
+{
+  "run_id": "82135ebd-13b6-4288-907e-a03d98790839",
+  "source_file": "/home/shyam-balakrishnan/cloud-tool/data/synthetic/test-2data.xlsx",
+  "source_file_hash": "0d3d9423d23d581bb89f2f18dcfd0734a941797e2c394611a5f0917f615a03ba",
+  "scanner": "prowler",
+  "scanner_version": "4.3.1",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-08T06:38:04.175776+00:00",
+  "config": {
+    "include_statuses": [
+      "FAIL",
+      "MUTED(FAIL)"
+    ],
+    "severity_rules": {
+      "critical": "High",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "informational": "Low",
+      "likelihood_high_if_categories": [
+        "internet-exposed"
+      ]
+    },
+    "risk_matrix": {
+      "High_Major": "High",
+      "High_Moderate": "High",
+      "High_Minor": "High",
+      "Medium_Major": "High",
+      "Medium_Moderate": "Medium",
+      "Medium_Minor": "Medium",
+      "Low_Major": "Medium",
+      "Low_Moderate": "Medium",
+      "Low_Minor": "Low"
+    }
+  },
+  "counts": {
+    "total_rows_read": 2,
+    "total_findings": 2,
+    "included": 2,
+    "excluded": 0,
+    "duplicates": 0,
+    "output_groups": 1
+  },
+  "stage1_warnings": [
+    {
+      "code": "UNKNOWN_COLUMNS",
+      "message": "Found 1 unknown column(s) not in the standard Prowler schema. Stored in extra_fields: ['FUTURE_COLUMN_V5']. This may indicate a newer Prowler version."
+    }
+  ],
+  "stage2_warnings": []
+}

@@ -1,0 +1,34 @@
+======================================================================
+STAGE 2 — DETERMINISTIC PROCESS SUMMARY
+======================================================================
+Run ID              : 4417c655-ee45-461c-8881-485e063edac0
+Total findings in   : 2
+Included (working)  : 2
+Excluded (filtered) : 0
+Duplicates removed  : 0
+Output groups       : 1
+
+EXCLUDED FINDINGS (0) — preserved in canonical JSON:
+
+DUPLICATES (0) — preserved in canonical JSON:
+
+OUTPUT GROUPS (1) — one row per check in the final report:
+  #   Section  Severity       Likelihood   Inst  Check ID
+  --- -------- -------------- ------------ ----  ----------------------------------------
+  1   AWS      high          High           2  s3_bucket_public_access
+
+GROUP DETAIL:
+  ── s3_bucket_public_access ──
+     Instances       : 2
+     Accounts        : ['acme-prod']
+     Likelihood      : High
+     Severity        : high
+     Representative  : Sheet:Sheet1 Row:2
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+WARNINGS (0):
+  None

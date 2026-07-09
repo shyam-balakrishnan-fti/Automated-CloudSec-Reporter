@@ -1,0 +1,490 @@
+{
+  "run_id": "fe35d03d-1d5e-4bb6-bce0-46c0a3fb5120",
+  "original_count": 34,
+  "merged_count": 20,
+  "merges_applied": 5,
+  "chunks_used": 3,
+  "consolidation_applied": false,
+  "warnings": [
+    {
+      "code": "CONSOLIDATION_FAILED",
+      "message": "Automatic consolidation pass failed: RuntimeError: Bedrock response was truncated (stopReason='max_tokens', max_tokens=2100). Response so far (8202 chars): '```json\\n[\\n  {\\n    \"group_name\": \"Entra Conditional Access Policies Enforce Device and Access Controls\",\\n    \"check_ids\": [\\n      \"entra_conditional_ac'. Increase max_tokens in config.toml or reduce prompt size.. Using chunked proposals without cross-chunk merging."
+    }
+  ],
+  "groups": [
+    {
+      "group_name": "Defender XDR Privileged User Credentials Not Exposed on Endpoints",
+      "check_ids": [
+        "defenderxdr_endpoint_privileged_user_exposed_credentials"
+      ],
+      "rationale": "This check identifies critical-severity exposures where privileged user credentials are detected on vulnerable or compromised endpoints monitored by Defender for Endpoint. This is a standalone incident-driven finding that requires immediate investigation, credential rotation, endpoint remediation, and privileged access review, representing an active security exposure rather than a preventive control gap.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "mdeStatus",
+          "resource_name": "Defender XDR",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "defenderxdr_endpoint_privileged_user_exposed_credentials"
+        }
+      ]
+    },
+    {
+      "group_name": "Administrative Users Have Reduced License Footprint",
+      "check_ids": [
+        "admincenter_users_admins_reduced_license_footprint"
+      ],
+      "rationale": "This check verifies that administrative users are assigned only the minimal necessary licenses (no license, AAD_PREMIUM, or AAD_PREMIUM_P2) to reduce the attack surface and cost exposure for privileged accounts. This is a distinct licensing and administrative account hygiene control separate from access policies or authentication requirements. The remediation involves reviewing and removing unnecessary license assignments for administrative accounts through the Microsoft 365 admin center.",
+      "is_merged": false,
+      "instance_count": 3,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "14cda4fc-6485-4a49-9be6-ef0f319b2687",
+          "resource_name": "David Kelly",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "admincenter_users_admins_reduced_license_footprint"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Admin Users Have Phishing-Resistant MFA Enforced",
+      "check_ids": [
+        "entra_admin_users_phishing_resistant_mfa_enabled"
+      ],
+      "rationale": "This check verifies that Conditional Access policies require phishing-resistant MFA methods (such as FIDO2 or certificate-based authentication) for administrator roles. While related to Conditional Access, this check specifically validates the authentication strength requirement for privileged accounts, which is a distinct security control from general Conditional Access policies. The remediation involves configuring authentication strength policies and applying them through Conditional Access, which is a more specialized configuration than the general device and access controls.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_admin_users_phishing_resistant_mfa_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Admin Users Have Sign-In Frequency Enforced",
+      "check_ids": [
+        "entra_admin_users_sign_in_frequency_enabled"
+      ],
+      "rationale": "This check ensures that administrator users have session timeout controls enforced through Conditional Access to limit the window of opportunity for session hijacking or unauthorized access. This is a standalone session management control specific to privileged accounts that differs from device-based Conditional Access policies. The remediation involves configuring sign-in frequency session controls specifically targeting administrator roles in Conditional Access policies.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_admin_users_sign_in_frequency_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policies Enforce Device and Access Controls",
+      "check_ids": [
+        "entra_conditional_access_policy_app_enforced_restrictions",
+        "entra_conditional_access_policy_approved_client_app_required_for_mobile",
+        "entra_conditional_access_policy_block_unknown_device_platforms",
+        "entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required",
+        "entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced",
+        "entra_conditional_access_policy_device_code_flow_blocked",
+        "entra_conditional_access_policy_device_registration_mfa_required",
+        "entra_conditional_access_policy_mdm_compliant_device_required"
+      ],
+      "rationale": "All eight checks verify that Entra ID Conditional Access policies enforce various device trust, compliance, and authentication requirements to prevent unauthorized access. These checks share the same root cause of implementing comprehensive Conditional Access policy controls and can be reviewed together as part of an overall Conditional Access posture assessment. A single security engineer would remediate all of these by configuring or verifying the organization's Conditional Access policy suite in the Entra admin center, following Microsoft's Zero Trust security model. The common remediation approach involves creating or updating Conditional Access policies with appropriate conditions, assignments, and access controls.",
+      "is_merged": true,
+      "instance_count": 8,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_conditional_access_policy_app_enforced_restrictions"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policies Enforce Device and Access Controls",
+      "check_ids": [
+        "entra_intune_enrollment_sign_in_frequency_every_time",
+        "entra_managed_device_required_for_authentication",
+        "entra_managed_device_required_for_mfa_registration"
+      ],
+      "rationale": "These checks all validate that Entra Conditional Access policies enforce managed device requirements and strong authentication controls across different access scenarios. They share the same root cause of requiring Conditional Access policy configuration to enforce device compliance and authentication strength. All three can be remediated by a single administrator configuring complementary Conditional Access policies in the same Entra portal session.",
+      "is_merged": true,
+      "instance_count": 3,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_intune_enrollment_sign_in_frequency_every_time"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policy Excludes Emergency Access Accounts",
+      "check_ids": [
+        "entra_emergency_access_exclusion"
+      ],
+      "rationale": "This check validates that emergency access accounts are properly excluded from Conditional Access policies to prevent administrative lockout scenarios. This is a standalone high-severity control that requires specific break-glass account configuration and careful policy exclusion management separate from other Conditional Access controls. The remediation involves identifying emergency access accounts and systematically excluding them from blocking policies, which is distinct from creating or enforcing device compliance policies.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_emergency_access_exclusion"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Identity Protection Risk Policies Enforce Sign-In and User Risk",
+      "check_ids": [
+        "entra_identity_protection_sign_in_risk_enabled",
+        "entra_identity_protection_user_risk_enabled"
+      ],
+      "rationale": "Both checks validate that Conditional Access policies leverage Entra Identity Protection risk signals to protect against compromised identities. Sign-in risk policies detect anomalous authentication attempts in real-time, while user risk policies detect indicators that an account may be compromised, but both stem from the same root cause of missing or inadequate Identity Protection policy configuration. These would be remediated together by an identity security engineer creating or updating Conditional Access policies that incorporate Identity Protection risk conditions, using the same service and policy framework.",
+      "is_merged": true,
+      "instance_count": 2,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_identity_protection_sign_in_risk_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Tenant User Permissions Restricted to Administrators",
+      "check_ids": [
+        "entra_policy_ensure_default_user_cannot_create_tenants",
+        "entra_policy_guest_invite_only_for_admin_roles",
+        "entra_policy_restricts_user_consent_for_apps",
+        "entra_thirdparty_integrated_apps_not_allowed"
+      ],
+      "rationale": "These checks all validate that Entra tenant-level authorization policies restrict non-administrative users from performing privileged actions such as creating tenants, inviting guests, consenting to applications, and creating app registrations. They share the same root cause of ensuring least-privilege through centralized tenant authorization policy configuration. All four settings can be remediated in a single session by configuring the Entra ID tenant authorization policy and user settings.",
+      "is_merged": true,
+      "instance_count": 4,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "authorizationPolicy",
+          "resource_name": "Authorization Policy",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_policy_ensure_default_user_cannot_create_tenants"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Users Are MFA Capable",
+      "check_ids": [
+        "entra_users_mfa_capable"
+      ],
+      "rationale": "This check validates that users in the tenant have registered for and are capable of performing multi-factor authentication. This is a standalone user readiness verification that measures MFA registration coverage rather than policy enforcement, requiring distinct remediation through user communication campaigns and registration drives separate from Conditional Access policy configuration.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "b01ca034-94aa-493c-a99f-219eae2ba690",
+          "resource_name": "Microsoft Prowler",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_users_mfa_capable"
+        }
+      ]
+    },
+    {
+      "group_name": "Microsoft 365 Groups Have Private Visibility",
+      "check_ids": [
+        "admincenter_groups_not_public_visibility"
+      ],
+      "rationale": "This check ensures that Microsoft 365 groups are configured with Private visibility rather than Public to prevent unauthorized access to group content and membership information. This is a standalone Microsoft 365 groups configuration issue affecting the Microsoft 365 admin center rather than Entra Conditional Access or identity controls. The remediation involves changing the visibility settings for specific Microsoft 365 groups through the Microsoft 365 admin center or PowerShell.",
+      "is_merged": false,
+      "instance_count": 3,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "215036be-c7fa-4640-be69-454915bc42bf",
+          "resource_name": "Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "admincenter_groups_not_public_visibility"
+        }
+      ]
+    },
+    {
+      "group_name": "App Registration Has No Unused Privileged API Permissions",
+      "check_ids": [
+        "entra_app_registration_no_unused_privileged_permissions"
+      ],
+      "rationale": "This check identifies application registrations that have been granted privileged API permissions that are not being actively used, following the principle of least privilege. This is a distinct control focused on application permission hygiene rather than user access or Conditional Access policies. The remediation involves auditing application registrations and removing unnecessary API permission grants through the App Registrations blade in Entra admin center.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "oauthApps",
+          "resource_name": "OAuth Applications",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_app_registration_no_unused_privileged_permissions"
+        }
+      ]
+    },
+    {
+      "group_name": "Defender XDR Critical Asset Classifications Reviewed and Approved",
+      "check_ids": [
+        "defenderxdr_critical_asset_management_pending_approvals"
+      ],
+      "rationale": "This check validates that critical asset management classifications in Defender XDR are actively reviewed and approved rather than left in pending status. This is a standalone asset inventory governance control that requires business owner review and approval workflows specific to the Defender XDR critical asset management feature, distinct from other Defender security controls.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "criticalAssetManagement",
+          "resource_name": "Critical Asset Management",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "defenderxdr_critical_asset_management_pending_approvals"
+        }
+      ]
+    },
+    {
+      "group_name": "Defender for Identity Has No Unresolved Health Issues",
+      "check_ids": [
+        "defenderidentity_health_issues_no_open"
+      ],
+      "rationale": "This check validates that Defender for Identity sensors and service components have no unresolved health issues that could affect monitoring of hybrid infrastructure and identity threat detection. This is a standalone operational health check for a specific security service that requires troubleshooting sensor connectivity, permissions, and service status distinct from identity policy configuration.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "defenderIdentity",
+          "resource_name": "Defender for Identity",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "defenderidentity_health_issues_no_open"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Admin Portal Access Restricted to Administrative Roles",
+      "check_ids": [
+        "entra_admin_portals_access_restriction"
+      ],
+      "rationale": "This check ensures that administrative portals in Entra ID are accessible only to users with administrative roles, preventing unauthorized access to sensitive configuration interfaces. This is a standalone control focused on role-based access control for admin portals specifically. The remediation involves configuring tenant-wide settings to restrict admin portal access rather than creating Conditional Access policies or modifying user licenses.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_admin_portals_access_restriction"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policies Enforce Insider Risk Protections",
+      "check_ids": [
+        "entra_conditional_access_policy_block_elevated_insider_risk",
+        "entra_conditional_access_policy_block_o365_elevated_insider_risk"
+      ],
+      "rationale": "Both checks verify that Conditional Access policies block users with elevated insider risk scores, as determined by Microsoft Purview Insider Risk Management. The first check covers general access while the second specifically covers Office 365 access, but they share the same root cause of missing or incomplete insider risk-based access controls and would be remediated together by creating or updating Conditional Access policies that respond to insider risk signals. A single engineer would configure these policies in one session using the same Conditional Access and Insider Risk Management integration.",
+      "is_merged": true,
+      "instance_count": 2,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "10212e8d-3679-447b-912a-b29fb7a50405",
+          "resource_name": "Block legacy authentication",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_conditional_access_policy_block_elevated_insider_risk"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policy Excludes Directory Sync Accounts",
+      "check_ids": [
+        "entra_conditional_access_policy_directory_sync_account_excluded"
+      ],
+      "rationale": "This check verifies that Directory Synchronization Accounts are properly excluded from Conditional Access policies to prevent disruption of Entra Connect sync operations. This is a distinct operational requirement that differs from the other Conditional Access checks, as it focuses on ensuring service accounts are not inadvertently blocked rather than enforcing security controls. The remediation involves specifically configuring exclusions in Conditional Access policies rather than adding restrictions.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "10212e8d-3679-447b-912a-b29fb7a50405",
+          "resource_name": "Block legacy authentication",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_conditional_access_policy_directory_sync_account_excluded"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Default App Management Policy Enforces Credential Restrictions",
+      "check_ids": [
+        "entra_default_app_management_policy_enabled"
+      ],
+      "rationale": "This check validates that the default application management policy in Entra enforces credential restrictions on applications and service principals to prevent weak or long-lived credentials. This is a standalone tenant-level policy configuration that governs application credential lifecycle management across all applications and requires its own dedicated remediation and documentation.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "00000000-0000-0000-0000-000000000000",
+          "resource_name": "Default App Management Policy",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_default_app_management_policy_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Password Hash Synchronization Enabled for Hybrid Identity",
+      "check_ids": [
+        "entra_password_hash_sync_enabled"
+      ],
+      "rationale": "This check validates that password hash synchronization is enabled for hybrid identity deployments to provide authentication resilience and enable cloud-based protection features. This is a standalone hybrid identity architecture decision that requires Azure AD Connect configuration and has distinct implications for disaster recovery and authentication flow compared to pure cloud identity controls.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "4bc0c11a-fdb2-4a7e-98ae-f04828017364",
+          "resource_name": "AusBeefChain",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_password_hash_sync_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Dynamic Group for Guest User Management",
+      "check_ids": [
+        "entra_dynamic_group_for_guests_created"
+      ],
+      "rationale": "This check validates that a dynamic membership group exists for automatic management and governance of guest users in the tenant. This is a standalone infrastructure configuration that enables consistent policy application to external identities and requires its own dedicated implementation with dynamic membership rules and ongoing governance processes.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "affected_resources": [
+        {
+          "resource": "group",
+          "resource_name": "Group",
+          "resource_type": "NotDefined",
+          "account_name": "ausbeefchain.com",
+          "account_uid": "ausbeefchain.com",
+          "region": "global",
+          "check_id": "entra_dynamic_group_for_guests_created"
+        }
+      ]
+    }
+  ]
+}

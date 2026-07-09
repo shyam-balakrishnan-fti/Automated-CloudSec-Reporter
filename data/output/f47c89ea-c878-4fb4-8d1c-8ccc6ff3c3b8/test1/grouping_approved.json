@@ -1,0 +1,15 @@
+{
+  "run_id": "4417c655-ee45-461c-8881-485e063edac0",
+  "approved_at": "2026-07-08T07:06:41.208Z",
+  "groups": [
+    {
+      "group_name": "S3 Bucket Public Access Not Blocked",
+      "check_ids": [
+        "s3_bucket_public_access"
+      ],
+      "rationale": "This check identifies S3 buckets that lack proper public access block configurations, allowing potential unauthorized internet exposure of stored data. The root cause is inadequate configuration of S3 Block Public Access settings at the bucket level, which can be remediated through a single operational procedure of enabling all four Block Public Access toggles (BlockPublicAcls, IgnorePublicAcls, BlockPublicPolicy, RestrictPublicBuckets) on the affected buckets. All two instances share the same misconfiguration pattern and require identical remediation steps that can be executed in one session.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}

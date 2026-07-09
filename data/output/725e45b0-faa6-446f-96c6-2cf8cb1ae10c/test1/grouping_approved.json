@@ -1,0 +1,15 @@
+{
+  "run_id": "1ac11be2-619d-484e-ba63-77aaac007ba9",
+  "approved_at": "2026-07-08T06:52:54.324Z",
+  "groups": [
+    {
+      "group_name": "S3 Bucket Public Access Not Blocked",
+      "check_ids": [
+        "s3_bucket_public_access"
+      ],
+      "rationale": "This check identifies S3 buckets that permit public access, exposing data to unauthorized internet users. All instances share the same root cause of missing or misconfigured S3 Block Public Access settings, and can be remediated by a single engineer applying consistent bucket policies and access controls across the affected buckets in one session.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}
