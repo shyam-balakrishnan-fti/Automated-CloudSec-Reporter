@@ -29,6 +29,8 @@ from api.models import (
     RunCreate,
     RunResponse,
     PlatformInfo,
+    ScanCreate,
+    ScanProvider,
 )
 from api.platform import (
     get_platform_info, run_preflight,
@@ -931,3 +933,209 @@ async def delete_run(
     await db.execute("DELETE FROM runs WHERE id = ?", (run_id,))
     await db.commit()
     return {"deleted": True, "run_id": run_id}
+
+
+# ── Scans ─────────────────────────────────────────────────────────────
+# In-memory store of raw scan secrets keyed by scan_id.
+# Never written to DB. Cleared when scan starts.
+_pending_scan_secrets: dict[str, dict] = {}
+
+
+@router.get("/engagements/{engagement_id}/scans")
+async def list_scans(
+    engagement_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """List all scans for an engagement, newest first."""
+    cursor = await db.execute(
+        "SELECT * FROM scans WHERE engagement_id=? ORDER BY created_at DESC",
+        (engagement_id,),
+    )
+    rows = await cursor.fetchall()
+    return [_scan_row(dict(r)) for r in rows]
+
+
+@router.post("/engagements/{engagement_id}/scans", status_code=201)
+async def create_scan(
+    engagement_id: str,
+    body: ScanCreate,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Create a scan record. Does NOT start the scan yet.
+    Raw secrets are registered via POST /scans/{id}/secrets before start.
+    """
+    from api.scanner import AWS_SERVICES, AZURE_SERVICES
+    import json as _json
+
+    cursor = await db.execute(
+        "SELECT id FROM engagements WHERE id=?", (engagement_id,)
+    )
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Engagement not found")
+
+    scan_id = str(uuid.uuid4())
+    now     = _now()
+
+    # Determine output directory
+    repo_root  = Path(__file__).parent.parent.parent
+    output_dir = repo_root / "data" / "scans" / scan_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    await db.execute(
+        """INSERT INTO scans (
+            id, engagement_id, provider, status,
+            credential_source, aws_profile, scan_region, scan_account_id,
+            azure_tenant_id, azure_client_id, azure_subscription_id,
+            resource_scope, services_scope,
+            output_dir, output_file, created_at
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            scan_id, engagement_id, body.provider.value, "pending",
+            body.credential_source.value, body.aws_profile,
+            body.scan_region, body.scan_account_id,
+            body.azure_tenant_id, body.azure_client_id, body.azure_subscription_id,
+            _json.dumps(body.resource_scope),
+            _json.dumps(body.services_scope),
+            str(output_dir), "", now,
+        ),
+    )
+    await db.commit()
+
+    return {"id": scan_id, "engagement_id": engagement_id,
+            "provider": body.provider.value, "status": "pending",
+            "output_dir": str(output_dir), "created_at": now}
+
+
+@router.post("/scans/{scan_id}/secrets")
+async def register_scan_secrets(
+    scan_id: str,
+    body: dict,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Register raw scan credentials in memory only.
+    Must be called before POST /scans/{scan_id}/start.
+    Secrets are cleared from memory as soon as the scan starts.
+    """
+    cursor = await db.execute("SELECT id FROM scans WHERE id=?", (scan_id,))
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    allowed = {
+        "aws_access_key_id", "aws_secret_access_key", "aws_session_token",
+        "azure_client_secret",
+    }
+    _pending_scan_secrets[scan_id] = {
+        k: v for k, v in body.items() if k in allowed and v
+    }
+    return {"registered": True}
+
+
+@router.post("/scans/{scan_id}/start")
+async def start_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """Start a pending scan. Returns task_id for SSE stream."""
+    from api import scanner
+    from api.sse import register_stream
+
+    cursor = await db.execute("SELECT * FROM scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    scan = dict(row)
+    if scan["status"] not in ("pending", "failed"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Scan status is '{scan['status']}' — only pending or failed scans can be started",
+        )
+
+    stream  = register_stream(f"scan-{scan_id}")
+    secrets = _pending_scan_secrets.pop(scan_id, {})
+    output_dir = Path(scan["output_dir"])
+
+    asyncio.create_task(
+        scanner.execute_scan(scan, stream, output_dir, secrets)
+    )
+
+    return {"task_id": f"scan-{scan_id}", "status": "starting"}
+
+
+@router.get("/scans/{scan_id}/stream")
+async def stream_scan(scan_id: str):
+    """SSE endpoint — live Prowler stdout."""
+    from api.sse import get_stream
+    stream = get_stream(f"scan-{scan_id}")
+    if not stream:
+        raise HTTPException(status_code=404, detail="No active stream for this scan")
+    return stream.response()
+
+
+@router.post("/scans/{scan_id}/cancel")
+async def cancel_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """Kill the running Prowler process."""
+    from api import scanner
+
+    cursor = await db.execute("SELECT status FROM scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    if row[0] != "running":
+        raise HTTPException(status_code=400, detail=f"Scan is '{row[0]}' — only running scans can be cancelled")
+
+    await scanner.cancel_scan(scan_id)
+    now = _now()
+    await db.execute(
+        "UPDATE scans SET status='cancelled', completed_at=? WHERE id=?",
+        (now, scan_id),
+    )
+    await db.commit()
+    return {"cancelled": True}
+
+
+@router.get("/scans/{scan_id}")
+async def get_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute("SELECT * FROM scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return _scan_row(dict(row))
+
+
+@router.get("/scans/{scan_id}/logs")
+async def get_scan_logs(
+    scan_id: str,
+    offset: int = 0,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute(
+        "SELECT ts, stream, line FROM scan_logs WHERE scan_id=? ORDER BY id LIMIT 5000 OFFSET ?",
+        (scan_id, offset),
+    )
+    rows = await cursor.fetchall()
+    return [{"ts": r[0], "stream": r[1], "line": r[2]} for r in rows]
+
+
+@router.get("/meta/services")
+async def list_services():
+    """Return available Prowler service names for the scope selector."""
+    from api.scanner import AWS_SERVICES, AZURE_SERVICES
+    return {"aws": AWS_SERVICES, "azure": AZURE_SERVICES}
+
+
+# ── Scan row helper ───────────────────────────────────────────────────
+
+def _scan_row(row: dict) -> dict:
+    import json as _j
+    row["resource_scope"] = _j.loads(row.get("resource_scope") or "[]")
+    row["services_scope"] = _j.loads(row.get("services_scope") or "[]")
+    return row

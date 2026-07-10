@@ -1,0 +1,96 @@
+{
+  "run_id": "6680fdd7-dd95-444a-adcd-d6e0bd548b0d",
+  "approved_at": "2026-07-10T07:27:32.840Z",
+  "groups": [
+    {
+      "group_name": "AWS Config has a delegated administrator and an organization aggregator covering all AWS regions",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "All AWS FMS policies in the admin account are compliant for all accounts",
+      "check_ids": [
+        "fms_policy_compliant"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM account password policy enforces password expiration within 90 days or less",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM password policy prevents reuse of the last 24 passwords",
+      "check_ids": [
+        "iam_password_policy_reuse_24"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM password policy requires at least one number",
+      "check_ids": [
+        "iam_password_policy_number"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM password policy requires at least one symbol",
+      "check_ids": [
+        "iam_password_policy_symbol"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM password policy requires at least one uppercase letter",
+      "check_ids": [
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM password policy requires passwords to be at least 14 characters long",
+      "check_ids": [
+        "iam_password_policy_minimum_length_14"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon SageMaker has a monitoring schedule scheduled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM password policy requires at least one lowercase letter",
+      "check_ids": [
+        "iam_password_policy_lowercase"
+      ],
+      "rationale": "Standalone \u2014 chunk grouping call failed, no merge attempted.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}

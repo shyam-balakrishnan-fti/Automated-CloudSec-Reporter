@@ -1,0 +1,230 @@
+{
+  "run_id": "6680fdd7-dd95-444a-adcd-d6e0bd548b0d",
+  "original_count": 10,
+  "merged_count": 10,
+  "merges_applied": 0,
+  "chunks_used": 1,
+  "consolidation_applied": false,
+  "warnings": [
+    {
+      "code": "CHUNK_GROUPING_FAILED",
+      "message": "Chunk 1/1 failed after retry: ValueError: config.toml [llm] deployment_name is required. Example: anthropic.claude-opus-4-8. Checks in this chunk fall back to standalone groups."
+    },
+    {
+      "code": "CONSOLIDATION_FAILED",
+      "message": "Automatic consolidation pass failed: ValueError: config.toml [llm] deployment_name is required. Example: anthropic.claude-opus-4-8. Using chunked proposals without cross-chunk merging."
+    }
+  ],
+  "groups": [
+    {
+      "group_name": "AWS Config has a delegated administrator and an organization aggregator covering all AWS regions",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:config:ap-southeast-2:415019016144:config-aggregator/unknown",
+          "resource_name": "unknown",
+          "resource_type": "AwsConfigConfigurationAggregator",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "config_delegated_admin_and_org_aggregator_all_regions"
+        }
+      ]
+    },
+    {
+      "group_name": "All AWS FMS policies in the admin account are compliant for all accounts",
+      "check_ids": [
+        "fms_policy_compliant"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:fms:us-east-1:415019016144:policy",
+          "resource_name": "415019016144",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "us-east-1",
+          "check_id": "fms_policy_compliant"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM account password policy enforces password expiration within 90 days or less",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_expires_passwords_within_90_days_or_less"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy prevents reuse of the last 24 passwords",
+      "check_ids": [
+        "iam_password_policy_reuse_24"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_reuse_24"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one number",
+      "check_ids": [
+        "iam_password_policy_number"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_number"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one symbol",
+      "check_ids": [
+        "iam_password_policy_symbol"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_symbol"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one uppercase letter",
+      "check_ids": [
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_uppercase"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires passwords to be at least 14 characters long",
+      "check_ids": [
+        "iam_password_policy_minimum_length_14"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_minimum_length_14"
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon SageMaker has a monitoring schedule scheduled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:sagemaker:ap-southeast-2:415019016144:monitoring-schedule/unknown",
+          "resource_name": "SageMaker Monitoring Schedules",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "sagemaker_models_monitor_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one lowercase letter",
+      "check_ids": [
+        "iam_password_policy_lowercase"
+      ],
+      "rationale": "Standalone — chunk grouping call failed, no merge attempted.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_lowercase"
+        }
+      ]
+    }
+  ]
+}

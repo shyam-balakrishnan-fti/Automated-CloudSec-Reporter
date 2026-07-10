@@ -1,0 +1,55 @@
+{
+  "run_id": "6680fdd7-dd95-444a-adcd-d6e0bd548b0d",
+  "source_file": "/home/shyam-balakrishnan/cloud-tool/data/scans/54a54f86-8ec5-48b3-be2f-0ba516af9cd9/prowler-output.csv",
+  "source_file_hash": "77a1c50ceed45ed0f5d715c9d963377c8d770d45d552dda3b49c07ea7382a9fb",
+  "scanner": "prowler",
+  "scanner_version": "5.32.0",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-10T07:27:27.937859+00:00",
+  "config": {
+    "include_statuses": [
+      "FAIL",
+      "MUTED(FAIL)"
+    ],
+    "severity_rules": {
+      "critical": "High",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "informational": "Low",
+      "likelihood_high_if_categories": [
+        "internet-exposed"
+      ]
+    },
+    "risk_matrix": {
+      "High_Major": "High",
+      "High_Moderate": "High",
+      "High_Minor": "High",
+      "Medium_Major": "High",
+      "Medium_Moderate": "Medium",
+      "Medium_Minor": "Medium",
+      "Low_Major": "Medium",
+      "Low_Moderate": "Medium",
+      "Low_Minor": "Low"
+    }
+  },
+  "counts": {
+    "total_rows_read": 13,
+    "total_findings": 13,
+    "included": 10,
+    "excluded": 3,
+    "duplicates": 0,
+    "output_groups": 10
+  },
+  "stage1_warnings": [
+    {
+      "code": "NON_STANDARD_DELIMITER",
+      "message": "CSV delimiter detected as ';' (not comma). This is normal for some Prowler versions/locales."
+    },
+    {
+      "code": "UNKNOWN_COLUMNS",
+      "message": "Found 3 unknown column(s) not in the standard Prowler schema. Stored in extra_fields: ['ADDITIONAL_URLS', 'ACCOUNT_OU_UID', 'ACCOUNT_OU_NAME']. This may indicate a newer Prowler version."
+    }
+  ],
+  "stage2_warnings": []
+}

@@ -79,3 +79,59 @@ CREATE TABLE IF NOT EXISTS run_logs (
 CREATE INDEX IF NOT EXISTS idx_run_logs_run_id ON run_logs(run_id);
 CREATE INDEX IF NOT EXISTS idx_runs_engagement ON runs(engagement_id);
 CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
+
+-- ── Scans ─────────────────────────────────────────────────────────────
+-- One Prowler execution against one cloud environment.
+-- Separate from runs — a scan produces raw output that can be used
+-- by multiple report runs without re-scanning.
+
+CREATE TABLE IF NOT EXISTS scans (
+    id              TEXT PRIMARY KEY,           -- UUID
+    engagement_id   TEXT NOT NULL REFERENCES engagements(id),
+    provider        TEXT NOT NULL,              -- "aws" | "azure"
+    status          TEXT NOT NULL DEFAULT 'pending',
+    -- pending | running | complete | failed | cancelled
+
+    -- Scan credentials (session-scoped — raw secrets never stored here)
+    credential_source TEXT NOT NULL DEFAULT 'keys', -- "keys" | "profile"
+    aws_profile     TEXT NOT NULL DEFAULT '',   -- if credential_source = profile
+    scan_region     TEXT NOT NULL DEFAULT '',   -- AWS region to scan
+    scan_account_id TEXT NOT NULL DEFAULT '',   -- AWS account ID (informational)
+
+    -- Azure only (injected as env vars, never stored — just metadata)
+    azure_tenant_id TEXT NOT NULL DEFAULT '',
+    azure_client_id TEXT NOT NULL DEFAULT '',
+    azure_subscription_id TEXT NOT NULL DEFAULT '', -- blank = all subscriptions
+
+    -- Scope (optional — blank means full scan)
+    resource_scope  TEXT NOT NULL DEFAULT '',   -- JSON array of ARNs / resource IDs
+    services_scope  TEXT NOT NULL DEFAULT '',   -- JSON array of service names (e.g. ["iam","s3"])
+
+    -- Output
+    output_dir      TEXT NOT NULL DEFAULT '',   -- directory containing scan output files
+    output_file     TEXT NOT NULL DEFAULT '',   -- path to primary CSV/JSON output
+
+    -- Timing
+    created_at      TEXT NOT NULL,
+    started_at      TEXT,
+    completed_at    TEXT,
+
+    -- Results
+    findings_count  INTEGER,                    -- total raw findings before filtering
+    duration_secs   INTEGER                     -- wall clock seconds
+);
+
+-- ── ScanLogs ──────────────────────────────────────────────────────────
+-- Append-only stdout/stderr from the Prowler subprocess.
+
+CREATE TABLE IF NOT EXISTS scan_logs (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    scan_id         TEXT NOT NULL REFERENCES scans(id),
+    ts              TEXT NOT NULL,
+    stream          TEXT NOT NULL DEFAULT 'stdout',
+    line            TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_scan_logs_scan_id ON scan_logs(scan_id);
+CREATE INDEX IF NOT EXISTS idx_scans_engagement  ON scans(engagement_id);
+CREATE INDEX IF NOT EXISTS idx_scans_status      ON scans(status);

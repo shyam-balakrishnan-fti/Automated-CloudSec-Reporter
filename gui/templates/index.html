@@ -590,7 +590,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
 <!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="sb-logo">
-    <img src="/static/logo.jpeg" alt="Logo" style="height:32px;width:auto;object-fit:contain;margin-bottom:10px">
+    <div class="logo-ph">YOUR LOGO</div>
     <div class="sb-product">Automated Cloud Security Reporter</div>
     <div class="sb-tagline">Pipeline management &amp; reporting</div>
   </div>
@@ -612,6 +612,13 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
     </div>
     <button class="nav-item" data-view="new-run" onclick="navigate('new-run')">
       <span class="nav-icon">▷</span> New Run
+    </button>
+
+    <div class="sb-section" style="margin-top:8px">
+      <div class="sb-section-title">Scanner</div>
+    </div>
+    <button class="nav-item" data-view="scans" onclick="navigate('scans')">
+      <span class="nav-icon">⬡</span> Run Scan
     </button>
     <button class="nav-item" data-view="tools" onclick="navigate('tools')">
       <span class="nav-icon">⚙</span> Tools &amp; Setup
@@ -858,6 +865,66 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
       </div>
     </div>
 
+    <!-- ── Scans view ── -->
+    <div class="view" id="view-scans">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Run Scan</div>
+          <div class="page-sub">Execute a Prowler scan against an AWS or Azure environment</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNewScanModal()">+ New Scan</button>
+      </div>
+      <div id="scans-list">
+        <div class="empty-state"><div class="spinner spinner-lg"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Scan detail view ── -->
+    <div class="view" id="view-scan-detail">
+      <div style="margin-bottom:14px">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+                onclick="backFromScan()">← Back</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title" id="scan-detail-title">Scan</div>
+          <div class="page-sub" id="scan-detail-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px;padding-top:4px" id="scan-detail-actions"></div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="stage-bar" id="scan-stage-bar">
+        <div class="stage-step" id="scan-stage-pending">Pending</div>
+        <div class="stage-step" id="scan-stage-running">Scanning</div>
+        <div class="stage-step" id="scan-stage-complete">Complete</div>
+      </div>
+
+      <!-- Output ready banner -->
+      <div class="output-banner" id="scan-output-banner">
+        <div style="font-size:22px">✓</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--success);font-family:var(--fh)">Scan Complete</div>
+          <div style="font-size:11px;color:var(--success);margin-top:2px" id="scan-output-filename"></div>
+        </div>
+        <button class="btn btn-primary" id="btn-use-scan-output" onclick="useScanOutput()">
+          Generate Report →
+        </button>
+      </div>
+
+      <!-- Live log -->
+      <div class="card" style="padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="card-title" style="margin-bottom:0">
+            Scan Output
+            <span class="spinner" id="scan-spinner" style="margin-left:8px;display:none"></span>
+          </div>
+          <span style="font-size:11px;color:var(--muted)" id="scan-elapsed"></span>
+        </div>
+        <div class="progress-timeline" id="scan-timeline"></div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -965,6 +1032,8 @@ const VIEW_TITLES = {
   'tools': 'Tools & Setup',
   'run-detail': 'Run',
   'settings': 'Settings',
+  'scans': 'Run Scan',
+  'scan-detail': 'Scan',
   'engagement-detail': '',
 };
 
@@ -986,6 +1055,7 @@ function navigate(view) {
   if (view === 'dashboard') loadDashboard();
   if (view === 'tools') loadTools();
   if (view === 'settings') loadSettings();
+  if (view === 'scans') loadScans();
   // Stop engagement detail polling when navigating away from it
   if (view !== 'engagement-detail' && _engDetailPoll) {
     clearInterval(_engDetailPoll);
@@ -2391,7 +2461,7 @@ const SETTINGS_KEY = 'csr_settings';
 const DEFAULT_SETTINGS = {
   aws_region:       'ap-southeast-2',
   aws_profile:      'default',
-  deployment_name:  'arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh',
+  deployment_name:  '',
   output_dir:       '',
   skip_review:      false,
   skip_llm:         false,
@@ -2715,6 +2785,599 @@ async function backFromPreflight() {
   }
 }
 
+
+// ── Scanner state ─────────────────────────────────────────────────────
+let activeScanId      = null;
+let scanEvtSource     = null;
+let scanElapsedTimer  = null;
+let scanStartTime     = null;
+let completedScanOutput = null;  // output file path after scan completes
+let _scanDetailEngId  = null;
+let _awsServices      = [];
+let _azureServices    = [];
+let _scanDetailPoll   = null;
+
+// ── Load services list ────────────────────────────────────────────────
+async function _ensureServices() {
+  if (_awsServices.length) return;
+  try {
+    const s = await api('GET', '/meta/services');
+    _awsServices   = s.aws   || [];
+    _azureServices = s.azure || [];
+  } catch(e) {}
+}
+
+// ── Scans list view ───────────────────────────────────────────────────
+async function loadScans() {
+  const container = document.getElementById('scans-list');
+  container.innerHTML = '<div class="empty-state"><div class="spinner spinner-lg"></div></div>';
+  try {
+    // Collect scans across all engagements for the dashboard view
+    const engs = await api('GET', '/engagements');
+    let allScans = [];
+    for (const eng of engs) {
+      const scans = await api('GET', `/engagements/${eng.id}/scans`);
+      scans.forEach(s => s._engagement = eng);
+      allScans = allScans.concat(scans);
+    }
+    allScans.sort((a,b) => b.created_at.localeCompare(a.created_at));
+
+    if (!allScans.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">⬡</div>
+          <div class="empty-title">No scans yet</div>
+          <div class="empty-sub">Configure and run a Prowler scan to get started</div>
+          <br>
+          <button class="btn btn-primary" onclick="openNewScanModal()">+ New Scan</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${allScans.map(s => scanRowHTML(s)).join('')}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load scans: ${esc(e.message)}</div>`;
+  }
+}
+
+function scanRowHTML(s) {
+  const eng     = s._engagement;
+  const created = new Date(s.created_at).toLocaleString();
+  const badge   = s.provider === 'aws'
+    ? '<span class="eng-badge eng-badge-prowler">AWS</span>'
+    : '<span class="eng-badge" style="background:#e0f2fe;color:#0369a1">Azure</span>';
+  const dur = s.duration_secs ? _formatDuration(
+    s.created_at,
+    new Date(new Date(s.created_at).getTime() + s.duration_secs * 1000).toISOString()
+  ) : '';
+
+  return `
+    <div style="padding:14px 16px;border:1px solid var(--border);border-radius:4px;background:#fafbfc;cursor:pointer"
+         onclick="openScanDetail('${s.id}','${eng ? eng.id : ''}')">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        ${badge}
+        <span class="status-badge status-${s.status}">${statusLabel(s.status)}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text)">
+          ${eng ? esc(eng.client_name) : 'Unknown engagement'}
+        </span>
+        <span style="font-size:11px;color:var(--muted)">${created}</span>
+        ${dur ? `<span style="font-size:11px;color:var(--muted);margin-left:auto">${dur}</span>` : ''}
+        ${s.findings_count != null
+          ? `<span style="font-size:11px;font-family:var(--mono);color:var(--muted)">${s.findings_count} findings</span>`
+          : ''}
+      </div>
+      ${s.scan_region ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">Region: ${esc(s.scan_region)}</div>` : ''}
+      ${s.output_file ? `
+        <div style="font-size:11px;color:var(--success);margin-top:6px">
+          ✓ Output: ${esc(s.output_file.split(/[\\/]/).pop())}
+        </div>` : ''}
+    </div>`;
+}
+
+// ── New Scan Modal ────────────────────────────────────────────────────
+let _currentScanEngId = null;
+
+async function openNewScanModal(engId) {
+  await _ensureServices();
+  _currentScanEngId = engId || currentEngagementId || null;
+
+  // Engagement picker
+  const engs = await api('GET', '/engagements');
+  const engOptions = engs.map(e =>
+    `<option value="${esc(e.id)}" ${e.id === _currentScanEngId ? 'selected' : ''}>
+      ${esc(e.client_name)} — ${esc(e.assessment_period)}
+    </option>`
+  ).join('');
+
+  const profileOptions = (platform && platform.aws_profiles.length)
+    ? platform.aws_profiles.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('')
+    : '<option value="default">default</option>';
+
+  const s = getSettings();
+
+  document.getElementById('new-scan-modal-body').innerHTML = `
+    <div class="alert alert-error" id="scan-form-error" style="display:none"></div>
+
+    <div class="form-row">
+      <label>Engagement *</label>
+      <select id="scan-engagement">${engOptions}</select>
+    </div>
+
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Cloud Provider *</label>
+        <select id="scan-provider" onchange="onScanProviderChange()">
+          <option value="aws">AWS</option>
+          <option value="azure">Azure</option>
+        </select>
+      </div>
+      <div class="form-row" id="scan-region-row">
+        <label>AWS Region *</label>
+        <input type="text" id="scan-region" value="${s.aws_region || 'us-east-1'}"
+               placeholder="us-east-1">
+      </div>
+    </div>
+
+    <!-- AWS credentials -->
+    <div id="scan-aws-creds">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px">Scan Credentials (AWS)</div>
+      <div class="cred-toggle">
+        <button class="cred-opt active" id="scan-cred-opt-keys" onclick="setScanCredMode('keys')">Temporary Keys</button>
+        <button class="cred-opt" id="scan-cred-opt-profile" onclick="setScanCredMode('profile')">AWS Profile</button>
+      </div>
+      <div class="cred-section visible" id="scan-keys-section">
+        <div class="form-row">
+          <label>Access Key ID *</label>
+          <input type="text" id="scan-key-id" placeholder="AKIA...">
+        </div>
+        <div class="form-row">
+          <label>Secret Access Key *</label>
+          <input type="password" id="scan-key-secret" placeholder="••••••••">
+        </div>
+        <div class="form-row">
+          <label>Session Token <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input type="password" id="scan-key-token" placeholder="Optional">
+        </div>
+        <div class="form-row">
+          <label>Account ID <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input type="text" id="scan-account-id" placeholder="123456789012">
+        </div>
+      </div>
+      <div class="cred-section" id="scan-profile-section">
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>AWS Profile</label>
+            <select id="scan-profile">${profileOptions}</select>
+          </div>
+          <div class="form-row">
+            <label>Account ID <span style="font-weight:400;text-transform:none">(optional)</span></label>
+            <input type="text" id="scan-account-id-p" placeholder="123456789012">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Azure credentials -->
+    <div id="scan-azure-creds" style="display:none">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px">Scan Credentials (Azure)</div>
+      <div class="form-hint" style="margin-bottom:12px">
+        Requires a Service Principal with Reader role on target subscriptions
+        and Microsoft Graph API permissions for Entra ID checks.
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Tenant ID *</label>
+          <input type="text" id="scan-azure-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+        <div class="form-row">
+          <label>Client ID *</label>
+          <input type="text" id="scan-azure-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Client Secret *</label>
+        <input type="password" id="scan-azure-secret" placeholder="••••••••">
+      </div>
+      <div class="form-row">
+        <label>Subscription ID <span style="font-weight:400;text-transform:none">(optional — blank = all subscriptions)</span></label>
+        <input type="text" id="scan-azure-sub" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Scope -->
+    <div class="card-title" style="margin-bottom:8px">Scope <span style="font-weight:400;font-size:12px;color:var(--muted)">(optional — blank = full scan)</span></div>
+
+    <div class="form-row">
+      <label>Services <span style="font-weight:400;text-transform:none;color:var(--muted)">(select specific services to scan)</span></label>
+      <div id="services-selector" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;padding:8px;display:flex;flex-wrap:wrap;gap:6px">
+        <!-- populated by onScanProviderChange() -->
+      </div>
+      <div class="form-hint">Leave all unselected to scan all services</div>
+    </div>
+
+    <div class="form-row">
+      <label>Resource ARNs / IDs <span style="font-weight:400;text-transform:none;color:var(--muted)">(one per line)</span></label>
+      <textarea id="scan-resource-arns" rows="4"
+        placeholder="arn:aws:iam::123456789012:role/MyRole&#10;arn:aws:s3:::my-bucket&#10;(leave blank for all resources)"></textarea>
+      <div class="form-hint">Prowler will only evaluate these specific resources</div>
+    </div>
+  `;
+
+  onScanProviderChange();
+  openModal('modal-new-scan');
+}
+
+let _scanCredMode = 'keys';
+
+function setScanCredMode(mode) {
+  _scanCredMode = mode;
+  document.getElementById('scan-cred-opt-keys').classList.toggle('active', mode === 'keys');
+  document.getElementById('scan-cred-opt-profile').classList.toggle('active', mode === 'profile');
+  document.getElementById('scan-keys-section').classList.toggle('visible', mode === 'keys');
+  document.getElementById('scan-profile-section').classList.toggle('visible', mode === 'profile');
+}
+
+function onScanProviderChange() {
+  const provider = document.getElementById('scan-provider')?.value;
+  if (!provider) return;
+
+  const isAws = provider === 'aws';
+  const awsCreds = document.getElementById('scan-aws-creds');
+  const azCreds  = document.getElementById('scan-azure-creds');
+  const regRow   = document.getElementById('scan-region-row');
+
+  if (awsCreds) awsCreds.style.display = isAws ? '' : 'none';
+  if (azCreds)  azCreds.style.display  = isAws ? 'none' : '';
+  if (regRow)   regRow.style.display   = isAws ? '' : 'none';
+
+  // Populate services selector
+  const services = isAws ? _awsServices : _azureServices;
+  const sel = document.getElementById('services-selector');
+  if (sel) {
+    sel.innerHTML = services.map(svc => `
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;
+                    padding:3px 8px;border:1px solid var(--border);border-radius:3px;
+                    background:#fff;white-space:nowrap">
+        <input type="checkbox" class="svc-check" value="${esc(svc)}">
+        ${esc(svc)}
+      </label>`).join('');
+  }
+}
+
+async function submitNewScan() {
+  const provider  = document.getElementById('scan-provider')?.value;
+  const engId     = document.getElementById('scan-engagement')?.value;
+  const errEl     = document.getElementById('scan-form-error');
+
+  const showErr = (msg) => {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  };
+
+  if (!engId) { showErr('Please select an engagement'); return; }
+  if (!provider) { showErr('Please select a provider'); return; }
+
+  // Collect services
+  const checkedSvcs = Array.from(
+    document.querySelectorAll('.svc-check:checked')
+  ).map(el => el.value);
+
+  // Collect resource ARNs
+  const arnsRaw = document.getElementById('scan-resource-arns')?.value || '';
+  const arns    = arnsRaw.split('\n').map(s => s.trim()).filter(Boolean);
+
+  // Build payload
+  const payload = {
+    provider,
+    resource_scope: arns,
+    services_scope: checkedSvcs,
+    credential_source: _scanCredMode === 'profile' ? 'profile' : 'keys',
+    aws_profile: '',
+    scan_region: '',
+    scan_account_id: '',
+    azure_tenant_id: '',
+    azure_client_id: '',
+    azure_subscription_id: '',
+  };
+
+  // Secrets (never stored in DB)
+  const secrets = {};
+
+  if (provider === 'aws') {
+    payload.scan_region = document.getElementById('scan-region')?.value?.trim() || '';
+    if (!payload.scan_region) { showErr('AWS Region is required'); return; }
+
+    if (_scanCredMode === 'keys') {
+      secrets.aws_access_key_id     = document.getElementById('scan-key-id')?.value?.trim();
+      secrets.aws_secret_access_key = document.getElementById('scan-key-secret')?.value?.trim();
+      secrets.aws_session_token     = document.getElementById('scan-key-token')?.value?.trim() || null;
+      payload.scan_account_id       = document.getElementById('scan-account-id')?.value?.trim();
+      if (!secrets.aws_access_key_id || !secrets.aws_secret_access_key) {
+        showErr('Access Key ID and Secret Access Key are required'); return;
+      }
+    } else {
+      payload.credential_source = 'profile';
+      payload.aws_profile       = document.getElementById('scan-profile')?.value || 'default';
+      payload.scan_account_id   = document.getElementById('scan-account-id-p')?.value?.trim();
+    }
+  } else {
+    payload.azure_tenant_id       = document.getElementById('scan-azure-tenant')?.value?.trim();
+    payload.azure_client_id       = document.getElementById('scan-azure-client')?.value?.trim();
+    payload.azure_subscription_id = document.getElementById('scan-azure-sub')?.value?.trim();
+    secrets.azure_client_secret   = document.getElementById('scan-azure-secret')?.value?.trim();
+
+    if (!payload.azure_tenant_id || !payload.azure_client_id || !secrets.azure_client_secret) {
+      showErr('Tenant ID, Client ID, and Client Secret are required'); return;
+    }
+  }
+
+  const btn = document.getElementById('btn-start-scan');
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+
+  try {
+    // 1. Create scan record
+    const scan = await api('POST', `/engagements/${engId}/scans`, payload);
+
+    // 2. Register secrets
+    if (Object.keys(secrets).length) {
+      await api('POST', `/scans/${scan.id}/secrets`, secrets);
+    }
+
+    // 3. Start scan
+    await api('POST', `/scans/${scan.id}/start`, {});
+
+    closeModal('modal-new-scan');
+    _scanDetailEngId = engId;
+    openScanDetail(scan.id, engId);
+  } catch(e) {
+    showErr(`Failed to start scan: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Start Scan →';
+  }
+}
+
+// ── Scan detail view ──────────────────────────────────────────────────
+
+function _resetScanDetailState() {
+  if (scanEvtSource)    { scanEvtSource.close(); scanEvtSource = null; }
+  if (scanElapsedTimer) { clearInterval(scanElapsedTimer); scanElapsedTimer = null; }
+  if (_scanDetailPoll)  { clearInterval(_scanDetailPoll); _scanDetailPoll = null; }
+  activeScanId        = null;
+  completedScanOutput = null;
+  const tl = document.getElementById('scan-timeline');
+  if (tl) tl.innerHTML = '';
+  const ob = document.getElementById('scan-output-banner');
+  if (ob) ob.classList.remove('visible');
+  const sp = document.getElementById('scan-spinner');
+  if (sp) sp.style.display = 'none';
+  const el = document.getElementById('scan-elapsed');
+  if (el) el.textContent = '';
+  document.querySelectorAll('[id^="scan-stage-"]').forEach(el => {
+    el.className = 'stage-step';
+  });
+}
+
+function _updateScanStageBar(status) {
+  const map = { pending:0, running:1, complete:2, failed:1, cancelled:1 };
+  const idx = map[status] ?? 0;
+  const stages = ['pending','running','complete'];
+  stages.forEach((s, i) => {
+    const el = document.getElementById(`scan-stage-${s}`);
+    if (!el) return;
+    el.className = 'stage-step';
+    if (status === 'failed' || status === 'cancelled') {
+      if (i === 1) el.classList.add('failed');
+      else if (i < 1) el.classList.add('done');
+    } else {
+      if (i < idx)      el.classList.add('done');
+      else if (i === idx) el.classList.add('active');
+    }
+  });
+  if (status === 'complete') {
+    document.getElementById('scan-stage-complete')?.classList.replace('active','done');
+  }
+}
+
+async function openScanDetail(scanId, engId) {
+  _resetScanDetailState();
+  activeScanId     = scanId;
+  _scanDetailEngId = engId;
+  navigate('scan-detail');
+
+  let scan;
+  try {
+    scan = await api('GET', `/scans/${scanId}`);
+  } catch(e) {
+    return;
+  }
+
+  document.getElementById('scan-detail-title').textContent =
+    `${scan.provider.toUpperCase()} Scan`;
+  document.getElementById('scan-detail-sub').textContent =
+    `Scan ID: ${scanId.slice(0,8)}… · ${new Date(scan.created_at).toLocaleString()}`;
+
+  _updateScanStageBar(scan.status);
+  _updateScanActions(scan.status, scan);
+
+  if (['complete','failed','cancelled'].includes(scan.status)) {
+    // Replay logs
+    try {
+      const logs = await api('GET', `/scans/${scanId}/logs`);
+      const tl = document.getElementById('scan-timeline');
+      if (tl) {
+        logs.forEach(l => {
+          const div = document.createElement('div');
+          div.className = 'timeline-item ' + (scan.status === 'complete' ? 'done' : 'failed');
+          div.innerHTML = `<div class="tl-dot">${scan.status === 'complete' ? '✓' : '✕'}</div>
+            <div class="tl-body"><div class="tl-sub">${esc(l.line)}</div></div>`;
+          tl.appendChild(div);
+        });
+      }
+    } catch(e) {}
+
+    if (scan.output_file) {
+      completedScanOutput = scan.output_file;
+      _showScanOutputBanner(scan.output_file);
+    }
+    return;
+  }
+
+  // Active scan — connect SSE
+  const sp = document.getElementById('scan-spinner');
+  if (sp) sp.style.display = 'inline-block';
+  scanStartTime = Date.now();
+  scanElapsedTimer = setInterval(() => {
+    const secs = Math.floor((Date.now() - scanStartTime) / 1000);
+    const el = document.getElementById('scan-elapsed');
+    if (el) el.textContent = `${Math.floor(secs/60)}m ${secs%60}s elapsed`;
+  }, 1000);
+
+  _connectScanStream(scanId);
+
+  // Poll DB every 5s as safety net
+  _scanDetailPoll = setInterval(async () => {
+    if (!activeScanId) { clearInterval(_scanDetailPoll); return; }
+    try {
+      const s = await api('GET', `/scans/${activeScanId}`);
+      _updateScanStageBar(s.status);
+      _updateScanActions(s.status, s);
+      if (s.output_file && !completedScanOutput) {
+        completedScanOutput = s.output_file;
+        _showScanOutputBanner(s.output_file);
+      }
+      if (['complete','failed','cancelled'].includes(s.status)) {
+        clearInterval(_scanDetailPoll); _scanDetailPoll = null;
+        clearInterval(scanElapsedTimer); scanElapsedTimer = null;
+        if (sp) sp.style.display = 'none';
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
+function _connectScanStream(scanId) {
+  if (scanEvtSource) { scanEvtSource.close(); scanEvtSource = null; }
+
+  const es = new EventSource(`/api/scans/${scanId}/stream`);
+  scanEvtSource = es;
+  const tl = document.getElementById('scan-timeline');
+
+  es.onmessage = (e) => {
+    let data;
+    try { data = JSON.parse(e.data); } catch(err) { return; }
+    if (data.type === 'heartbeat') return;
+
+    if (data.type === 'log' && tl) {
+      const div = document.createElement('div');
+      div.className = 'timeline-item active';
+      div.innerHTML = `<div class="tl-dot">●</div>
+        <div class="tl-body"><div class="tl-sub" style="font-family:var(--mono);font-size:11px;
+          color:${data.stream === 'stderr' ? 'var(--danger)' : 'var(--text-2)'}">
+          ${esc(data.text)}</div></div>`;
+      tl.appendChild(div);
+      tl.scrollTop = tl.scrollHeight;
+    }
+
+    if (data.type === 'status') {
+      _updateScanStageBar(data.value);
+      if (['complete','failed','cancelled'].includes(data.value)) {
+        clearInterval(scanElapsedTimer); scanElapsedTimer = null;
+        const sp = document.getElementById('scan-spinner');
+        if (sp) sp.style.display = 'none';
+        es.close(); scanEvtSource = null;
+      }
+    }
+
+    if (data.type === 'scan_complete') {
+      completedScanOutput = data.output_file;
+      _showScanOutputBanner(data.output_file);
+      // Update all previous log dots to done
+      tl?.querySelectorAll('.timeline-item.active').forEach(el => {
+        el.classList.replace('active','done');
+        const dot = el.querySelector('.tl-dot');
+        if (dot) dot.textContent = '✓';
+      });
+    }
+  };
+
+  es.onerror = () => {
+    es.close(); scanEvtSource = null;
+    // Poll will handle final state
+  };
+}
+
+function _showScanOutputBanner(filePath) {
+  const banner   = document.getElementById('scan-output-banner');
+  const filename = document.getElementById('scan-output-filename');
+  if (banner) banner.classList.add('visible');
+  if (filename) filename.textContent = normalisePath(filePath);
+}
+
+function _updateScanActions(status, scan) {
+  const actions = document.getElementById('scan-detail-actions');
+  if (!actions) return;
+  actions.innerHTML = '';
+  if (status === 'running') {
+    actions.innerHTML = `
+      <button class="btn btn-danger" onclick="cancelActiveScan()">Cancel Scan</button>`;
+  }
+  if (status === 'complete' && scan?.output_file) {
+    actions.innerHTML = `
+      <button class="btn btn-primary" onclick="useScanOutput()">Generate Report →</button>`;
+  }
+}
+
+async function cancelActiveScan() {
+  if (!activeScanId) return;
+  if (!confirm('Cancel this scan? The Prowler process will be terminated.')) return;
+  try {
+    await api('POST', `/scans/${activeScanId}/cancel`, {});
+  } catch(e) {
+    alert(`Cancel failed: ${e.message}`);
+  }
+}
+
+async function useScanOutput() {
+  if (!completedScanOutput || !activeScanId) return;
+
+  // Get the scan to find the engagement
+  const scan = await api('GET', `/scans/${activeScanId}`);
+  const engId = scan.engagement_id;
+
+  // Open the new run modal pre-filled with the scan output
+  closeModal('modal-new-scan');
+  currentEngagementId = engId;
+
+  // Open run modal with scan output pre-filled
+  openNewRunModal(engId);
+
+  // Pre-fill input file after modal renders
+  setTimeout(() => {
+    const inputEl = document.getElementById('run-input');
+    if (inputEl) {
+      inputEl.value = normalisePath(completedScanOutput);
+      // Auto-detect format
+      const formatEl = document.getElementById('run-format');
+      if (formatEl) formatEl.value = 'csv';
+    }
+  }, 100);
+}
+
+function backFromScan() {
+  _resetScanDetailState();
+  if (_scanDetailEngId) openEngagementDetail(_scanDetailEngId);
+  else navigate('scans');
+}
+
+
 // ── Boot ──────────────────────────────────────────────────────────────
 // Run platform detection and dashboard load in parallel.
 // Platform detection involves subprocess calls (prowler -v, uv tool list etc.)
@@ -2726,5 +3389,23 @@ async function backFromPreflight() {
   startGlobalPoll();         // background refresh for all views
 })();
 </script>
+<!-- ── New Scan Modal ── -->
+<div class="modal-overlay" id="modal-new-scan">
+  <div class="modal" style="width:640px">
+    <div class="modal-header">
+      <span class="modal-title">Configure Scan</span>
+      <button class="modal-close" onclick="closeModal('modal-new-scan')">✕</button>
+    </div>
+    <div class="modal-body" id="new-scan-modal-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-scan')">Cancel</button>
+      <button class="btn btn-primary" id="btn-start-scan" onclick="submitNewScan()">
+        Start Scan →
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
