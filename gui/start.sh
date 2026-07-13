@@ -113,8 +113,13 @@ info "Syncing GUI dependencies via uv..."
 uv sync --quiet
 success "GUI dependencies ready"
 
-# ── 7. Open browser and launch ───────────────────────────────
+# Step 7: Open browser and launch
 header "Step 7: Launch"
+
+BEDROCK_DEPLOYMENT_NAME="arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh"
+export BEDROCK_DEPLOYMENT_NAME
+
+
 URL="http://localhost:$PORT"
 info "Starting GUI on $URL"
 info "Press Ctrl+C to stop"

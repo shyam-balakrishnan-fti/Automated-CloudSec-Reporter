@@ -590,7 +590,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
 <!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="sb-logo">
-    <div class="logo-ph">YOUR LOGO</div>
+    <img src="/static/logo.jpeg" alt="Logo" style="height:32px;width:auto;object-fit:contain;margin-bottom:10px">
     <div class="sb-product">Automated Cloud Security Reporter</div>
     <div class="sb-tagline">Pipeline management &amp; reporting</div>
   </div>
@@ -797,9 +797,17 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
         <div class="progress-timeline" id="progress-timeline"></div>
       </div>
 
-      <!-- Review UI iframe (shown when awaiting_review) -->
-      <div class="review-iframe-container" id="review-iframe-container">
-        <iframe id="review-iframe" src="" title="Grouping Review"></iframe>
+      <!-- Review banner — opens review UI in new tab -->
+      <div class="review-banner" id="review-banner">
+        <div style="font-size:22px">⏸</div>
+        <div class="review-banner-text">
+          <div class="review-banner-title">Grouping Review Required</div>
+          <div class="review-banner-sub">The pipeline is paused waiting for your approval.
+            Click to open the review UI in a new tab, approve the grouping, then return here.</div>
+        </div>
+        <button class="btn btn-primary" id="btn-open-review" onclick="openReviewUI()">
+          Open Review UI →
+        </button>
       </div>
 
       <!-- Output files panel -->
@@ -1967,7 +1975,7 @@ function stopElapsedTimer() {
 }
 
 function openReviewUI() {
-  if (reviewUrl) showReviewIframe(reviewUrl);
+  if (reviewUrl) window.open(reviewUrl, '_blank');
 }
 
 async function downloadExcel() {
@@ -2212,7 +2220,6 @@ function connectRunStream(runId) {
 }
 
 function showReviewBanner(url) {
-  // Replaced by showReviewIframe in Phase 6 — kept as no-op for compat
   showReviewIframe(url);
 }
 
@@ -2700,20 +2707,22 @@ function _classifyError(logLines) {
 // ── Phase 6: Review iframe ────────────────────────────────────────────
 
 function showReviewIframe(url) {
-  const container = document.getElementById('review-iframe-container');
-  const iframe    = document.getElementById('review-iframe');
-  if (!container || !iframe) return;
-  iframe.src = url;
-  container.classList.add('visible');
-  // Scroll to iframe
-  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Open review UI in a new tab — not embedded
+  reviewUrl = url;
+  const banner = document.getElementById('review-banner');
+  if (banner) {
+    banner.classList.add('visible');
+    const btn = document.getElementById('btn-open-review');
+    if (btn) btn.onclick = () => window.open(url, '_blank');
+  }
 }
 
 function hideReviewIframe() {
+  const banner = document.getElementById('review-banner');
+  if (banner) banner.classList.remove('visible');
+  // Also hide iframe container if it exists (legacy)
   const container = document.getElementById('review-iframe-container');
-  const iframe    = document.getElementById('review-iframe');
   if (container) container.classList.remove('visible');
-  if (iframe)    iframe.src = '';
 }
 
 // ── Phase 6: Windows path normalisation ──────────────────────────────
@@ -3152,6 +3161,7 @@ function _resetScanDetailState() {
   if (scanElapsedTimer) { clearInterval(scanElapsedTimer); scanElapsedTimer = null; }
   if (_scanDetailPoll)  { clearInterval(_scanDetailPoll); _scanDetailPoll = null; }
   activeScanId        = null;
+  window._scanLogLines = [];
   completedScanOutput = null;
   const tl = document.getElementById('scan-timeline');
   if (tl) tl.innerHTML = '';
@@ -3299,12 +3309,9 @@ function _connectScanStream(scanId) {
     if (data.type === 'scan_complete') {
       completedScanOutput = data.output_file;
       _showScanOutputBanner(data.output_file);
-      // Update all previous log dots to done
-      tl?.querySelectorAll('.timeline-item.active').forEach(el => {
-        el.classList.replace('active','done');
-        const dot = el.querySelector('.tl-dot');
-        if (dot) dot.textContent = '✓';
-      });
+      if (tl && window._scanLogLines) {
+        _renderScanSummary(tl, window._scanLogLines, 'complete');
+      }
     }
   };
 
@@ -3375,6 +3382,166 @@ function backFromScan() {
   _resetScanDetailState();
   if (_scanDetailEngId) openEngagementDetail(_scanDetailEngId);
   else navigate('scans');
+}
+
+
+
+// ── Scan progress rendering ───────────────────────────────────────────
+// Accumulates raw log lines and renders them as structured stage cards
+// instead of a raw terminal dump.
+
+window._scanLogLines = [];
+
+function _appendScanLog(text, stream, tl) {
+  window._scanLogLines.push(text);
+  _renderScanSummary(tl, window._scanLogLines, 'running');
+}
+
+function _renderScanSummary(tl, lines, status) {
+  if (!tl) return;
+
+  // Parse lines into meaningful stages
+  const stages = _parseScanStages(lines, status);
+
+  tl.innerHTML = stages.map(stage => `
+    <div class="timeline-item ${stage.cls}">
+      <div class="tl-dot">${stage.dot}</div>
+      <div class="tl-body">
+        <div class="tl-title">${esc(stage.title)}</div>
+        <div class="tl-sub">${esc(stage.sub)}</div>
+        ${stage.detail ? `
+          <div class="tl-lines visible" style="margin-top:6px;max-height:80px">
+            ${stage.detail.map(l => `<span style="color:${l.err?'var(--danger)':'inherit'}">${esc(l.text)}</span>`).join('
+')}
+          </div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function _parseScanStages(lines, status) {
+  const isFailed   = status === 'failed';
+  const isComplete = status === 'complete';
+  const allText    = lines.join('\n').toLowerCase();
+
+  const hasStarted   = lines.length > 0;
+  const hasDiscovery = allText.includes('region') || allText.includes('executing') ||
+                       allText.includes('check');
+  const hasChecks    = allText.includes('pass') || allText.includes('fail');
+  const hasOutput    = allText.includes('csv') || allText.includes('prowler-output');
+
+  // Extract only the meaningful progress lines — skip noise
+  const MEANINGFUL = [
+    l => /executing\s+\d+\s+check/i.test(l),        // "Executing 47 checks"
+    l => /\[\d+\/\d+\]/i.test(l),                   // "[12/47]"
+    l => /\d+\s*%/i.test(l),                         // "25%"
+    l => /^(pass|fail|muted):/i.test(l.trim()),      // result lines
+    l => /(high|medium|low|critical)\s+\d+/i.test(l),// severity counts
+    l => /total\s+\d+/i.test(l),                     // totals
+    l => /✓|✗/.test(l) && l.length < 80,            // short check result
+  ];
+
+  const keyLines = lines
+    .filter(l => MEANINGFUL.some(fn => fn(l)))
+    .slice(-4)
+    .map(l => ({ text: l.trim(), err: /error|exception/i.test(l) }));
+
+  const errorLines = lines
+    .filter(l => /error|exception/i.test(l.toLowerCase()))
+    .slice(-3)
+    .map(l => ({ text: l.trim(), err: true }));
+
+  const stages = [];
+
+  // Stage 1: Initialising
+  stages.push({
+    cls:   hasStarted ? (isFailed && !hasDiscovery ? 'failed' : 'done') : 'active',
+    dot:   hasStarted ? (isFailed && !hasDiscovery ? '\u2717' : '\u2713') : '\u25cf',
+    title: 'Initialising',
+    sub:   hasStarted ? 'Connected to AWS — checks loaded' : 'Connecting to AWS',
+    detail: null,
+    detailExpanded: false,
+  });
+
+  // Stage 2: Running checks
+  if (hasStarted) {
+    const progress = _extractProgress(lines);
+    const count    = _extractCheckCount(lines);
+
+    stages.push({
+      cls:   isComplete ? 'done' : isFailed ? 'failed' : 'active',
+      dot:   isComplete ? '\u2713' : isFailed ? '\u2717' : '\u25cf',
+      title: 'Running Checks',
+      sub:   isComplete
+        ? 'All checks executed'
+        : isFailed
+        ? 'Scan encountered an error'
+        : count
+        ? 'Executing ' + count + (progress ? ' — ' + progress + ' complete' : '')
+        : 'Scanning resources\u2026',
+      detail: isFailed ? errorLines : (keyLines.length ? keyLines : null),
+      detailExpanded: isFailed,   // only auto-open on failure
+    });
+  }
+
+  // Stage 3: Writing output
+  if (isComplete || hasOutput) {
+    stages.push({
+      cls:   isComplete ? 'done' : 'active',
+      dot:   isComplete ? '\u2713' : '\u25cf',
+      title: 'Saving Results',
+      sub:   isComplete ? 'CSV output saved — ready to generate report' : 'Writing findings to CSV\u2026',
+      detail: null,
+      detailExpanded: false,
+    });
+  }
+
+  // Stage 4: Summary (complete only)
+  if (isComplete) {
+    const summaryLines = lines
+      .filter(l => /fail|pass|muted|high|medium|low|total/i.test(l) && l.length < 100)
+      .slice(-5)
+      .map(l => ({ text: l.trim(), err: false }));
+
+    if (summaryLines.length) {
+      stages.push({
+        cls:   'done',
+        dot:   '\u2713',
+        title: 'Summary',
+        sub:   _extractFindingCount(lines),
+        detail: summaryLines,
+        detailExpanded: true,
+      });
+    }
+  }
+
+  return stages;
+}
+
+function _extractCheckCount(lines) {
+  for (const line of [...lines]) {
+    const m = line.match(/executing\s+(\d+)\s+check/i);
+    if (m) return m[1] + ' checks';
+  }
+  return '';
+}
+
+function _extractFindingCount(lines) {
+  for (const line of [...lines].reverse()) {
+    const m = line.match(/(\d+)\s+(FAIL|finding|check)/i);
+    if (m) return `${m[1]} ${m[2].toLowerCase()}s`;
+  }
+  return 'findings';
+}
+
+function _extractProgress(lines) {
+  // Look for percentage or count indicators
+  for (const line of [...lines].reverse()) {
+    const pct = line.match(/(\d+\.?\d*)\s*%/);
+    if (pct) return `${pct[1]}%`;
+    const cnt = line.match(/\[(\d+)\/(\d+)\]/);
+    if (cnt) return `${cnt[1]}/${cnt[2]}`;
+  }
+  return '';
 }
 
 
