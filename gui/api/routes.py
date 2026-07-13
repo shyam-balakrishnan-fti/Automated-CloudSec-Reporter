@@ -236,12 +236,17 @@ async def create_run(
     run_id = str(uuid.uuid4())
     now    = _now()
 
+
     # Determine output base directory.
-    # The pipeline appends client_name as a subfolder automatically,
-    # so we pass the run-specific base and let the pipeline handle the rest.
-    # Final path: data/output/{run_id}/{client_slug}/
-    pipeline_base = "data" if body.pipeline == PipelineType.PROWLER else Path("scubagear") / "data"
-    output_dir = (Path.cwd().parent / pipeline_base / "output" / run_id).resolve()
+    # Use short paths on Windows to avoid the 259-char limit (OneDrive makes paths very long).
+    # The pipeline appends client_name as a subfolder automatically.
+    import platform as _plat
+    if _plat.system().lower() == "windows":
+        short_base = Path("C:/CloudSecReports")
+        output_dir = short_base / run_id[:8]
+    else:
+        pipeline_base = "data" if body.pipeline == PipelineType.PROWLER else Path("scubagear") / "data"
+        output_dir = (Path.cwd().parent / pipeline_base / "output" / run_id).resolve()
 
     # Write config.toml
     # Template path: go up from gui/ to repo root, then into templates/
@@ -977,9 +982,18 @@ async def create_scan(
     scan_id = str(uuid.uuid4())
     now     = _now()
 
-    # Determine output directory
-    repo_root  = Path(__file__).parent.parent.parent
-    output_dir = repo_root / "data" / "scans" / scan_id
+    # Determine output directory.
+    # Use a short root path to avoid Windows 259-char path limit,
+    # especially when the project is inside OneDrive.
+    import platform as _platform
+    if _platform.system().lower() == "windows":
+        # Use C:\ScubaScans or C:\ProwlerScans to keep paths short
+        provider_val = body.provider.value
+        short_root = Path("C:/ScubaScans") if provider_val == "scubagear" else Path("C:/ProwlerScans")
+        output_dir = short_root / scan_id[:8]  # use first 8 chars of UUID
+    else:
+        repo_root  = Path(__file__).parent.parent.parent
+        output_dir = repo_root / "data" / "scans" / scan_id
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Determine scan_type

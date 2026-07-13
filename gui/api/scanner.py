@@ -529,20 +529,54 @@ OutFolderName: "ScubaResults"
     return yaml_path
 
 
-def find_scuba_output(output_dir: Path) -> Optional[Path]:
+def find_scuba_output(output_dir: Path, scan_started_at: float = 0.0) -> Optional[Path]:
     """
     Find ActionPlan.csv from a completed ScubaGear scan.
 
-    ScubaGear writes to:
-      {output_dir}/ScubaResults/M365BaselineConformance_YYYY_MM_DD_HH_MM_SS/ActionPlan.csv
+    ScubaGear writes to default locations when no output path is set:
+      ~/Documents/M365BaselineConformance_DATE/ActionPlan.csv
+      ~/Desktop/M365BaselineConformance_DATE/ActionPlan.csv
 
-    We search recursively for ActionPlan.csv under output_dir.
-    Returns the most recently modified one if multiple exist.
+    Search all likely locations. Only return files newer than scan_started_at
+    to avoid picking up results from previous scans.
     """
-    candidates = list(output_dir.rglob("ActionPlan.csv"))
+    search_dirs = [
+        output_dir,
+        Path.home() / "Documents",
+        Path.home() / "Desktop",
+        Path.cwd(),
+    ]
+
+    candidates = []
+    for search_dir in search_dirs:
+        if not search_dir.exists():
+            continue
+        try:
+            for f in search_dir.rglob("ActionPlan.csv"):
+                try:
+                    if scan_started_at and f.stat().st_mtime < (scan_started_at - 30):
+                        continue
+                    candidates.append(f)
+                except OSError:
+                    continue
+        except PermissionError:
+            continue
+
     if not candidates:
-        # Also check for ScubaResults.csv as fallback
-        candidates = list(output_dir.rglob("ScubaResults.csv"))
+        for search_dir in search_dirs:
+            if not search_dir.exists():
+                continue
+            try:
+                for f in search_dir.rglob("ScubaResults.csv"):
+                    try:
+                        if scan_started_at and f.stat().st_mtime < (scan_started_at - 30):
+                            continue
+                        candidates.append(f)
+                    except OSError:
+                        continue
+            except PermissionError:
+                continue
+
     if not candidates:
         return None
     return max(candidates, key=lambda f: f.stat().st_mtime)
@@ -554,62 +588,67 @@ async def execute_scubagear_scan(
     output_dir: Path,
 ) -> None:
     """
-    Launch ScubaGear via Start-SCuBAConfigApp and poll for ActionPlan.csv.
+    Launch ScubaGear via Start-SCuBAConfigApp with no config file.
+
+    ConvertFrom-Yaml errors occur when -ConfigFilePath is passed and
+    the powershell-yaml module is missing. To avoid this entirely we
+    launch the app clean and show the analyst the output path to paste.
 
     Flow:
-      1. Generate YAML config with our output_dir pre-filled
-      2. Launch Start-SCuBAConfigApp -ConfigFilePath <yaml> in PowerShell
-      3. Send SSE events so the GUI shows the analyst what to do
-      4. Poll every 10 seconds for ActionPlan.csv to appear
-      5. When found, mark scan complete and return the output file path
+      1. Create output directory
+      2. Launch Start-SCuBAConfigApp (no arguments)
+      3. Show analyst the output path to set in Advanced Settings
+      4. Poll every 10s for ActionPlan.csv in output_dir + default locations
+      5. Mark complete when found
     """
     from db.database import _DB_PATH
+    import time
 
     scan_id = scan["id"]
 
     async with aiosqlite.connect(_DB_PATH) as db:
 
-        # ── Step 1: generate YAML config ─────────────────────────────
-        products_raw = _parse_json_list(scan.get("services_scope", ""))
-        products     = products_raw if products_raw else SCUBA_PRODUCTS
-        tenant_domain = scan.get("azure_tenant_id", "tenant") or "tenant"
-        display_name  = scan.get("scan_account_id", "") or tenant_domain
+        # ── Step 1: create output directory ──────────────────────────
+        output_dir.mkdir(parents=True, exist_ok=True)
+        import os as _os
+        # Use os.path.normpath to get native OS separators (backslashes on Windows)
+        output_path_display = _os.path.normpath(str(output_dir))
 
-        try:
-            yaml_path = generate_scubagear_yaml(
-                output_dir=output_dir,
-                tenant_domain=tenant_domain,
-                display_name=display_name,
-                products=products,
-            )
-        except Exception as e:
-            await stream.send_log(f"Failed to generate ScubaGear config: {e}", stream="stderr")
-            await stream.send_status("failed")
-            await _update_scan_status(scan_id, "failed", db)
-            await stream.close()
-            return
+        # ── Step 2: show instructions ─────────────────────────────────
+        await stream.send_log("=" * 60)
+        await stream.send_log("ScubaGear Scan")
+        await stream.send_log("=" * 60)
+        await stream.send_log("ScubaGear is opening in a new window.")
+        await stream.send_log("")
+        await stream.send_log("In the ScubaGear window:")
+        await stream.send_log("  1. Go to Advanced Settings")
+        await stream.send_log("  2. Set Output Path to the path shown on screen")
+        await stream.send_log("  3. Configure your tenant and authenticate")
+        await stream.send_log("  4. Click Run ScubaGear")
+        await stream.send_log("  5. Return here when done — page updates automatically")
+        await stream.send_log("=" * 60)
 
-        await stream.send_log("ScubaGear configuration generated.")
-        await stream.send_log(f"Config: {yaml_path}")
-        await stream.send_log(f"Output: {output_dir}")
-        await stream.send_log("─" * 60)
+        await stream.send_json({
+            "type":        "scuba_instructions",
+            "output_path": output_path_display,
+        })
 
-        # ── Step 2: launch ScubaConfigApp ─────────────────────────────
+        # ── Step 3: launch ScubaConfigApp ────────────────────────────
+        # ScubaGear may be installed locally (e.g. Documents/ScubaGear-1.8.0)
+        # rather than in PSModulePath. Search common locations and import
+        # from the explicit .psd1 path if the standard import fails.
+        ps_command = (
+            "Import-Module ScubaGear -Force -ErrorAction SilentlyContinue; "
+            "if (-not (Get-Module ScubaGear)) { "
+            "$psd1 = Get-ChildItem $env:USERPROFILE -Recurse -Filter ScubaGear.psd1 "
+            "-ErrorAction SilentlyContinue | Select-Object -First 1; "
+            "if ($psd1) { Import-Module $psd1.FullName -Force } }; "
+            "Start-SCuBAConfigApp"
+        )
         ps_cmd = [
             "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
-            "-Command",
-            f'Start-SCuBAConfigApp -ConfigFilePath "{yaml_path}"',
+            "-Command", ps_command,
         ]
-
-        await stream.send_log("Launching ScubaGear configuration UI...")
-        await stream.send_log("Instructions:")
-        await stream.send_log("  1. The ScubaGear UI will open in a new window")
-        await stream.send_log("  2. Verify the configuration settings")
-        await stream.send_log("  3. Click 'Run ScubaGear' in the Results tab")
-        await stream.send_log("  4. Authenticate when prompted")
-        await stream.send_log("  5. Wait for the scan to complete")
-        await stream.send_log("  6. Return here — this page will update automatically")
-        await stream.send_log("─" * 60)
 
         await _update_scan_status(scan_id, "running", db)
         await stream.send_status("running")
@@ -621,65 +660,49 @@ async def execute_scubagear_scan(
                 stderr=asyncio.subprocess.STDOUT,
             )
         except (FileNotFoundError, OSError) as e:
-            await stream.send_log(
-                f"Failed to launch PowerShell: {e}", stream="stderr"
-            )
+            await stream.send_log(f"Failed to launch ScubaGear: {e}", stream="stderr")
             await stream.send_status("failed")
             await _update_scan_status(scan_id, "failed", db)
             await stream.close()
             return
 
         _register_scan(scan_id, proc)
-        scan_start = datetime.now(timezone.utc)
+        scan_start    = datetime.now(timezone.utc)
+        scan_start_ts = time.time()
 
-        # ── Step 3: poll for ActionPlan.csv ───────────────────────────
-        # ScubaGear runs inside the WPF app — we can't capture its stdout.
-        # Poll every 10 seconds for ActionPlan.csv to appear.
-        POLL_INTERVAL = 10   # seconds
-        MAX_WAIT      = 7200  # 2 hours max
+        # ── Step 4: poll for ActionPlan.csv ──────────────────────────
+        POLL_INTERVAL = 10
+        MAX_WAIT      = 7200  # 2 hours
 
-        elapsed = 0
+        elapsed     = 0
         output_file = None
 
         while elapsed < MAX_WAIT:
             await asyncio.sleep(POLL_INTERVAL)
             elapsed += POLL_INTERVAL
 
-            # Check if the WPF process has exited
             proc_done = proc.returncode is not None
             if not proc_done:
                 try:
-                    await asyncio.wait_for(
-                        asyncio.shield(proc.wait()), timeout=0.1
-                    )
+                    await asyncio.wait_for(asyncio.shield(proc.wait()), timeout=0.1)
                     proc_done = True
                 except asyncio.TimeoutError:
                     pass
 
-            # Look for ActionPlan.csv
-            output_file = find_scuba_output(output_dir)
+            output_file = find_scuba_output(output_dir, scan_start_ts)
 
             mins = elapsed // 60
             secs = elapsed % 60
-            await stream.send_log(
-                f"  Waiting for scan completion… {mins}m {secs}s elapsed"
-            )
+            await stream.send_log(f"  Waiting... {mins}m {secs}s elapsed")
             await stream.send_json({"type": "heartbeat"})
 
             if output_file:
-                await stream.send_log(f"✓ ActionPlan.csv found: {output_file}")
+                await stream.send_log(f"✓ Found: {output_file.name}")
                 break
 
             if proc_done and not output_file:
-                # Process exited but no output — may have been closed without running
                 await stream.send_log(
-                    "ScubaGear UI was closed without completing a scan.",
-                    stream="stderr",
-                )
-                await stream.send_log(
-                    "To retry, create a new scan and complete the assessment "
-                    "before closing the ScubaGear window.",
-                    stream="stderr",
+                    "ScubaGear was closed before scan completed.", stream="stderr"
                 )
                 await _update_scan_status(scan_id, "failed", db)
                 await stream.send_status("failed")
@@ -688,12 +711,9 @@ async def execute_scubagear_scan(
                 return
 
         _deregister_scan(scan_id)
-        duration = int(
-            (datetime.now(timezone.utc) - scan_start).total_seconds()
-        )
+        duration = int((datetime.now(timezone.utc) - scan_start).total_seconds())
 
         if output_file:
-            await stream.send_log("─" * 60)
             await stream.send_log("✓ ScubaGear scan complete")
             await stream.send_json({
                 "type":        "scan_complete",
@@ -709,10 +729,7 @@ async def execute_scubagear_scan(
             )
             await stream.send_status("complete")
         else:
-            await stream.send_log(
-                "Timed out waiting for ActionPlan.csv after 2 hours.",
-                stream="stderr",
-            )
+            await stream.send_log("Timed out after 2 hours.", stream="stderr")
             await _update_scan_status(scan_id, "failed", db, duration_secs=duration)
             await stream.send_status("failed")
 

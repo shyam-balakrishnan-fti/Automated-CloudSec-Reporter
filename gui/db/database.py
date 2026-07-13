@@ -18,11 +18,31 @@ _SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 
 
 async def init_db() -> None:
-    """Create all tables if they don't exist. Safe to call on every startup."""
+    """
+    Create all tables if they don't exist and apply any missing column migrations.
+    Safe to call on every startup.
+    """
     schema = _SCHEMA_PATH.read_text(encoding="utf-8")
     async with aiosqlite.connect(_DB_PATH) as db:
         await db.executescript(schema)
         await db.commit()
+
+        # ── Column migrations ─────────────────────────────────────────
+        # ALTER TABLE ADD COLUMN is safe to run on existing DBs.
+        # Add new columns here when schema.sql adds them.
+        migrations = [
+            ("scans", "scan_type",    "TEXT NOT NULL DEFAULT 'prowler_aws'"),
+            ("scans", "tenant_domain","TEXT NOT NULL DEFAULT ''"),
+            ("scans", "m365_environment", "TEXT NOT NULL DEFAULT 'commercial'"),
+        ]
+        for table, column, definition in migrations:
+            try:
+                await db.execute(
+                    f"ALTER TABLE {table} ADD COLUMN {column} {definition}"
+                )
+                await db.commit()
+            except Exception:
+                pass  # column already exists — safe to ignore
 
 
 async def get_db():
