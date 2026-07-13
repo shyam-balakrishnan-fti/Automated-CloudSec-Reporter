@@ -153,8 +153,15 @@ class PlatformInfo(BaseModel):
 # ── Scans ─────────────────────────────────────────────────────────────
 
 class ScanProvider(str, Enum):
-    AWS   = "aws"
-    AZURE = "azure"
+    AWS       = "aws"
+    AZURE     = "azure"
+    SCUBAGEAR = "scubagear"
+
+
+class ScanType(str, Enum):
+    PROWLER_AWS   = "prowler_aws"
+    PROWLER_AZURE = "prowler_azure"
+    SCUBAGEAR     = "scubagear"
 
 
 class ScanStatus(str, Enum):
@@ -167,6 +174,9 @@ class ScanStatus(str, Enum):
 
 class ScanCreate(BaseModel):
     provider:       ScanProvider
+    scan_type:      str = Field(default="prowler_aws")
+    tenant_domain:  str = Field(default="")
+    m365_environment: str = Field(default="commercial")
 
     # Credential source
     credential_source: CredentialSource = CredentialSource.KEYS

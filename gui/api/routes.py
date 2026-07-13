@@ -982,16 +982,26 @@ async def create_scan(
     output_dir = repo_root / "data" / "scans" / scan_id
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Determine scan_type
+    scan_type = getattr(body, "scan_type", None)
+    if not scan_type:
+        if body.provider.value == "scubagear":
+            scan_type = "scubagear"
+        elif body.provider.value == "azure":
+            scan_type = "prowler_azure"
+        else:
+            scan_type = "prowler_aws"
+
     await db.execute(
         """INSERT INTO scans (
-            id, engagement_id, provider, status,
+            id, engagement_id, provider, scan_type, status,
             credential_source, aws_profile, scan_region, scan_account_id,
             azure_tenant_id, azure_client_id, azure_subscription_id,
             resource_scope, services_scope,
             output_dir, output_file, created_at
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
-            scan_id, engagement_id, body.provider.value, "pending",
+            scan_id, engagement_id, body.provider.value, scan_type, "pending",
             body.credential_source.value, body.aws_profile,
             body.scan_region, body.scan_account_id,
             body.azure_tenant_id, body.azure_client_id, body.azure_subscription_id,
@@ -1128,8 +1138,13 @@ async def get_scan_logs(
 @router.get("/meta/services")
 async def list_services():
     """Return available Prowler service names for the scope selector."""
-    from api.scanner import AWS_SERVICES, AZURE_SERVICES
-    return {"aws": AWS_SERVICES, "azure": AZURE_SERVICES}
+    from api.scanner import AWS_SERVICES, AZURE_SERVICES, SCUBA_PRODUCTS, SCUBA_PRODUCT_LABELS
+    return {
+        "aws":       AWS_SERVICES,
+        "azure":     AZURE_SERVICES,
+        "scubagear": SCUBA_PRODUCTS,
+        "scubagear_labels": SCUBA_PRODUCT_LABELS,
+    }
 
 
 # ── Scan row helper ───────────────────────────────────────────────────

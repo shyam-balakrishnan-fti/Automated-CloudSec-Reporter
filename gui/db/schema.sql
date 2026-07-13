@@ -88,7 +88,9 @@ CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
 CREATE TABLE IF NOT EXISTS scans (
     id              TEXT PRIMARY KEY,           -- UUID
     engagement_id   TEXT NOT NULL REFERENCES engagements(id),
-    provider        TEXT NOT NULL,              -- "aws" | "azure"
+    provider        TEXT NOT NULL,              -- "aws" | "azure" | "scubagear"
+    scan_type       TEXT NOT NULL DEFAULT 'prowler_aws',
+    -- "prowler_aws" | "prowler_azure" | "scubagear"
     status          TEXT NOT NULL DEFAULT 'pending',
     -- pending | running | complete | failed | cancelled
 

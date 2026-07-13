@@ -590,7 +590,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
 <!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="sb-logo">
-    <img src="/static/logo.jpeg" alt="Logo" style="height:32px;width:auto;object-fit:contain;margin-bottom:10px">
+    <div class="logo-ph">YOUR LOGO</div>
     <div class="sb-product">Automated Cloud Security Reporter</div>
     <div class="sb-tagline">Pipeline management &amp; reporting</div>
   </div>
@@ -2802,8 +2802,10 @@ let scanElapsedTimer  = null;
 let scanStartTime     = null;
 let completedScanOutput = null;  // output file path after scan completes
 let _scanDetailEngId  = null;
-let _awsServices      = [];
-let _azureServices    = [];
+let _awsServices         = [];
+let _azureServices       = [];
+let _scubaProducts       = [];
+let _scubaProductLabels  = {};
 let _scanDetailPoll   = null;
 
 // ── Load services list ────────────────────────────────────────────────
@@ -2811,8 +2813,10 @@ async function _ensureServices() {
   if (_awsServices.length) return;
   try {
     const s = await api('GET', '/meta/services');
-    _awsServices   = s.aws   || [];
-    _azureServices = s.azure || [];
+    _awsServices        = s.aws            || [];
+    _azureServices      = s.azure          || [];
+    _scubaProducts      = s.scubagear      || [];
+    _scubaProductLabels = s.scubagear_labels || {};
   } catch(e) {}
 }
 
@@ -2917,10 +2921,11 @@ async function openNewScanModal(engId) {
 
     <div class="form-grid-2">
       <div class="form-row">
-        <label>Cloud Provider *</label>
+        <label>Scan Type *</label>
         <select id="scan-provider" onchange="onScanProviderChange()">
-          <option value="aws">AWS</option>
-          <option value="azure">Azure</option>
+          <option value="aws">Prowler -- AWS</option>
+          <option value="azure">Prowler -- Azure</option>
+          <option value="scubagear" id="opt-scubagear-scan">ScubaGear -- Microsoft 365</option>
         </select>
       </div>
       <div class="form-row" id="scan-region-row">
@@ -3001,6 +3006,33 @@ async function openNewScanModal(engId) {
     <hr class="divider">
 
     <!-- Scope -->
+    <!-- ScubaGear config section -->
+    <div id="scan-scubagear-config" style="display:none">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px">ScubaGear Configuration</div>
+      <div class="unavailable-notice" style="margin-bottom:14px">
+        <span class="un-icon">&#x2139;</span>
+        <span>ScubaGear will open in its own window. Authenticate when prompted,
+        click Run ScubaGear, then return here. This page updates automatically when the scan completes.</span>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Tenant Domain *</label>
+          <input type="text" id="scan-tenant-domain" placeholder="contoso.onmicrosoft.com">
+          <div class="form-hint">Your organisation's primary M365 domain</div>
+        </div>
+        <div class="form-row">
+          <label>M365 Environment</label>
+          <select id="scan-m365-env">
+            <option value="commercial">Commercial</option>
+            <option value="gcc">GCC</option>
+            <option value="gcchigh">GCC High</option>
+            <option value="dod">DoD</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div class="card-title" style="margin-bottom:8px">Scope <span style="font-weight:400;font-size:12px;color:var(--muted)">(optional — blank = full scan)</span></div>
 
     <div class="form-row">
@@ -3037,25 +3069,45 @@ function onScanProviderChange() {
   const provider = document.getElementById('scan-provider')?.value;
   if (!provider) return;
 
-  const isAws = provider === 'aws';
-  const awsCreds = document.getElementById('scan-aws-creds');
-  const azCreds  = document.getElementById('scan-azure-creds');
-  const regRow   = document.getElementById('scan-region-row');
+  const isAws    = provider === 'aws';
+  const isAzure  = provider === 'azure';
+  const isScuba  = provider === 'scubagear';
 
-  if (awsCreds) awsCreds.style.display = isAws ? '' : 'none';
-  if (azCreds)  azCreds.style.display  = isAws ? 'none' : '';
-  if (regRow)   regRow.style.display   = isAws ? '' : 'none';
+  const awsCreds    = document.getElementById('scan-aws-creds');
+  const azCreds     = document.getElementById('scan-azure-creds');
+  const scubaCfg    = document.getElementById('scan-scubagear-config');
+  const regRow      = document.getElementById('scan-region-row');
+  const scopeArns   = document.getElementById('scan-resource-arns')?.closest('.form-row');
+
+  if (awsCreds)  awsCreds.style.display  = isAws   ? '' : 'none';
+  if (azCreds)   azCreds.style.display   = isAzure ? '' : 'none';
+  if (scubaCfg)  scubaCfg.style.display  = isScuba ? '' : 'none';
+  if (regRow)    regRow.style.display    = isAws   ? '' : 'none';
+
+  // Hide ARN scope for ScubaGear (uses products instead)
+  if (scopeArns) scopeArns.style.display = isScuba ? 'none' : '';
+
+  // Disable ScubaGear option on non-Windows
+  const scubaOpt = document.getElementById('opt-scubagear-scan');
+  if (scubaOpt && platform && !platform.scubagear_available) {
+    scubaOpt.disabled = true;
+    scubaOpt.textContent = 'ScubaGear -- Microsoft 365 (Windows only)';
+    if (isScuba) document.getElementById('scan-provider').value = 'aws';
+  }
 
   // Populate services selector
-  const services = isAws ? _awsServices : _azureServices;
+  let services = isAws ? _awsServices : isAzure ? _azureServices : _scubaProducts;
+  let labels   = isScuba ? _scubaProductLabels : null;
+
   const sel = document.getElementById('services-selector');
   if (sel) {
     sel.innerHTML = services.map(svc => `
       <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;
                     padding:3px 8px;border:1px solid var(--border);border-radius:3px;
                     background:#fff;white-space:nowrap">
-        <input type="checkbox" class="svc-check" value="${esc(svc)}">
-        ${esc(svc)}
+        <input type="checkbox" class="svc-check" value="${esc(svc)}"
+               ${isScuba ? 'checked' : ''}>
+        ${esc(labels ? (labels[svc] || svc) : svc)}
       </label>`).join('');
   }
 }
@@ -3083,8 +3135,10 @@ async function submitNewScan() {
   const arns    = arnsRaw.split('\n').map(s => s.trim()).filter(Boolean);
 
   // Build payload
+  const isScuba = provider === 'scubagear';
   const payload = {
     provider,
+    scan_type: isScuba ? 'scubagear' : (provider === 'azure' ? 'prowler_azure' : 'prowler_aws'),
     resource_scope: arns,
     services_scope: checkedSvcs,
     credential_source: _scanCredMode === 'profile' ? 'profile' : 'keys',
@@ -3094,12 +3148,19 @@ async function submitNewScan() {
     azure_tenant_id: '',
     azure_client_id: '',
     azure_subscription_id: '',
+    tenant_domain: '',
+    m365_environment: 'commercial',
   };
 
   // Secrets (never stored in DB)
   const secrets = {};
 
-  if (provider === 'aws') {
+  if (isScuba) {
+    payload.tenant_domain    = document.getElementById('scan-tenant-domain')?.value?.trim();
+    payload.m365_environment = document.getElementById('scan-m365-env')?.value || 'commercial';
+    payload.azure_tenant_id  = payload.tenant_domain;
+    if (!payload.tenant_domain) { showErr('Tenant domain is required for ScubaGear'); return; }
+  } else if (provider === 'aws') {
     payload.scan_region = document.getElementById('scan-region')?.value?.trim() || '';
     if (!payload.scan_region) { showErr('AWS Region is required'); return; }
 
@@ -3116,7 +3177,7 @@ async function submitNewScan() {
       payload.aws_profile       = document.getElementById('scan-profile')?.value || 'default';
       payload.scan_account_id   = document.getElementById('scan-account-id-p')?.value?.trim();
     }
-  } else {
+  } else if (provider === 'azure') {
     payload.azure_tenant_id       = document.getElementById('scan-azure-tenant')?.value?.trim();
     payload.azure_client_id       = document.getElementById('scan-azure-client')?.value?.trim();
     payload.azure_subscription_id = document.getElementById('scan-azure-sub')?.value?.trim();
@@ -3411,8 +3472,7 @@ function _renderScanSummary(tl, lines, status) {
         <div class="tl-sub">${esc(stage.sub)}</div>
         ${stage.detail ? `
           <div class="tl-lines visible" style="margin-top:6px;max-height:80px">
-            ${stage.detail.map(l => `<span style="color:${l.err?'var(--danger)':'inherit'}">${esc(l.text)}</span>`).join('
-')}
+            ${stage.detail.map(l => `<span style="color:${l.err?'var(--danger)':'inherit'}">${esc(l.text)}</span>`).join('')}
           </div>` : ''}
       </div>
     </div>`).join('');
