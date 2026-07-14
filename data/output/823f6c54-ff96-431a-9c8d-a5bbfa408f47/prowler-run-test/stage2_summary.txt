@@ -1,0 +1,355 @@
+======================================================================
+STAGE 2 — DETERMINISTIC PROCESS SUMMARY
+======================================================================
+Run ID              : b75213b6-cd38-483a-8e8e-53a0ede52239
+Total findings in   : 149
+Included (working)  : 86
+Excluded (filtered) : 63
+Duplicates removed  : 0
+Output groups       : 16
+
+EXCLUDED FINDINGS (63) — preserved in canonical JSON:
+  account_maintain_current_contact_details | None | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  account_security_contact_information_is_registered | None | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  account_security_questions_are_registered_in_the_aws_account | None | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  bedrock_full_access_policy_attached | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  cloudwatch_cross_account_sharing_disabled | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_from_launch_wizard | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_not_used | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  ec2_securitygroup_with_many_ingress_egress_rules | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  iam_role_administratoraccess_policy | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  iam_role_cross_account_readonlyaccess_policy | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  resourceexplorer2_indexes_found | None | PASS
+    Reason: scanner_status 'PASS' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+
+DUPLICATES (0) — preserved in canonical JSON:
+
+OUTPUT GROUPS (16) — one row per check in the final report:
+  #   Section  Severity       Likelihood   Inst  Check ID
+  --- -------- -------------- ------------ ----  ----------------------------------------
+  1   AWS      high          High           1  config_delegated_admin_and_org_aggregator_all_regions
+  2   AWS      high          High           4  iam_role_cross_service_confused_deputy_prevention
+  3   AWS      medium        Medium         1  bedrock_guardrails_configured
+  4   AWS      medium        Medium         1  bedrock_model_invocation_logging_enabled
+  5   AWS      medium        Medium        30  ec2_securitygroup_from_launch_wizard
+  6   AWS      medium        Medium         1  iam_password_policy_expires_passwords_within_90_days_or_less
+  7   AWS      medium        Medium         1  iam_password_policy_minimum_length_14
+  8   AWS      medium        Medium         1  iam_password_policy_number
+  9   AWS      medium        Medium         1  iam_password_policy_reuse_24
+  10  AWS      medium        Medium         1  iam_password_policy_symbol
+  11  AWS      medium        Medium         1  iam_password_policy_uppercase
+  12  AWS      medium        Medium         1  vpc_different_regions
+  13  AWS      low           Low            1  bedrock_prompt_management_exists
+  14  AWS      low           Low           39  ec2_securitygroup_not_used
+  15  AWS      low           Low            1  iam_password_policy_lowercase
+  16  AWS      low           Low            1  sagemaker_models_monitor_enabled
+
+GROUP DETAIL:
+  ── config_delegated_admin_and_org_aggregator_all_regions ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : High
+     Severity        : high
+     Representative  : Sheet:csv Row:10
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_role_cross_service_confused_deputy_prevention ──
+     Instances       : 4
+     Accounts        : []
+     Likelihood      : High
+     Severity        : high
+     Representative  : Sheet:csv Row:144
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── bedrock_guardrails_configured ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:6
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── bedrock_model_invocation_logging_enabled ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:7
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── ec2_securitygroup_from_launch_wizard ──
+     Instances       : 30
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:11
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_expires_passwords_within_90_days_or_less ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:135
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_minimum_length_14 ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:137
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_number ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:138
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_reuse_24 ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:139
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_symbol ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:140
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_uppercase ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:141
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── vpc_different_regions ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:150
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── bedrock_prompt_management_exists ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Low
+     Severity        : low
+     Representative  : Sheet:csv Row:8
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── ec2_securitygroup_not_used ──
+     Instances       : 39
+     Accounts        : []
+     Likelihood      : Low
+     Severity        : low
+     Representative  : Sheet:csv Row:53
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_lowercase ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Low
+     Severity        : low
+     Representative  : Sheet:csv Row:136
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── sagemaker_models_monitor_enabled ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Low
+     Severity        : low
+     Representative  : Sheet:csv Row:149
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+WARNINGS (0):
+  None
