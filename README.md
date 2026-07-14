@@ -1,11 +1,10 @@
 # FTI - Automated Cloud Security Reporter
 
-# Automated Cloud Security Reporter
 
 > A one-stop platform for cloud security assessments , runs Prowler and ScubaGear scans with a clock of a button, groups findings with AI, guides analyst review, and produces client-ready Excel reports automatically.
 
 ![Demo](./assets/demo.gif)
-> Replace with a screen recording showing a full assessment: scan configuration, live pipeline progress, grouping review, and report download
+
 
 ---
 
@@ -42,8 +41,8 @@
 ## Features
 
 ### Scanning
-- **Prowler** -- run AWS and Azure infrastructure scans directly from the GUI with per-scan credentials
-- **ScubaGear** -- launch M365 / Entra ID scans via ScubaGear's own UI, auto-detect output (Windows only)
+- **Prowler** - run AWS and Azure infrastructure scans directly from the GUI with per-scan credentials
+- **ScubaGear** - launch M365 / Entra ID scans via ScubaGear's own UI, auto-detect output (Windows only)
 - Service-level scoping for Prowler (select specific AWS/Azure services)
 - Resource ARN scoping for targeted assessments
 
@@ -51,20 +50,20 @@
 - Ingests Prowler CSV/XLSX/JSON/OCSF and ScubaGear `ActionPlan.csv`
 - Deduplicates findings using stable cross-scan fingerprints
 - Semantic grouping via Claude on AWS Bedrock -- merges related check types into findings
-- **Human-in-the-loop review** -- drag-and-drop grouping board with per-group AI instructions
+- **Human-in-the-loop review** - drag-and-drop grouping board with per-group AI instructions
 - LLM enrichment: title, root cause, situation, consequence, risk rating, recommendations
 - Risk matrix: likelihood x consequence, with manual override support
 
 ### Reporting
-- Outputs a formatted Excel report from a pre-defined template
+- Outputs a formatted Excel report from a pre-defined FTI template
 - Risk colour coding (High / Medium / Low)
 - Empty M365 service sections omitted automatically
 - Sequential finding references per service (ENT1, DEF1, EXO1...)
 
 ### GUI
-- Engagement management -- multiple clients, multiple runs per engagement
+- Engagement management - multiple clients, multiple runs per engagement
 - Live pipeline progress timeline (stage-by-stage, not raw terminal)
-- SSE-based real-time streaming -- no polling delays
+- SSE-based real-time streaming - no polling delays
 - Run history and risk distribution comparison across runs
 - Output file browser with one-click Excel download
 - Settings page with persistent defaults (region, deployment name, credentials)
@@ -153,21 +152,21 @@ Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
 
 **Linux / macOS**
 ```bash
-git clone https://github.com/your-org/cloud-tool.git
-cd cloud-tool
+git clone https://github.com/shyam-balakrishnan-fti/Automated-CloudSec-Reporter
+cd Automated-CloudSec-Reporter
 bash gui/start.sh
 ```
 
 **Windows (right-click -> Run with PowerShell, or)**
 ```powershell
-git clone https://github.com/your-org/cloud-tool.git
-cd cloud-tool
+git clone https://github.com/shyam-balakrishnan-fti/Automated-CloudSec-Reporter
+cd Automated-CloudSec-Reporter
 powershell -ExecutionPolicy Bypass -File gui\start.ps1
 ```
 
 The script handles everything:
 - Detects OS and Python version
-- Installs uv if missing
+- Installs uv if missing(Dependency and Python Version Management)
 - Installs Prowler via `uv tool install prowler --python 3.12`
 - Installs ScubaGear dependencies via `Initialize-SCuBA` (Windows)
 - Creates root `.venv` with pipeline dependencies
@@ -419,18 +418,18 @@ cloud-tool/
 ## Security Considerations
 
 ### Credentials
-- AWS scan credentials are held in memory only for the duration of the subprocess -- never written to the database
-- Raw keys entered in the GUI are marked `exclude=True` on the Pydantic model -- they cannot appear in logs or serialised responses
-- Bedrock credentials come from environment variables set in the startup script -- never hardcoded in application code
-- The GUI runs on `127.0.0.1` (localhost only) -- not exposed to the network by default
+- AWS scan credentials are held in memory only for the duration of the subprocess , never written to the database
+- Raw keys entered in the GUI are marked `exclude=True` on the Pydantic model , they cannot appear in logs or serialised responses
+- Bedrock credentials come from environment variables set in the startup script , never hardcoded in application code
+- The GUI runs on `127.0.0.1` (localhost only) , not exposed to the network by default
 
 ### Data
 - All pipeline output (findings, enriched narratives, Excel reports) stays on the local filesystem
-- AWS Bedrock zero-data-retention should be enabled at the account level before use:
+- AWS Bedrock zero-data-retention should be enabled at the account level before use(the current account that this tool is configured with is already configured with Zero Operator Access and Zero Data Retention ):
   ```bash
   aws bedrock put-account-data-retention --mode none --region ap-southeast-2
   ```
-- The SQLite database stores run metadata and log lines -- no raw finding content or credentials
+- The SQLite database stores run metadata and log lines , no raw finding content or credentials
 
 ### Input validation
 - All API request bodies validated via Pydantic before processing
