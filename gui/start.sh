@@ -116,7 +116,7 @@ success "GUI dependencies ready"
 # Step 7: Open browser and launch
 header "Step 7: Launch"
 
-BEDROCK_DEPLOYMENT_NAME = "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh"
+BEDROCK_DEPLOYMENT_NAME="arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh"
 export BEDROCK_DEPLOYMENT_NAME
 
 

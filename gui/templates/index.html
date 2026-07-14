@@ -1413,7 +1413,7 @@ async function submitCreateEngagement() {
 }
 
 // ── New Run Modal ─────────────────────────────────────────────────────
-function openNewRunModal(engId) {
+async function openNewRunModal(engId) {
   currentEngagementId = engId;
   const eng = engagements.find(e => e.id === engId);
 
