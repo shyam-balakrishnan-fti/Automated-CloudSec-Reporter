@@ -590,7 +590,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
 <!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="sb-logo">
-    <div class="logo-ph">YOUR LOGO</div>
+    <img src="/static/logo.jpeg" alt="Logo" style="height:36px;width:auto;object-fit:contain;margin-bottom:10px;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="logo-ph" style="display:none">LOGO</div>
     <div class="sb-product">Automated Cloud Security Reporter</div>
     <div class="sb-tagline">Pipeline management &amp; reporting</div>
   </div>
@@ -610,9 +610,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
     <div class="sb-section" style="margin-top:8px">
       <div class="sb-section-title">Pipelines</div>
     </div>
-    <button class="nav-item" data-view="new-run" onclick="navigate('new-run')">
-      <span class="nav-icon">▷</span> New Run
-    </button>
+
 
     <div class="sb-section" style="margin-top:8px">
       <div class="sb-section-title">Scanner</div>
@@ -1036,7 +1034,6 @@ let pendingRunRecord = null;  // holds created run record after confirm
 const VIEW_TITLES = {
   'dashboard': 'Dashboard',
   'engagements': 'Engagements',
-  'new-run': 'New Run',
   'tools': 'Tools & Setup',
   'run-detail': 'Run',
   'settings': 'Settings',
@@ -1432,6 +1429,17 @@ function openNewRunModal(engId) {
   `;
 
   const _s = getSettings();
+  // Check if server has env-configured AWS keys — use them as default
+  let _envHasKeys = false;
+  try {
+    const defs = await api('GET', '/defaults');
+    _envHasKeys = defs.has_env_keys || false;
+    // If env keys are set and no profile configured, default to keys mode
+    if (_envHasKeys && !_s.aws_profile) {
+      _credMode = 'keys';
+    }
+  } catch(e) {}
+
   document.getElementById('new-run-modal-body').innerHTML = `
     <div class="alert alert-error" id="run-form-error"></div>
     <div class="form-row">
@@ -1529,12 +1537,28 @@ function setCredMode(mode) {
   document.getElementById('cred-keys-section').classList.toggle('visible', mode === 'keys');
 }
 
+// Store run form state so Back from preflight restores fields
+let _savedRunFormState = null;
+
 async function runPreflight() {
   const pipeline   = document.getElementById('run-pipeline').value;
   // Strip surrounding quotes — Windows users often paste paths with quotes
   const inputFile  = document.getElementById('run-input').value.trim().replace(/^["']|["']$/g, '');
   document.getElementById('run-input').value = inputFile; // update field too
   const tenantId   = document.getElementById('run-tenant') ? document.getElementById('run-tenant').value.trim() : '';
+
+  // Save form state before running preflight so Back can restore it
+  _savedRunFormState = {
+    pipeline,
+    inputFile,
+    format:     document.getElementById('run-format')?.value || 'auto',
+    tenantId:   document.getElementById('run-tenant')?.value || '',
+    credMode:   _credMode,
+    awsProfile: document.getElementById('run-profile')?.value || '',
+    awsRegion:  document.getElementById('run-region')?.value || document.getElementById('run-region-keys')?.value || '',
+    skipReview: document.getElementById('run-skip-review')?.checked || false,
+    skipLlm:    document.getElementById('run-skip-llm')?.checked || false,
+  };
 
   // Validate required fields
   let valid = true;
@@ -2474,10 +2498,23 @@ const DEFAULT_SETTINGS = {
   skip_llm:         false,
 };
 
-function loadSettings() {
+async function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    const s   = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+    let s = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+
+    // On first load (no saved settings), pull defaults from server environment
+    if (!raw) {
+      try {
+        const serverDefaults = await api('GET', '/defaults');
+        if (serverDefaults.deployment_name) s.deployment_name = serverDefaults.deployment_name;
+        if (serverDefaults.aws_region)      s.aws_region      = serverDefaults.aws_region;
+        if (serverDefaults.aws_profile)     s.aws_profile     = serverDefaults.aws_profile;
+        // Save so subsequent loads don't need to fetch
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      } catch(e) { /* server defaults unavailable — use DEFAULT_SETTINGS */ }
+    }
+
     document.getElementById('setting-aws-region').value      = s.aws_region;
     document.getElementById('setting-aws-profile').value     = s.aws_profile;
     document.getElementById('setting-deployment-name').value = s.deployment_name || '';
@@ -2788,9 +2825,29 @@ async function backFromPreflight() {
     pendingRunRecord = null;
   }
 
-  // Reopen the run config modal so analyst can adjust and retry
+  // Reopen the run config modal and restore saved form state
   if (currentEngagementId) {
     openNewRunModal(currentEngagementId);
+    if (_savedRunFormState) {
+      const s = _savedRunFormState;
+      setTimeout(() => {
+        const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+        const chk = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.checked = val; };
+        set('run-input', s.inputFile);
+        set('run-format', s.format);
+        set('run-tenant', s.tenantId);
+        set('run-profile', s.awsProfile);
+        set('run-region', s.awsRegion);
+        set('run-region-keys', s.awsRegion);
+        chk('run-skip-review', s.skipReview);
+        chk('run-skip-llm', s.skipLlm);
+        if (s.credMode) setCredMode(s.credMode);
+        if (s.pipeline) {
+          const pEl = document.getElementById('run-pipeline');
+          if (pEl) { pEl.value = s.pipeline; onRunPipelineChange(); }
+        }
+      }, 150);
+    }
   }
 }
 

@@ -1,0 +1,48 @@
+{
+  "run_id": "2110591e-3205-41c1-8721-a9e6b0e5ba8d",
+  "approved_at": "2026-07-13T00:10:27.088Z",
+  "groups": [
+    {
+      "group_name": "AWS Config Delegated Administrator and Organization Aggregator Configuration",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "rationale": "This check evaluates the organization-wide AWS Config governance structure, specifically whether a delegated administrator account has been configured with organization-level aggregators across all regions to enable centralized compliance monitoring and reporting.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Firewall Manager Policy Compliance Issues",
+      "check_ids": [
+        "fms_policy_compliant"
+      ],
+      "rationale": "This check evaluates whether all AWS Firewall Manager security policies are in a compliant state across member accounts in the organization. It is a standalone organizational control that assesses policy enforcement and compliance status for centrally managed firewall rules.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Password Policy Does Not Meet Security Best Practices",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "All seven checks examine different parameters of the same IAM account password policy configuration object. They share the identical root cause of an inadequate password policy configuration and can be remediated through a single action by updating the IAM account password policy settings in the AWS Console or via AWS CLI.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon SageMaker Model Monitoring Not Enabled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "rationale": "This check assesses whether SageMaker models have monitoring schedules configured to detect model drift and data quality issues in production ML workloads, ensuring ongoing model performance and accuracy in real-world deployments.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}

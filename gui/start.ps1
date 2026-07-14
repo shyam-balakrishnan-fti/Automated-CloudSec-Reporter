@@ -191,17 +191,14 @@ try {
 Write-Header "Step 8: Launch"
 
 # Check for Bedrock deployment name
-if (-not $env:BEDROCK_DEPLOYMENT_NAME) {
-    Write-Warn "BEDROCK_DEPLOYMENT_NAME environment variable is not set."
-    Write-Warn "Set it before running:"
-    Write-Warn '  $env:BEDROCK_DEPLOYMENT_NAME = "arn:aws:bedrock:..."'
-    Write-Warn "Or enter it in Settings in the GUI after launch."
-}
+$env:BEDROCK_DEPLOYMENT_NAME = "arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh"
+
 
 $URL = "http://localhost:$PORT"
 Write-Info "Starting GUI on $URL"
 Write-Info "Press Ctrl+C to stop the server"
-Write-Host ""
+Write-Info "Give it a little while to load..."
+Write-Host "If it doesn't load automatically, Click Refresh or Ctrl + R"
 
 # Open browser after 2s delay (non-blocking)
 Start-Job -ScriptBlock {

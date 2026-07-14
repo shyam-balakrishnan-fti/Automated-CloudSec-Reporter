@@ -1168,3 +1168,21 @@ def _scan_row(row: dict) -> dict:
     row["resource_scope"] = _j.loads(row.get("resource_scope") or "[]")
     row["services_scope"] = _j.loads(row.get("services_scope") or "[]")
     return row
+
+
+@router.get("/defaults")
+async def get_defaults():
+    """
+    Return server-side defaults for the Settings page.
+    These come from environment variables set in start.ps1 / start.sh.
+    Only called once on first launch to pre-populate Settings.
+    Never returns raw secret values — only safe display values.
+    """
+    import os
+    return {
+        "deployment_name": os.environ.get("BEDROCK_DEPLOYMENT_NAME", ""),
+        "aws_region":      os.environ.get("AWS_DEFAULT_REGION", "ap-southeast-2"),
+        # Return profile name if set, otherwise hint that env keys are configured
+        "aws_profile":     os.environ.get("AWS_PROFILE", ""),
+        "has_env_keys":    bool(os.environ.get("AWS_ACCESS_KEY_ID")),
+    }

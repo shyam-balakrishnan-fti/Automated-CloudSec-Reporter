@@ -1,0 +1,32 @@
+======================================================================
+STAGE 1 — INGEST & PARSE SUMMARY
+======================================================================
+Run ID           : 2110591e-3205-41c1-8721-a9e6b0e5ba8d
+Source file      : /home/shyam-balakrishnan/cloud-tool/data/scans/6416dd1d-670c-4bdc-962b-98e462108cd7/prowler-output.csv
+SHA-256          : 9d06298d25b5d99cc8a4d0891a5c27b651c1a4b5f3dc84ecfa46ba003da57432
+Scanner          : prowler v5.32.0
+Sheet detected   : csv
+Rows read        : 13
+Findings parsed  : 13
+Unknown columns  : ['ADDITIONAL_URLS', 'ACCOUNT_OU_UID', 'ACCOUNT_OU_NAME']
+Ingested at      : 2026-07-13T00:09:56.416795
+
+STATUS BREAKDOWN:
+  FAIL                     : 10
+  MANUAL                   : 3
+
+BLANK VALUE CLASSIFICATIONS:
+  Category 2 — DESCRIPTION blank      : 0
+  Category 2 — RISK blank              : 0
+  Category 2 — REMEDIATION_TEXT blank  : 0
+  Category 1 — REGION blank (global)   : 0
+
+MUTED RECONCILIATIONS: 0
+
+ARN FALLBACKS (name used instead of ARN): 0
+
+FLAGGED FOR HUMAN REVIEW: 0
+
+WARNINGS (2):
+  NON_STANDARD_DELIMITER             : 1
+  UNKNOWN_COLUMNS                    : 1

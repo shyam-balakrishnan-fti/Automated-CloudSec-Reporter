@@ -1,0 +1,101 @@
+{
+  "run_id": "2110591e-3205-41c1-8721-a9e6b0e5ba8d",
+  "original_count": 10,
+  "merged_count": 4,
+  "merges_applied": 1,
+  "chunks_used": 1,
+  "consolidation_applied": true,
+  "warnings": [],
+  "groups": [
+    {
+      "group_name": "AWS Config Delegated Administrator and Organization Aggregator Configuration",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "rationale": "This check evaluates the organization-wide AWS Config governance structure, specifically whether a delegated administrator account has been configured with organization-level aggregators across all regions to enable centralized compliance monitoring and reporting.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:config:ap-southeast-2:415019016144:config-aggregator/unknown",
+          "resource_name": "unknown",
+          "resource_type": "AwsConfigConfigurationAggregator",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "config_delegated_admin_and_org_aggregator_all_regions"
+        }
+      ]
+    },
+    {
+      "group_name": "AWS Firewall Manager Policy Compliance Issues",
+      "check_ids": [
+        "fms_policy_compliant"
+      ],
+      "rationale": "This check evaluates whether all AWS Firewall Manager security policies are in a compliant state across member accounts in the organization. It is a standalone organizational control that assesses policy enforcement and compliance status for centrally managed firewall rules.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:fms:us-east-1:415019016144:policy",
+          "resource_name": "415019016144",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "us-east-1",
+          "check_id": "fms_policy_compliant"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Password Policy Does Not Meet Security Best Practices",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "All seven checks examine different parameters of the same IAM account password policy configuration object. They share the identical root cause of an inadequate password policy configuration and can be remediated through a single action by updating the IAM account password policy settings in the AWS Console or via AWS CLI.",
+      "is_merged": true,
+      "instance_count": 7,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_expires_passwords_within_90_days_or_less"
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon SageMaker Model Monitoring Not Enabled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "rationale": "This check assesses whether SageMaker models have monitoring schedules configured to detect model drift and data quality issues in production ML workloads, ensuring ongoing model performance and accuracy in real-world deployments.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:sagemaker:ap-southeast-2:415019016144:monitoring-schedule/unknown",
+          "resource_name": "SageMaker Monitoring Schedules",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "415019016144",
+          "region": "ap-southeast-2",
+          "check_id": "sagemaker_models_monitor_enabled"
+        }
+      ]
+    }
+  ]
+}

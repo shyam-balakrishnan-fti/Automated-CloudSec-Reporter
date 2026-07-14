@@ -306,14 +306,13 @@ def render_excel(
     for section in SECTION_ORDER:
         groups_in_section = groups_by_section.get(section, [])
 
-        # Always write section heading (even if empty — matches template style)
+        # Skip sections with no findings — don't write empty headings
+        if not groups_in_section:
+            continue
+
         _write_section_heading(ws, current_row, section)
         current_row += 1
         sections_written += 1
-
-        if not groups_in_section:
-            # Empty section — leave heading only (Option A: leave Azure Resources etc. blank)
-            continue
 
         for group in groups_in_section:
             if not group.representative:
