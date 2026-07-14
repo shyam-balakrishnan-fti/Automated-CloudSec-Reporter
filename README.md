@@ -1,7 +1,7 @@
 # FTI - Automated Cloud Security Reporter
 
 
-> A one-stop platform for cloud security assessments , runs Prowler and ScubaGear scans with a clock of a button, groups findings with AI, guides analyst review, and produces client-ready Excel reports automatically.
+> A one-stop platform for cloud security assessments , runs Prowler and ScubaGear scans with a click of a button, groups findings with AI, guides analyst review, and produces client-ready Excel reports automatically.
 
 ![Demo](./assets/demo.gif)
 
