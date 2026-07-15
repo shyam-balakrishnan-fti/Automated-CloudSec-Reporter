@@ -607,16 +607,12 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
       <span class="nav-badge" id="nav-eng-count" style="display:none"></span>
     </button>
 
-    <div class="sb-section" style="margin-top:8px">
-      <div class="sb-section-title">Pipelines</div>
-    </div>
 
-
-    <div class="sb-section" style="margin-top:8px">
-      <div class="sb-section-title">Scanner</div>
-    </div>
     <button class="nav-item" data-view="scans" onclick="navigate('scans')">
-      <span class="nav-icon">⬡</span> Run Scan
+      <span class="nav-icon">&#x29C6;</span> Run Scan
+    </button>
+    <button class="nav-item" data-view="exposure" onclick="navigate('exposure')">
+      <span class="nav-icon">&#x26A0;</span> Exposure
     </button>
     <button class="nav-item" data-view="tools" onclick="navigate('tools')">
       <span class="nav-icon">⚙</span> Tools &amp; Setup
@@ -931,6 +927,102 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
       </div>
     </div>
 
+    <!-- ── Exposure Scanner view ── -->
+    <div class="view" id="view-exposure">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Exposure Scanner</div>
+          <div class="page-sub">Enumerate publicly accessible resources across AWS and Azure</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNewExposureModal()">+ New Scan</button>
+      </div>
+      <div id="exposure-list">
+        <div class="empty-state"><div class="spinner spinner-lg"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Exposure detail view ── -->
+    <div class="view" id="view-exposure-detail">
+      <div style="margin-bottom:14px">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+                onclick="backFromExposure()">&#x2190; Back</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title" id="exposure-detail-title">Exposure Scan</div>
+          <div class="page-sub" id="exposure-detail-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px" id="exposure-detail-actions"></div>
+      </div>
+
+      <!-- Summary cards -->
+      <div id="exposure-summary-cards" style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap"></div>
+
+      <!-- Stage bar -->
+      <div class="stage-bar" id="exposure-stage-bar" style="margin-bottom:14px">
+        <div class="stage-step" id="exp-stage-pending">Pending</div>
+        <div class="stage-step" id="exp-stage-running">Scanning</div>
+        <div class="stage-step" id="exp-stage-complete">Complete</div>
+      </div>
+
+      <!-- Live log (during scan) -->
+      <div class="card" id="exposure-log-card" style="padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="card-title" style="margin-bottom:0">Scan Progress</div>
+          <span class="spinner" id="exposure-spinner" style="display:none"></span>
+        </div>
+        <div id="exposure-log" style="font-family:var(--mono);font-size:11px;
+             max-height:200px;overflow-y:auto;color:var(--text-2);
+             background:var(--bg);border:1px solid var(--border);
+             border-radius:4px;padding:10px"></div>
+      </div>
+
+      <!-- Findings table (after complete) -->
+      <div id="exposure-findings-section" style="display:none">
+        <!-- Filters -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+          <select id="exp-filter-service"  onchange="filterExposureFindings()" style="font-size:12px">
+            <option value="">All Services</option>
+          </select>
+          <select id="exp-filter-severity" onchange="filterExposureFindings()" style="font-size:12px">
+            <option value="">All Severities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <select id="exp-filter-region"   onchange="filterExposureFindings()" style="font-size:12px">
+            <option value="">All Regions</option>
+          </select>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn btn-ghost" style="font-size:12px"
+                    onclick="exportExposure('csv')">&#x2193; Export CSV</button>
+            <button class="btn btn-ghost" style="font-size:12px"
+                    onclick="exportExposure('xlsx')">&#x2193; Export Excel</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:var(--bg);border-bottom:1px solid var(--border)">
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Severity</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Service</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Resource</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Region</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Exposure</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Details</th>
+              </tr>
+            </thead>
+            <tbody id="exposure-findings-tbody"></tbody>
+          </table>
+          <div id="exposure-findings-empty" style="padding:24px;text-align:center;color:var(--muted);display:none">
+            No exposed resources found
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -1039,6 +1131,8 @@ const VIEW_TITLES = {
   'settings': 'Settings',
   'scans': 'Run Scan',
   'scan-detail': 'Scan',
+  'exposure': 'Exposure Scanner',
+  'exposure-detail': 'Exposure Scan',
   'engagement-detail': '',
 };
 
@@ -1061,6 +1155,7 @@ function navigate(view) {
   if (view === 'tools') loadTools();
   if (view === 'settings') loadSettings();
   if (view === 'scans') loadScans();
+  if (view === 'exposure') loadExposureScans();
   // Stop engagement detail polling when navigating away from it
   if (view !== 'engagement-detail' && _engDetailPoll) {
     clearInterval(_engDetailPoll);
@@ -2859,6 +2954,7 @@ let scanElapsedTimer  = null;
 let scanStartTime     = null;
 let completedScanOutput = null;  // output file path after scan completes
 let _scanDetailEngId  = null;
+let _activeScanType   = null;    // 'aws' | 'azure' | 'scubagear'
 let _awsServices         = [];
 let _azureServices       = [];
 let _scubaProducts       = [];
@@ -3328,6 +3424,7 @@ async function openScanDetail(scanId, engId) {
     return;
   }
 
+  _activeScanType = scan.scan_type || scan.provider;
   document.getElementById('scan-detail-title').textContent =
     `${scan.provider.toUpperCase()} Scan`;
   document.getElementById('scan-detail-sub').textContent =
@@ -3433,7 +3530,10 @@ function _connectScanStream(scanId) {
     }
 
     if (data.type === 'scuba_instructions') {
-      _showScubaPathBanner(data.output_path);
+      // Only show for ScubaGear scans — not Prowler
+      if (_activeScanType === 'scubagear' || data.output_path) {
+        _showScubaPathBanner(data.output_path);
+      }
     }
   };
 
@@ -3733,6 +3833,542 @@ function _copyScubaPath(btn) {
 }
 
 
+
+// ── Exposure Scanner ──────────────────────────────────────────────────
+
+let activeExposureScanId  = null;
+let exposureEvtSource     = null;
+let _exposureDetailEngId  = null;
+let _exposureFindings     = [];
+let _exposureDetailPoll   = null;
+let _awsExposureServices  = {};
+let _azureExposureServices = {};
+
+async function _ensureExposureServices() {
+  if (Object.keys(_awsExposureServices).length) return;
+  try {
+    const s = await api('GET', '/meta/exposure-services');
+    _awsExposureServices   = s.aws   || {};
+    _azureExposureServices = s.azure || {};
+  } catch(e) {}
+}
+
+// ── Exposure list view ────────────────────────────────────────────────
+
+async function loadExposureScans() {
+  const container = document.getElementById('exposure-list');
+  container.innerHTML = '<div class="empty-state"><div class="spinner spinner-lg"></div></div>';
+  try {
+    const engs = await api('GET', '/engagements');
+    let all = [];
+    for (const eng of engs) {
+      const scans = await api('GET', `/engagements/${eng.id}/exposures`);
+      scans.forEach(s => s._engagement = eng);
+      all = all.concat(scans);
+    }
+    all.sort((a, b) => b.created_at.localeCompare(a.created_at));
+
+    if (!all.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">&#x26A0;</div>
+          <div class="empty-title">No exposure scans yet</div>
+          <div class="empty-sub">Scan a cloud account to discover publicly accessible resources</div>
+          <br>
+          <button class="btn btn-primary" onclick="openNewExposureModal()">+ New Scan</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px">
+      ${all.map(s => exposureRowHTML(s)).join('')}
+    </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load: ${esc(e.message)}</div>`;
+  }
+}
+
+function exposureRowHTML(s) {
+  const eng     = s._engagement;
+  const created = new Date(s.created_at).toLocaleString();
+  const badge   = s.provider === 'aws'
+    ? '<span class="eng-badge eng-badge-prowler">AWS</span>'
+    : '<span class="eng-badge" style="background:#e0f2fe;color:#0369a1">Azure</span>';
+
+  const counts = s.status === 'complete' ? `
+    <span style="font-size:11px;font-family:var(--mono);color:var(--danger)">${s.high_count || 0} High</span>
+    <span style="font-size:11px;color:var(--muted)">|</span>
+    <span style="font-size:11px;font-family:var(--mono);color:var(--warning-dark)">${s.medium_count || 0} Med</span>
+    <span style="font-size:11px;color:var(--muted)">|</span>
+    <span style="font-size:11px;font-family:var(--mono);color:var(--success)">${s.low_count || 0} Low</span>
+  ` : '';
+
+  return `
+    <div style="padding:14px 16px;border:1px solid var(--border);border-radius:4px;
+                background:#fafbfc;cursor:pointer"
+         onclick="openExposureDetail('${s.id}','${eng ? eng.id : ''}')">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        ${badge}
+        <span class="status-badge status-${s.status}">${statusLabel(s.status)}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text)">
+          ${eng ? esc(eng.client_name) : 'Unknown engagement'}
+        </span>
+        <span style="font-size:11px;color:var(--muted)">${created}</span>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">${counts}</span>
+      </div>
+      ${s.aws_region ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">Region: ${esc(s.aws_region)}</div>` : ''}
+    </div>`;
+}
+
+// ── New Exposure Modal ────────────────────────────────────────────────
+
+let _expCredMode = 'keys';
+
+async function openNewExposureModal(engId) {
+  await _ensureExposureServices();
+  const engs = await api('GET', '/engagements');
+  const engOptions = engs.map(e =>
+    `<option value="${esc(e.id)}" ${e.id === (engId || currentEngagementId) ? 'selected' : ''}>
+      ${esc(e.client_name)} -- ${esc(e.assessment_period)}
+    </option>`).join('');
+
+  const s = getSettings();
+
+  document.getElementById('exposure-modal-body').innerHTML = `
+    <div class="alert alert-error" id="exp-form-error" style="display:none"></div>
+
+    <div class="form-row">
+      <label>Engagement *</label>
+      <select id="exp-engagement">${engOptions}</select>
+    </div>
+
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Cloud Provider *</label>
+        <select id="exp-provider" onchange="onExpProviderChange()">
+          <option value="aws">AWS</option>
+          <option value="azure">Azure</option>
+        </select>
+      </div>
+      <div class="form-row" id="exp-region-row">
+        <label>AWS Region(s)</label>
+        <input type="text" id="exp-regions" value="${s.aws_region || 'us-east-1'}"
+               placeholder="us-east-1, ap-southeast-2">
+        <div class="form-hint">Comma-separated. Leave blank for account-level checks only.</div>
+      </div>
+    </div>
+
+    <!-- AWS creds -->
+    <div id="exp-aws-creds">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:10px">AWS Credentials</div>
+      <div class="cred-toggle">
+        <button class="cred-opt active" id="exp-cred-keys" onclick="setExpCredMode('keys')">Temporary Keys</button>
+        <button class="cred-opt" id="exp-cred-profile" onclick="setExpCredMode('profile')">AWS Profile</button>
+      </div>
+      <div class="cred-section visible" id="exp-keys-section">
+        <div class="form-row">
+          <label>Access Key ID *</label>
+          <input type="text" id="exp-key-id" placeholder="AKIA...">
+        </div>
+        <div class="form-row">
+          <label>Secret Access Key *</label>
+          <input type="password" id="exp-key-secret" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        </div>
+        <div class="form-row">
+          <label>Session Token <span style="font-weight:400">(optional)</span></label>
+          <input type="password" id="exp-key-token" placeholder="Optional">
+        </div>
+      </div>
+      <div class="cred-section" id="exp-profile-section">
+        <div class="form-row">
+          <label>AWS Profile</label>
+          <input type="text" id="exp-profile" value="${s.aws_profile || 'default'}">
+        </div>
+      </div>
+    </div>
+
+    <!-- Azure creds -->
+    <div id="exp-azure-creds" style="display:none">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:10px">Azure Credentials</div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Tenant ID *</label>
+          <input type="text" id="exp-azure-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+        <div class="form-row">
+          <label>Client ID *</label>
+          <input type="text" id="exp-azure-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Client Secret *</label>
+        <input type="password" id="exp-azure-secret" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+      </div>
+      <div class="form-row">
+        <label>Subscription ID *</label>
+        <input type="text" id="exp-azure-sub" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="card-title" style="margin-bottom:8px">
+      Services to Scan
+      <span style="font-weight:400;font-size:11px;color:var(--muted)">(all selected by default)</span>
+    </div>
+    <div id="exp-services-selector" style="max-height:160px;overflow-y:auto;border:1px solid var(--border);
+         border-radius:4px;padding:8px;display:flex;flex-wrap:wrap;gap:6px"></div>
+  `;
+
+  onExpProviderChange();
+  openModal('modal-new-exposure');
+}
+
+function setExpCredMode(mode) {
+  _expCredMode = mode;
+  document.getElementById('exp-cred-keys').classList.toggle('active', mode === 'keys');
+  document.getElementById('exp-cred-profile').classList.toggle('active', mode === 'profile');
+  document.getElementById('exp-keys-section').classList.toggle('visible', mode === 'keys');
+  document.getElementById('exp-profile-section').classList.toggle('visible', mode === 'profile');
+}
+
+function onExpProviderChange() {
+  const provider = document.getElementById('exp-provider')?.value;
+  if (!provider) return;
+  const isAws = provider === 'aws';
+  document.getElementById('exp-aws-creds').style.display   = isAws ? '' : 'none';
+  document.getElementById('exp-azure-creds').style.display = isAws ? 'none' : '';
+  document.getElementById('exp-region-row').style.display  = isAws ? '' : 'none';
+
+  const services = isAws ? _awsExposureServices : _azureExposureServices;
+  const sel = document.getElementById('exp-services-selector');
+  if (sel) {
+    sel.innerHTML = Object.entries(services).map(([key, label]) => `
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;
+             padding:3px 8px;border:1px solid var(--border);border-radius:3px;
+             background:#fff;white-space:nowrap">
+        <input type="checkbox" class="exp-svc-check" value="${esc(key)}" checked>
+        ${esc(label)}
+      </label>`).join('');
+  }
+}
+
+async function submitExposureScan() {
+  const provider = document.getElementById('exp-provider')?.value;
+  const engId    = document.getElementById('exp-engagement')?.value;
+  const errEl    = document.getElementById('exp-form-error');
+  const showErr  = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
+
+  if (!engId)    { showErr('Please select an engagement'); return; }
+  if (!provider) { showErr('Please select a provider'); return; }
+
+  const checkedSvcs = Array.from(
+    document.querySelectorAll('.exp-svc-check:checked')
+  ).map(el => el.value);
+
+  const payload = {
+    provider,
+    credential_source: _expCredMode === 'profile' ? 'profile' : 'keys',
+    aws_profile: '', aws_region: '', aws_account_id: '',
+    azure_tenant_id: '', azure_client_id: '', azure_subscription_id: '',
+    regions_scope: [], services_scope: checkedSvcs,
+  };
+  const secrets = {};
+
+  if (provider === 'aws') {
+    const regionsRaw = document.getElementById('exp-regions')?.value || '';
+    payload.regions_scope = regionsRaw.split(',').map(r => r.trim()).filter(Boolean);
+    payload.aws_region    = payload.regions_scope[0] || 'us-east-1';
+
+    if (_expCredMode === 'keys') {
+      secrets.aws_access_key_id     = document.getElementById('exp-key-id')?.value?.trim();
+      secrets.aws_secret_access_key = document.getElementById('exp-key-secret')?.value?.trim();
+      secrets.aws_session_token     = document.getElementById('exp-key-token')?.value?.trim() || null;
+      if (!secrets.aws_access_key_id || !secrets.aws_secret_access_key) {
+        showErr('Access Key ID and Secret Access Key are required'); return;
+      }
+    } else {
+      payload.aws_profile = document.getElementById('exp-profile')?.value || 'default';
+    }
+  } else {
+    payload.azure_tenant_id       = document.getElementById('exp-azure-tenant')?.value?.trim();
+    payload.azure_client_id       = document.getElementById('exp-azure-client')?.value?.trim();
+    payload.azure_subscription_id = document.getElementById('exp-azure-sub')?.value?.trim();
+    secrets.azure_client_secret   = document.getElementById('exp-azure-secret')?.value?.trim();
+    secrets.azure_subscription_id = payload.azure_subscription_id;
+
+    if (!payload.azure_tenant_id || !payload.azure_client_id || !secrets.azure_client_secret) {
+      showErr('Tenant ID, Client ID, and Client Secret are required'); return;
+    }
+    if (!payload.azure_subscription_id) {
+      showErr('Subscription ID is required for Azure exposure scanning'); return;
+    }
+  }
+
+  const btn = document.getElementById('btn-start-exposure');
+  btn.disabled = true; btn.textContent = 'Starting...';
+
+  try {
+    const scan = await api('POST', `/engagements/${engId}/exposures`, payload);
+    if (Object.keys(secrets).length) {
+      await api('POST', `/exposures/${scan.id}/secrets`, secrets);
+    }
+    await api('POST', `/exposures/${scan.id}/start`, {});
+    closeModal('modal-new-exposure');
+    _exposureDetailEngId = engId;
+    openExposureDetail(scan.id, engId);
+  } catch(e) {
+    showErr(`Failed to start scan: ${e.message}`);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Start Scan \u2192';
+  }
+}
+
+// ── Exposure detail view ──────────────────────────────────────────────
+
+function _resetExposureDetailState() {
+  if (exposureEvtSource)   { exposureEvtSource.close(); exposureEvtSource = null; }
+  if (_exposureDetailPoll) { clearInterval(_exposureDetailPoll); _exposureDetailPoll = null; }
+  activeExposureScanId = null;
+  _exposureFindings    = [];
+  const log = document.getElementById('exposure-log');
+  if (log) log.innerHTML = '';
+  const sp = document.getElementById('exposure-spinner');
+  if (sp) sp.style.display = 'none';
+  document.getElementById('exposure-summary-cards').innerHTML = '';
+  document.getElementById('exposure-findings-section').style.display = 'none';
+  document.getElementById('exposure-log-card').style.display = '';
+  document.querySelectorAll('[id^="exp-stage-"]').forEach(el => el.className = 'stage-step');
+}
+
+function _updateExpStageBar(status) {
+  const map = {pending: 0, running: 1, complete: 2, failed: 1, cancelled: 1};
+  const idx = map[status] ?? 0;
+  ['pending','running','complete'].forEach((s, i) => {
+    const el = document.getElementById(`exp-stage-${s}`);
+    if (!el) return;
+    el.className = 'stage-step';
+    if (status === 'failed' || status === 'cancelled') {
+      if (i === 1) el.classList.add('failed');
+      else if (i < 1) el.classList.add('done');
+    } else {
+      if (i < idx)      el.classList.add('done');
+      else if (i === idx) el.classList.add('active');
+    }
+  });
+  if (status === 'complete') {
+    document.getElementById('exp-stage-complete')?.classList.replace('active','done');
+  }
+}
+
+function _renderSummaryCards(scan) {
+  const cards = document.getElementById('exposure-summary-cards');
+  if (!cards) return;
+  const total = scan.total_exposed || 0;
+  const high  = scan.high_count   || 0;
+  const med   = scan.medium_count || 0;
+  const low   = scan.low_count    || 0;
+
+  cards.innerHTML = [
+    { label:'Total Exposed', value: total, color:'var(--teal)',   bg:'var(--teal-bg)'   },
+    { label:'High',          value: high,  color:'var(--danger)', bg:'#fff1f1'          },
+    { label:'Medium',        value: med,   color:'#d97706',       bg:'#fffbeb'          },
+    { label:'Low',           value: low,   color:'var(--success)','bg':'var(--success-bg)'},
+  ].map(c => `
+    <div style="padding:14px 20px;border-radius:6px;border:1px solid ${c.color}33;
+                background:${c.bg};min-width:100px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:${c.color};font-family:var(--fh)">${c.value}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;
+                  letter-spacing:.05em">${c.label}</div>
+    </div>`).join('');
+}
+
+async function openExposureDetail(scanId, engId) {
+  _resetExposureDetailState();
+  activeExposureScanId = scanId;
+  _exposureDetailEngId = engId;
+  navigate('exposure-detail');
+
+  let scan;
+  try { scan = await api('GET', `/exposures/${scanId}`); }
+  catch(e) { return; }
+
+  document.getElementById('exposure-detail-title').textContent =
+    `${scan.provider.toUpperCase()} Exposure Scan`;
+  document.getElementById('exposure-detail-sub').textContent =
+    `${scan.aws_region || scan.azure_subscription_id || ''} \u00b7 ${new Date(scan.created_at).toLocaleString()}`;
+
+  _updateExpStageBar(scan.status);
+
+  if (scan.status === 'complete') {
+    _renderSummaryCards(scan);
+    await _loadAndRenderFindings(scanId);
+    document.getElementById('exposure-log-card').style.display = 'none';
+    document.getElementById('exposure-findings-section').style.display = '';
+    return;
+  }
+
+  if (scan.status === 'failed' || scan.status === 'cancelled') {
+    return;
+  }
+
+  // Active — connect SSE
+  document.getElementById('exposure-spinner').style.display = 'inline-block';
+  _connectExposureStream(scanId);
+
+  _exposureDetailPoll = setInterval(async () => {
+    if (!activeExposureScanId) { clearInterval(_exposureDetailPoll); return; }
+    try {
+      const s = await api('GET', `/exposures/${activeExposureScanId}`);
+      _updateExpStageBar(s.status);
+      if (['complete','failed','cancelled'].includes(s.status)) {
+        clearInterval(_exposureDetailPoll); _exposureDetailPoll = null;
+        document.getElementById('exposure-spinner').style.display = 'none';
+        if (s.status === 'complete') {
+          _renderSummaryCards(s);
+          await _loadAndRenderFindings(activeExposureScanId);
+          document.getElementById('exposure-log-card').style.display = 'none';
+          document.getElementById('exposure-findings-section').style.display = '';
+        }
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
+function _connectExposureStream(scanId) {
+  if (exposureEvtSource) { exposureEvtSource.close(); exposureEvtSource = null; }
+  const es = new EventSource(`/api/exposures/${scanId}/stream`);
+  exposureEvtSource = es;
+  const log = document.getElementById('exposure-log');
+
+  es.onmessage = async (e) => {
+    let data;
+    try { data = JSON.parse(e.data); } catch(err) { return; }
+    if (data.type === 'heartbeat') return;
+
+    if (data.type === 'log' && log) {
+      const line = document.createElement('div');
+      line.style.color = data.stream === 'stderr' ? 'var(--danger)' : 'inherit';
+      line.textContent = data.text;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    if (data.type === 'status') {
+      _updateExpStageBar(data.value);
+      if (['complete','failed','cancelled'].includes(data.value)) {
+        es.close(); exposureEvtSource = null;
+        document.getElementById('exposure-spinner').style.display = 'none';
+      }
+    }
+
+    if (data.type === 'exposure_complete') {
+      try {
+        const s = await api('GET', `/exposures/${scanId}`);
+        _renderSummaryCards(s);
+        await _loadAndRenderFindings(scanId);
+        document.getElementById('exposure-log-card').style.display = 'none';
+        document.getElementById('exposure-findings-section').style.display = '';
+      } catch(ex) {}
+    }
+  };
+
+  es.onerror = () => { es.close(); exposureEvtSource = null; };
+}
+
+// ── Findings table ────────────────────────────────────────────────────
+
+async function _loadAndRenderFindings(scanId) {
+  try {
+    _exposureFindings = await api('GET', `/exposures/${scanId}/findings`);
+    _populateExposureFilters(_exposureFindings);
+    _renderFindingsTable(_exposureFindings);
+  } catch(e) {}
+}
+
+function _populateExposureFilters(findings) {
+  const services = [...new Set(findings.map(f => f.service))].sort();
+  const regions  = [...new Set(findings.map(f => f.region).filter(Boolean))].sort();
+
+  const svcSel = document.getElementById('exp-filter-service');
+  if (svcSel) {
+    svcSel.innerHTML = '<option value="">All Services</option>' +
+      services.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  }
+  const regSel = document.getElementById('exp-filter-region');
+  if (regSel) {
+    regSel.innerHTML = '<option value="">All Regions</option>' +
+      regions.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  }
+}
+
+function filterExposureFindings() {
+  const svc = document.getElementById('exp-filter-service')?.value  || '';
+  const sev = document.getElementById('exp-filter-severity')?.value || '';
+  const reg = document.getElementById('exp-filter-region')?.value   || '';
+
+  const filtered = _exposureFindings.filter(f =>
+    (!svc || f.service  === svc) &&
+    (!sev || f.severity === sev) &&
+    (!reg || f.region   === reg)
+  );
+  _renderFindingsTable(filtered);
+}
+
+const SEV_COLOURS = { High: '#dc2626', Medium: '#d97706', Low: '#16a34a' };
+const SEV_BG      = { High: '#fff1f1', Medium: '#fffbeb', Low: '#f0fdf4' };
+
+function _renderFindingsTable(findings) {
+  const tbody = document.getElementById('exposure-findings-tbody');
+  const empty = document.getElementById('exposure-findings-empty');
+  if (!tbody) return;
+
+  if (!findings.length) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  tbody.innerHTML = findings.map(f => {
+    const details = typeof f.details === 'object'
+      ? Object.entries(f.details).map(([k,v]) => `${k}: ${v}`).join(', ')
+      : String(f.details || '');
+
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:9px 12px">
+        <span style="background:${SEV_BG[f.severity]};color:${SEV_COLOURS[f.severity]};
+              padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">
+          ${esc(f.severity)}
+        </span>
+      </td>
+      <td style="padding:9px 12px;font-size:12px;font-family:var(--mono)">${esc(f.service)}</td>
+      <td style="padding:9px 12px">
+        <div style="font-size:12px;font-weight:600">${esc(f.resource_name || f.resource_id)}</div>
+        ${f.resource_arn ? `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);
+          word-break:break-all">${esc(f.resource_arn)}</div>` : ''}
+      </td>
+      <td style="padding:9px 12px;font-size:11px;color:var(--muted)">${esc(f.region || '--')}</td>
+      <td style="padding:9px 12px;font-size:12px">${esc(f.exposure_type)}</td>
+      <td style="padding:9px 12px;font-size:11px;color:var(--muted);max-width:200px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+          title="${esc(details)}">${esc(details)}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function exportExposure(fmt) {
+  if (!activeExposureScanId) return;
+  window.open(`/api/exposures/${activeExposureScanId}/findings/export?fmt=${fmt}`, '_blank');
+}
+
+function backFromExposure() {
+  _resetExposureDetailState();
+  navigate('exposure');
+}
+
+
 // ── Boot ──────────────────────────────────────────────────────────────
 // Run platform detection and dashboard load in parallel.
 // Platform detection involves subprocess calls (prowler -v, uv tool list etc.)
@@ -3757,6 +4393,23 @@ function _copyScubaPath(btn) {
       <button class="btn btn-ghost" onclick="closeModal('modal-new-scan')">Cancel</button>
       <button class="btn btn-primary" id="btn-start-scan" onclick="submitNewScan()">
         Start Scan →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Exposure Scan Modal ── -->
+<div class="modal-overlay" id="modal-new-exposure">
+  <div class="modal" style="width:620px">
+    <div class="modal-header">
+      <span class="modal-title">New Exposure Scan</span>
+      <button class="modal-close" onclick="closeModal('modal-new-exposure')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="exposure-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-exposure')">Cancel</button>
+      <button class="btn btn-primary" id="btn-start-exposure" onclick="submitExposureScan()">
+        Start Scan &#x2192;
       </button>
     </div>
   </div>

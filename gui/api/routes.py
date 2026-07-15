@@ -1186,3 +1186,279 @@ async def get_defaults():
         "aws_profile":     os.environ.get("AWS_PROFILE", ""),
         "has_env_keys":    bool(os.environ.get("AWS_ACCESS_KEY_ID")),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# EXPOSURE SCANNER ROUTES
+# Completely independent from runs/scans — new tables, new code path.
+# ═══════════════════════════════════════════════════════════════════════
+
+_pending_exposure_secrets: dict[str, dict] = {}
+
+
+@router.get("/engagements/{engagement_id}/exposures")
+async def list_exposure_scans(
+    engagement_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute(
+        "SELECT * FROM exposure_scans WHERE engagement_id=? ORDER BY created_at DESC",
+        (engagement_id,),
+    )
+    rows = await cursor.fetchall()
+    return [_exposure_row(dict(r)) for r in rows]
+
+
+@router.post("/engagements/{engagement_id}/exposures", status_code=201)
+async def create_exposure_scan(
+    engagement_id: str,
+    body: dict,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    import json as _json
+    cursor = await db.execute("SELECT id FROM engagements WHERE id=?", (engagement_id,))
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Engagement not found")
+
+    scan_id = str(uuid.uuid4())
+    now     = _now()
+
+    await db.execute(
+        """INSERT INTO exposure_scans (
+            id, engagement_id, provider, status,
+            credential_source, aws_profile, aws_region, aws_account_id,
+            azure_tenant_id, azure_client_id, azure_subscription_id,
+            regions_scope, services_scope, created_at
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            scan_id, engagement_id,
+            body.get("provider", "aws"), "pending",
+            body.get("credential_source", "keys"),
+            body.get("aws_profile", ""),
+            body.get("aws_region", ""),
+            body.get("aws_account_id", ""),
+            body.get("azure_tenant_id", ""),
+            body.get("azure_client_id", ""),
+            body.get("azure_subscription_id", ""),
+            _json.dumps(body.get("regions_scope", [])),
+            _json.dumps(body.get("services_scope", [])),
+            now,
+        ),
+    )
+    await db.commit()
+    return {"id": scan_id, "engagement_id": engagement_id,
+            "provider": body.get("provider", "aws"), "status": "pending",
+            "created_at": now}
+
+
+@router.post("/exposures/{scan_id}/secrets")
+async def register_exposure_secrets(
+    scan_id: str,
+    body: dict,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute("SELECT id FROM exposure_scans WHERE id=?", (scan_id,))
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Exposure scan not found")
+    allowed = {
+        "aws_access_key_id", "aws_secret_access_key", "aws_session_token",
+        "azure_client_secret", "azure_subscription_id",
+    }
+    _pending_exposure_secrets[scan_id] = {k: v for k, v in body.items() if k in allowed and v}
+    return {"registered": True}
+
+
+@router.post("/exposures/{scan_id}/start")
+async def start_exposure_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    from api.exposure import execute_exposure_scan
+    from api.sse import register_stream
+
+    cursor = await db.execute("SELECT * FROM exposure_scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Exposure scan not found")
+    scan    = dict(row)
+    if scan["status"] not in ("pending", "failed"):
+        raise HTTPException(status_code=400, detail=f"Scan status is '{scan['status']}'")
+
+    stream  = register_stream(f"exposure-{scan_id}")
+    secrets = _pending_exposure_secrets.pop(scan_id, {})
+    asyncio.create_task(execute_exposure_scan(scan, stream, secrets))
+    return {"task_id": f"exposure-{scan_id}", "status": "starting"}
+
+
+@router.get("/exposures/{scan_id}/stream")
+async def stream_exposure_scan(scan_id: str):
+    from api.sse import get_stream
+    stream = get_stream(f"exposure-{scan_id}")
+    if not stream:
+        raise HTTPException(status_code=404, detail="No active stream")
+    return stream.response()
+
+
+@router.get("/exposures/{scan_id}")
+async def get_exposure_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute("SELECT * FROM exposure_scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Exposure scan not found")
+    return _exposure_row(dict(row))
+
+
+@router.get("/exposures/{scan_id}/findings")
+async def get_exposure_findings(
+    scan_id: str,
+    service:  Optional[str] = None,
+    severity: Optional[str] = None,
+    region:   Optional[str] = None,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    q    = "SELECT * FROM exposure_findings WHERE scan_id=?"
+    args = [scan_id]
+    if service:  q += " AND service=?";  args.append(service)
+    if severity: q += " AND severity=?"; args.append(severity)
+    if region:   q += " AND region=?";   args.append(region)
+    q += " ORDER BY severity DESC, service, resource_name"
+    cursor = await db.execute(q, args)
+    rows   = await cursor.fetchall()
+    return [_finding_row(dict(r)) for r in rows]
+
+
+@router.get("/exposures/{scan_id}/findings/export")
+async def export_exposure_findings(
+    scan_id: str,
+    fmt: str = "csv",
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """Export exposure findings as CSV or Excel."""
+    from fastapi.responses import StreamingResponse
+    import io
+
+    cursor = await db.execute(
+        "SELECT * FROM exposure_findings WHERE scan_id=? ORDER BY severity DESC, service",
+        (scan_id,),
+    )
+    rows = await cursor.fetchall()
+    findings = [_finding_row(dict(r)) for r in rows]
+
+    if fmt == "csv":
+        import csv
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=[
+            "severity", "provider", "service", "region",
+            "resource_name", "resource_id", "resource_arn",
+            "exposure_type", "details", "discovered_at",
+        ])
+        writer.writeheader()
+        for f in findings:
+            writer.writerow({k: f.get(k, "") for k in writer.fieldnames})
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=exposure_{scan_id[:8]}.csv"},
+        )
+    else:
+        # Excel
+        try:
+            import openpyxl
+            from openpyxl.styles import PatternFill, Font
+        except ImportError:
+            raise HTTPException(status_code=500, detail="openpyxl not installed")
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Exposure Findings"
+
+        SEVERITY_COLOURS = {"High": "FFFF0000", "Medium": "FFFFC000", "Low": "FF92D050"}
+        headers = ["Severity", "Provider", "Service", "Region", "Resource Name",
+                   "Resource ID", "Exposure Type", "Details", "Discovered At"]
+        ws.append(headers)
+        for cell in ws[1]:
+            cell.font = Font(bold=True)
+
+        for f in findings:
+            # Serialise details dict to a readable string for Excel
+            details_val = f.get("details", "")
+            if isinstance(details_val, dict):
+                details_str = ", ".join(f"{k}: {v}" for k, v in details_val.items())
+            else:
+                details_str = str(details_val)
+
+            def _cell(v):
+                # openpyxl only accepts str, int, float, bool, None
+                if isinstance(v, (str, int, float, bool)) or v is None:
+                    return v
+                return str(v)
+
+            row = [
+                _cell(f.get("severity", "")),
+                _cell(f.get("provider", "")),
+                _cell(f.get("service", "")),
+                _cell(f.get("region", "")),
+                _cell(f.get("resource_name", "")),
+                _cell(f.get("resource_id", "")),
+                _cell(f.get("exposure_type", "")),
+                _cell(details_str),
+                _cell(f.get("discovered_at", "")),
+            ]
+            ws.append(row)
+            sev = f.get("severity", "")
+            if sev in SEVERITY_COLOURS:
+                fill = PatternFill("solid", fgColor=SEVERITY_COLOURS[sev])
+                ws.cell(ws.max_row, 1).fill = fill
+
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=exposure_{scan_id[:8]}.xlsx"},
+        )
+
+
+@router.post("/exposures/{scan_id}/cancel")
+async def cancel_exposure_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    await db.execute(
+        "UPDATE exposure_scans SET status='cancelled', completed_at=? WHERE id=?",
+        (_now(), scan_id),
+    )
+    await db.commit()
+    return {"cancelled": True}
+
+
+@router.get("/meta/exposure-services")
+async def list_exposure_services():
+    from api.exposure import AWS_EXPOSURE_SERVICES, AZURE_EXPOSURE_SERVICES
+    return {"aws": AWS_EXPOSURE_SERVICES, "azure": AZURE_EXPOSURE_SERVICES}
+
+
+# ── Row helpers ───────────────────────────────────────────────────────
+
+def _exposure_row(row: dict) -> dict:
+    import json as _j
+    for field in ("regions_scope", "services_scope"):
+        try:
+            row[field] = _j.loads(row.get(field) or "[]")
+        except Exception:
+            row[field] = []
+    return row
+
+
+def _finding_row(row: dict) -> dict:
+    import json as _j
+    try:
+        row["details"] = _j.loads(row.get("details") or "{}")
+    except Exception:
+        row["details"] = {}
+    return row

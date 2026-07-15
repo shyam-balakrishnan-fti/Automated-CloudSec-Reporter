@@ -380,10 +380,11 @@ async def execute_scan(
 
         # Prowler exit codes:
         #   0 = scan complete, all checks passed
-        #   1 = scan complete, findings found (FAIL results) — this is NORMAL
-        #   2 = usage/argument error
+        #   1 = scan complete, findings found (FAIL results) — NORMAL
+        #   2 = usage/argument error — actual problem
+        #   3 = scan complete, some checks errored but output was written — treat as success
         #   other = actual crash
-        scan_succeeded = rc in (0, 1) or rc is None
+        scan_succeeded = rc in (0, 1, 3) or rc is None
 
         if scan_succeeded:
             # Detect output file

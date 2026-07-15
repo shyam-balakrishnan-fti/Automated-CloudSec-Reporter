@@ -1,0 +1,102 @@
+{
+  "run_id": "e2eb4e92-bb76-4166-a561-5dee27162224",
+  "approved_at": "2026-07-15T10:18:09.699Z",
+  "groups": [
+    {
+      "group_name": "AWS Config Delegated Administrator and Organization Aggregator Missing",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "rationale": "This check identifies a critical gap in centralized security monitoring and compliance infrastructure at the AWS Organizations level. This finding deserves separate treatment as it affects organization-wide configuration management and aggregation capabilities.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Service Roles Lack Confused Deputy Prevention",
+      "check_ids": [
+        "iam_role_cross_service_confused_deputy_prevention"
+      ],
+      "rationale": "This check identifies IAM service roles that do not implement the aws:SourceArn or aws:SourceAccount condition keys to prevent cross-service confused deputy attacks. This is a distinct IAM role trust policy security control that requires different remediation than password policy configuration.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon Bedrock Model Invocation Logging Not Enabled",
+      "check_ids": [
+        "bedrock_model_invocation_logging_enabled"
+      ],
+      "rationale": "This check addresses a specific Bedrock configuration gap where model invocation logging has not been enabled for foundational models. This finding warrants standalone treatment as it addresses audit trail and compliance monitoring capabilities distinct from other Bedrock security controls.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Bedrock Guardrails Not Configured",
+      "check_ids": [
+        "bedrock_guardrails_configured"
+      ],
+      "rationale": "This check identifies the absence of Bedrock guardrails, which are policy-driven content filters and safety controls for generative AI models. This warrants standalone treatment as it addresses content safety and responsible AI governance distinct from logging or prompt management concerns.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Password Policy Does Not Meet Security Requirements",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "All seven checks assess different requirements of the single AWS account IAM password policy configuration. They share the same root cause: the IAM password policy has not been configured to meet security best practices, and all are remediated through the same action of updating the account password policy settings in IAM.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Security Groups Created Using EC2 Launch Wizard",
+      "check_ids": [
+        "ec2_securitygroup_from_launch_wizard"
+      ],
+      "rationale": "This check flags security groups automatically created by the EC2 Launch Wizard, which often contain overly permissive default rules and do not follow organizational naming or tagging standards. This is a distinct security group misconfiguration concern separate from unused security groups.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "VPCs Not Distributed Across Multiple Regions",
+      "check_ids": [
+        "vpc_different_regions"
+      ],
+      "rationale": "This check assesses whether the AWS account has VPC infrastructure deployed across multiple regions for resilience and disaster recovery purposes. This stands alone as an architecture and business continuity concern distinct from other network security controls.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon Bedrock Prompt Management Prompts Not Configured",
+      "check_ids": [
+        "bedrock_prompt_management_exists"
+      ],
+      "rationale": "This check assesses whether versioned, managed prompts exist in Bedrock Prompt Management for the region. This stands alone as a distinct operational maturity and consistency control separate from logging or guardrail configurations.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Non-Default EC2 Security Groups Not Associated With Resources",
+      "check_ids": [
+        "ec2_securitygroup_not_used"
+      ],
+      "rationale": "This check identifies security groups that were created but are not currently associated with any EC2 instances, network interfaces, or other resources. This is a hygiene and attack surface reduction finding focused on eliminating unused configurations.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "SageMaker Model Monitoring Not Enabled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "rationale": "This check identifies the absence of SageMaker Model Monitor scheduling for deployed machine learning models. This finding requires standalone treatment as it addresses ML model quality and drift detection capabilities specific to SageMaker, distinct from Bedrock AI services.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}

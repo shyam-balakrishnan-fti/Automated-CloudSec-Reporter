@@ -31,9 +31,11 @@ async def init_db() -> None:
         # ALTER TABLE ADD COLUMN is safe to run on existing DBs.
         # Add new columns here when schema.sql adds them.
         migrations = [
-            ("scans", "scan_type",    "TEXT NOT NULL DEFAULT 'prowler_aws'"),
-            ("scans", "tenant_domain","TEXT NOT NULL DEFAULT ''"),
-            ("scans", "m365_environment", "TEXT NOT NULL DEFAULT 'commercial'"),
+            ("scans", "scan_type",         "TEXT NOT NULL DEFAULT 'prowler_aws'"),
+            ("scans", "tenant_domain",     "TEXT NOT NULL DEFAULT ''"),
+            ("scans", "m365_environment",  "TEXT NOT NULL DEFAULT 'commercial'"),
+            # exposure_scans and exposure_findings are created via schema.sql above
+            # No column migrations needed for new tables
         ]
         for table, column, definition in migrations:
             try:
