@@ -232,7 +232,64 @@ python scubagear/src/run_scubagear.py \
   --config scubagear/config/scubagear_config.toml \
   --tenant-id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
+## Exposure Scanner
 
+Enumerates every publicly accessible resource across AWS and Azure using direct read-only API calls. Independent from Prowler and ScubaGear , no external tools required.
+
+### AWS Coverage (14 services)
+
+| Service | What is checked | Severity |
+|---------|----------------|---------|
+| S3 | Public access block disabled, bucket policy allows `*` | High |
+| Security Groups | Ingress `0.0.0.0/0` on sensitive ports (22, 3389, 5432, 3306, 1433) | High |
+| RDS | `PubliclyAccessible=True` | High |
+| Lambda | Function URL with `AuthType=NONE` | High |
+| ECR | Repository policy allows public pull | High |
+| EBS Snapshots | Snapshot shared publicly | High |
+| Secrets Manager | Resource policy allows `*` principal | High |
+| OpenSearch | Access policy allows `*` principal | High |
+| EC2 | Instance has public IP assigned | Medium |
+| ELB / ALB / NLB | Load balancer is internet-facing | Medium |
+| EKS | API server endpoint is publicly accessible | Medium |
+| SQS | Queue policy allows `*` principal | Medium |
+| SNS | Topic policy allows `*` principal | Medium |
+| Redshift | `PubliclyAccessible=True` | High |
+
+### Azure Coverage (9 services)
+
+| Service | What is checked | Severity |
+|---------|----------------|---------|
+| SQL Server | Public network access enabled, firewall allows all IPs | High |
+| Key Vault | Publicly accessible with no network restrictions | High |
+| Cosmos DB | `publicNetworkAccess=Enabled` | High |
+| Storage | Blob public access enabled, no network restrictions | High |
+| NSG | Inbound rule allowing `*` or `Internet` on sensitive ports | High |
+| Virtual Machines | Public IP address assigned | Medium |
+| AKS | API server is not private cluster | Medium |
+| Container Registry | Admin user enabled, public access allowed | Medium |
+| App Services | HTTPS not enforced | Medium |
+
+### How to run
+
+1. Go to **Exposure** in the sidebar
+2. Click **+ New Scan**
+3. Select cloud provider (AWS or Azure)
+4. Enter scan credentials - these are separate from Bedrock credentials and vary per client
+5. Select regions (AWS) or subscription ID (Azure)
+6. Choose services to scan - all selected by default
+7. Click **Start Scan**
+
+The scan streams live progress per service. When complete, results appear in a filterable table.
+
+### Filtering and export
+
+Results can be filtered by service, severity, and region. Export as CSV or Excel using the buttons above the results table. The Excel export colour-codes rows by severity (High = red, Medium = amber, Low = green).
+
+### Credentials required
+
+**AWS** -- Access Key ID + Secret Access Key with read-only IAM permissions across the services being scanned. Session token optional for MFA or assumed role sessions.
+
+**Azure** -- Service Principal with Reader role on the target subscription. Requires Tenant ID, Client ID, Client Secret, and Subscription ID.
 ---
 
 ## Environment Variables
@@ -490,3 +547,8 @@ $env:BEDROCK_DEPLOYMENT_NAME = "arn:aws:bedrock:REGION:ACCOUNT:your-profile"
 
 ### ScubaGear not found by GUI
 ScubaGear must be installed outside OneDrive. The GUI searches `$env:USERPROFILE` recursively for `ScubaGear.psd1` -- install it to a local (non-synced) path.
+
+# Credits
+Shyam Balakrishnan,
+Intern,
+Cyber, FTI Consulting

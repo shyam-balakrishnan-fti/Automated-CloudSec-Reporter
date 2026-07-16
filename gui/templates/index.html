@@ -3375,8 +3375,12 @@ function _resetScanDetailState() {
   if (scanElapsedTimer) { clearInterval(scanElapsedTimer); scanElapsedTimer = null; }
   if (_scanDetailPoll)  { clearInterval(_scanDetailPoll); _scanDetailPoll = null; }
   activeScanId        = null;
+  _activeScanType     = null;
   window._scanLogLines = [];
   completedScanOutput = null;
+  // Always clear ScubaGear banner — never carry over between scans
+  const scubaBanner = document.getElementById('scuba-path-banner');
+  if (scubaBanner) scubaBanner.remove();
   const tl = document.getElementById('scan-timeline');
   if (tl) tl.innerHTML = '';
   const ob = document.getElementById('scan-output-banner');
