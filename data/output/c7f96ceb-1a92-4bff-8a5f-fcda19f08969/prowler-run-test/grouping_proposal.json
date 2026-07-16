@@ -1,0 +1,227 @@
+{
+  "run_id": "e2eb4e92-bb76-4166-a561-5dee27162224",
+  "original_count": 16,
+  "merged_count": 10,
+  "merges_applied": 1,
+  "chunks_used": 1,
+  "consolidation_applied": true,
+  "warnings": [],
+  "groups": [
+    {
+      "group_name": "AWS Config Delegated Administrator and Organization Aggregator Missing",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "rationale": "This check identifies a critical gap in centralized security monitoring and compliance infrastructure at the AWS Organizations level. This finding deserves separate treatment as it affects organization-wide configuration management and aggregation capabilities.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:config:ap-southeast-2:213146990554:config-aggregator/unknown",
+          "resource_name": "unknown",
+          "resource_type": "AwsConfigConfigurationAggregator",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "config_delegated_admin_and_org_aggregator_all_regions"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Service Roles Lack Confused Deputy Prevention",
+      "check_ids": [
+        "iam_role_cross_service_confused_deputy_prevention"
+      ],
+      "rationale": "This check identifies IAM service roles that do not implement the aws:SourceArn or aws:SourceAccount condition keys to prevent cross-service confused deputy attacks. This is a distinct IAM role trust policy security control that requires different remediation than password policy configuration.",
+      "is_merged": false,
+      "instance_count": 4,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam::213146990554:role/service-role/Amazon_EventBridge_Invoke_Step_Functions_347775329",
+          "resource_name": "Amazon_EventBridge_Invoke_Step_Functions_347775329",
+          "resource_type": "AwsIamRole",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "iam_role_cross_service_confused_deputy_prevention"
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon Bedrock Model Invocation Logging Not Enabled",
+      "check_ids": [
+        "bedrock_model_invocation_logging_enabled"
+      ],
+      "rationale": "This check addresses a specific Bedrock configuration gap where model invocation logging has not been enabled for foundational models. This finding warrants standalone treatment as it addresses audit trail and compliance monitoring capabilities distinct from other Bedrock security controls.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:bedrock:ap-southeast-2:213146990554:model-invocation-logging",
+          "resource_name": "model-invocation-logging",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "bedrock_model_invocation_logging_enabled"
+        }
+      ]
+    },
+    {
+      "group_name": "Bedrock Guardrails Not Configured",
+      "check_ids": [
+        "bedrock_guardrails_configured"
+      ],
+      "rationale": "This check identifies the absence of Bedrock guardrails, which are policy-driven content filters and safety controls for generative AI models. This warrants standalone treatment as it addresses content safety and responsible AI governance distinct from logging or prompt management concerns.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:bedrock:ap-southeast-2:213146990554:guardrails",
+          "resource_name": "bedrock-guardrails",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "bedrock_guardrails_configured"
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Password Policy Does Not Meet Security Requirements",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "All seven checks assess different requirements of the single AWS account IAM password policy configuration. They share the same root cause: the IAM password policy has not been configured to meet security best practices, and all are remediated through the same action of updating the account password policy settings in IAM.",
+      "is_merged": true,
+      "instance_count": 7,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "resource_type": "AwsIamPolicy",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "iam_password_policy_expires_passwords_within_90_days_or_less"
+        }
+      ]
+    },
+    {
+      "group_name": "Security Groups Created Using EC2 Launch Wizard",
+      "check_ids": [
+        "ec2_securitygroup_from_launch_wizard"
+      ],
+      "rationale": "This check flags security groups automatically created by the EC2 Launch Wizard, which often contain overly permissive default rules and do not follow organizational naming or tagging standards. This is a distinct security group misconfiguration concern separate from unused security groups.",
+      "is_merged": false,
+      "instance_count": 30,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e24f3f2bbca5b5fa",
+          "resource_name": "sg-0e24f3f2bbca5b5fa",
+          "resource_type": "AwsEc2SecurityGroup",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_securitygroup_from_launch_wizard"
+        }
+      ]
+    },
+    {
+      "group_name": "VPCs Not Distributed Across Multiple Regions",
+      "check_ids": [
+        "vpc_different_regions"
+      ],
+      "rationale": "This check assesses whether the AWS account has VPC infrastructure deployed across multiple regions for resilience and disaster recovery purposes. This stands alone as an architecture and business continuity concern distinct from other network security controls.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:213146990554:vpc",
+          "resource_name": "213146990554",
+          "resource_type": "AwsEc2Vpc",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "vpc_different_regions"
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon Bedrock Prompt Management Prompts Not Configured",
+      "check_ids": [
+        "bedrock_prompt_management_exists"
+      ],
+      "rationale": "This check assesses whether versioned, managed prompts exist in Bedrock Prompt Management for the region. This stands alone as a distinct operational maturity and consistency control separate from logging or guardrail configurations.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:bedrock:ap-southeast-2:213146990554:prompt-management",
+          "resource_name": "prompt-management",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "bedrock_prompt_management_exists"
+        }
+      ]
+    },
+    {
+      "group_name": "Non-Default EC2 Security Groups Not Associated With Resources",
+      "check_ids": [
+        "ec2_securitygroup_not_used"
+      ],
+      "rationale": "This check identifies security groups that were created but are not currently associated with any EC2 instances, network interfaces, or other resources. This is a hygiene and attack surface reduction finding focused on eliminating unused configurations.",
+      "is_merged": false,
+      "instance_count": 39,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e24f3f2bbca5b5fa",
+          "resource_name": "sg-0e24f3f2bbca5b5fa",
+          "resource_type": "AwsEc2SecurityGroup",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "ec2_securitygroup_not_used"
+        }
+      ]
+    },
+    {
+      "group_name": "SageMaker Model Monitoring Not Enabled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "rationale": "This check identifies the absence of SageMaker Model Monitor scheduling for deployed machine learning models. This finding requires standalone treatment as it addresses ML model quality and drift detection capabilities specific to SageMaker, distinct from Bedrock AI services.",
+      "is_merged": false,
+      "instance_count": 1,
+      "affected_accounts": [],
+      "affected_resources": [
+        {
+          "resource": "arn:aws:sagemaker:ap-southeast-2:213146990554:monitoring-schedule/unknown",
+          "resource_name": "SageMaker Monitoring Schedules",
+          "resource_type": "Other",
+          "account_name": "",
+          "account_uid": "213146990554",
+          "region": "ap-southeast-2",
+          "check_id": "sagemaker_models_monitor_enabled"
+        }
+      ]
+    }
+  ]
+}

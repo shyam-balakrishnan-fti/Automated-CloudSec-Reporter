@@ -1,0 +1,157 @@
+======================================================================
+STAGE 2 — DETERMINISTIC PROCESS SUMMARY
+======================================================================
+Run ID              : 9a7ec19d-1435-426b-86e7-e74561ee5841
+Total findings in   : 13
+Included (working)  : 10
+Excluded (filtered) : 3
+Duplicates removed  : 0
+Output groups       : 10
+
+EXCLUDED FINDINGS (3) — preserved in canonical JSON:
+  account_maintain_current_contact_details | None | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  account_security_contact_information_is_registered | None | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+  account_security_questions_are_registered_in_the_aws_account | None | MANUAL
+    Reason: scanner_status 'MANUAL' not in include_statuses ['FAIL', 'MUTED(FAIL)']
+
+DUPLICATES (0) — preserved in canonical JSON:
+
+OUTPUT GROUPS (10) — one row per check in the final report:
+  #   Section  Severity       Likelihood   Inst  Check ID
+  --- -------- -------------- ------------ ----  ----------------------------------------
+  1   AWS      high          High           1  config_delegated_admin_and_org_aggregator_all_regions
+  2   AWS      medium        High           1  fms_policy_compliant
+  3   AWS      medium        Medium         1  iam_password_policy_expires_passwords_within_90_days_or_less
+  4   AWS      medium        Medium         1  iam_password_policy_minimum_length_14
+  5   AWS      medium        Medium         1  iam_password_policy_number
+  6   AWS      medium        Medium         1  iam_password_policy_reuse_24
+  7   AWS      medium        Medium         1  iam_password_policy_symbol
+  8   AWS      medium        Medium         1  iam_password_policy_uppercase
+  9   AWS      low           Low            1  iam_password_policy_lowercase
+  10  AWS      low           Low            1  sagemaker_models_monitor_enabled
+
+GROUP DETAIL:
+  ── config_delegated_admin_and_org_aggregator_all_regions ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : High
+     Severity        : high
+     Representative  : Sheet:csv Row:5
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── fms_policy_compliant ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : High
+     Severity        : medium
+     Representative  : Sheet:csv Row:6
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_expires_passwords_within_90_days_or_less ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:7
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_minimum_length_14 ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:9
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_number ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:10
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_reuse_24 ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:11
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_symbol ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:12
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_uppercase ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Medium
+     Severity        : medium
+     Representative  : Sheet:csv Row:13
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── iam_password_policy_lowercase ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Low
+     Severity        : low
+     Representative  : Sheet:csv Row:8
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+  ── sagemaker_models_monitor_enabled ──
+     Instances       : 1
+     Accounts        : []
+     Likelihood      : Low
+     Severity        : low
+     Representative  : Sheet:csv Row:14
+     Completeness    : 5/5
+     Has description : True
+     Has risk        : True
+     Has remediation : True
+     Human review    : False
+
+WARNINGS (0):
+  None

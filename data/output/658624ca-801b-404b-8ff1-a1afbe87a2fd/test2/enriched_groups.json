@@ -1,0 +1,871 @@
+{
+  "run_id": "fe35d03d-1d5e-4bb6-bce0-46c0a3fb5120",
+  "group_count": 20,
+  "enriched": 20,
+  "failed": 0,
+  "risk_ratings": {
+    "High": 13,
+    "Medium": 7,
+    "Low": 0,
+    "Unknown": 0
+  },
+  "generated_at": "2026-07-08T07:19:12.021941+00:00",
+  "groups": [
+    {
+      "group_name": "Defender XDR Privileged User Credentials Not Exposed on Endpoints",
+      "check_ids": [
+        "defenderxdr_endpoint_privileged_user_exposed_credentials"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Privileged User Credentials Exposed on Vulnerable Defender XDR Endpoints",
+      "root_cause_narrative": "Privileged users are authenticating from endpoints with high vulnerability or exposure scores rather than using dedicated Privileged Access Workstations (PAWs). Device compliance policies and Conditional Access rules are either not configured or not enforced to restrict privileged authentication to hardened devices.",
+      "situation_narrative": "Microsoft Defender XDR Security Exposure Management has detected authentication artifacts (CLI secrets, cookies, tokens, or Primary Refresh Tokens) from users holding Entra ID privileged roles present on endpoints classified as vulnerable or high-risk. The check status could not be fully verified due to missing ThreatHunting.Read.All permission in the ausbeefchain.com tenant, preventing complete assessment of the exposure scope.",
+      "consequence_narrative": "An attacker with access to these vulnerable endpoints could harvest privileged authentication tokens or cookies to perform account takeover of administrator accounts. This enables complete bypass of Conditional Access policies using stolen Primary Refresh Tokens, lateral movement across the entire Entra ID tenant, access to sensitive cloud resources, and persistent administrative access until tokens are explicitly revoked. The impact spans all cloud services and data accessible to compromised privileged accounts.",
+      "access_required": "Local or remote access to a vulnerable endpoint where a privileged user has authenticated, which may be achievable through malware, phishing, or exploitation of endpoint vulnerabilities.",
+      "recommendations": "Privileged users should only authenticate from secure, hardened devices with low exposure scores. Implement Privileged Access Workstations (PAWs) and enforce device compliance policies through Conditional Access to prevent credential exposure on vulnerable endpoints.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "mdeStatus",
+          "resource_name": "Defender XDR",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Unable to query Microsoft Defender XDR status. Verify that ThreatHunting.Read.All permission is granted."
+        }
+      ]
+    },
+    {
+      "group_name": "Administrative Users Have Reduced License Footprint",
+      "check_ids": [
+        "admincenter_users_admins_reduced_license_footprint"
+      ],
+      "output_section": "AWS",
+      "instance_count": 3,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Administrative User Assigned Productivity License Instead of Reduced Footprint",
+      "root_cause_narrative": "The Global Administrator account 'David Kelly' was provisioned with a standard productivity license (SPB) rather than a reduced-footprint license model (AAD_PREMIUM/P1 or P2 only). This typically occurs when organizations fail to segregate administrative identities from daily-use accounts or lack license assignment policies for privileged roles.",
+      "situation_narrative": "User 'David Kelly' holds the Global Administrator role but is assigned an SPB (Microsoft 365 Business Premium) license, which grants access to Exchange Online, SharePoint, Teams, and other productivity applications. This finding affects 3 resources across 1 account (ausbeefchain.com). The recommended licensing model for privileged accounts limits assignments to identity-focused licenses (Azure AD Premium P1/P2) or no license, eliminating unnecessary application surfaces.",
+      "consequence_narrative": "An attacker who compromises this account through phishing, malicious email attachments, or OAuth token theft gains not only Global Administrator privileges but also access to mailbox data, shared documents, and collaboration tools. This dual exposure enables tenant-wide privilege escalation, data exfiltration from productivity workloads, persistent backdoor installation via mail rules or SharePoint webhooks, and unauthorized configuration changes across all Microsoft 365 services.",
+      "access_required": "An attacker would need to compromise the credentials or session tokens of this Global Administrator account through phishing, credential stuffing, or social engineering.",
+      "recommendations": "Maintain **dedicated admin accounts** with a **least-privilege, reduced-license** model: assign only Microsoft Entra P1/P2 features needed for identity security, or keep them unlicensed for apps. Separate admin from daily-use accounts, enforce **MFA** and just-in-time elevation, and use **privileged access workstations** for administration.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "14cda4fc-6485-4a49-9be6-ef0f319b2687",
+          "resource_name": "David Kelly",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "User David Kelly has administrative roles Global Administrator and an invalid license: SPB."
+        },
+        {
+          "resource_uid": "b01ca034-94aa-493c-a99f-219eae2ba690",
+          "resource_name": "Microsoft Prowler",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "User Microsoft Prowler has administrative roles Global Reader and an invalid license: SPB."
+        },
+        {
+          "resource_uid": "57c2e6df-735a-469c-93d9-30307429fb63",
+          "resource_name": "AWS Test",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "User AWS Test has administrative roles Global Administrator and an invalid license: SPB."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Admin Users Have Phishing-Resistant MFA Enforced",
+      "check_ids": [
+        "entra_admin_users_phishing_resistant_mfa_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Entra Admin Roles Lack Phishing-Resistant MFA Requirement via Conditional Access",
+      "root_cause_narrative": "No Conditional Access policy is configured to enforce phishing-resistant MFA authentication strength for administrator roles. This indicates either a gap in identity governance policies or reliance on weaker authentication methods (OTP, push notifications) that remain vulnerable to modern phishing techniques.",
+      "situation_narrative": "The Entra ID tenant for ausbeefchain.com has no active Conditional Access policy requiring phishing-resistant MFA strength for administrator roles across all applications. Administrator accounts may currently authenticate using weaker MFA methods such as SMS OTP, authenticator app push notifications, or voice calls. This affects the entire administrative surface within the tenant, leaving privileged access pathways unprotected against adversary-in-the-middle (AiTM) and MFA fatigue attacks.",
+      "consequence_narrative": "An attacker could compromise administrator credentials through AiTM phishing attacks that intercept and relay session cookies, bypassing traditional MFA entirely. With administrative access, the attacker could execute a full tenant takeover—modifying security policies, creating persistent backdoors, exfiltrating sensitive data, and disrupting services across the entire organization.",
+      "access_required": "An attacker needs valid administrator credentials and the ability to social-engineer or phish the target into authenticating through a malicious proxy to capture session tokens.",
+      "recommendations": "Require `Phishing-resistant MFA` via Conditional Access for all privileged roles and `All resources`. Favor **FIDO2**, **Windows Hello for Business**, or **certificate-based auth**. Apply **least privilege**, use **PIM** for step-up on role activation, test in report-only, and keep a monitored break-glass account.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires Phishing-resistant MFA strength for admin users."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Admin Users Have Sign-In Frequency Enforced",
+      "check_ids": [
+        "entra_admin_users_sign_in_frequency_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Admin Sign-In Frequency Not Enforced by Conditional Access Policy",
+      "root_cause_narrative": "No Conditional Access policy has been configured to enforce short sign-in frequency or non-persistent browser sessions for administrative roles. This indicates incomplete implementation of session management controls for privileged accounts in the Entra ID tenant.",
+      "situation_narrative": "The Entra ID tenant 'ausbeefchain.com' lacks Conditional Access policies that enforce sign-in frequency and session controls for administrative users. No policy currently requires administrators to reauthenticate at defined intervals or restricts persistent browser sessions across all cloud applications. This configuration gap affects all admin roles in the tenant and leaves privileged sessions uncontrolled.",
+      "consequence_narrative": "An attacker who compromises an administrator's session token through phishing, malware, or network interception could maintain persistent access for extended periods without reauthentication. This enables tenant-wide privilege escalation, configuration tampering, sensitive data exfiltration, and deployment of backdoors, potentially leading to full tenant takeover and large-scale data breach.",
+      "access_required": "Initial compromise of an administrator's session token through credential theft, token replay attack, or session hijacking on an unsecured network or device.",
+      "recommendations": "Use **Conditional Access** for admin roles to:\n- Enforce short sign-in frequency (e.g.,  `4` hours, or `Every time` for critical actions)\n- Set persistent browser to `never`\n- Cover all apps and run in enforce mode\nPair with **least privilege**, **MFA**, **PIM**, and **token protection** to reduce session abuse.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy enforces sign-in frequency for admin users."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policies Enforce Device and Access Controls",
+      "check_ids": [
+        "entra_conditional_access_policy_app_enforced_restrictions",
+        "entra_conditional_access_policy_approved_client_app_required_for_mobile",
+        "entra_conditional_access_policy_block_unknown_device_platforms",
+        "entra_conditional_access_policy_compliant_device_hybrid_joined_device_mfa_required",
+        "entra_conditional_access_policy_corporate_device_sign_in_frequency_enforced",
+        "entra_conditional_access_policy_device_code_flow_blocked",
+        "entra_conditional_access_policy_device_registration_mfa_required",
+        "entra_conditional_access_policy_mdm_compliant_device_required"
+      ],
+      "output_section": "AWS",
+      "instance_count": 8,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Entra Conditional Access lacks mandatory device compliance or MFA enforcement for admins",
+      "root_cause_narrative": "No Conditional Access policy has been configured to require device compliance, hybrid joined devices, or multi-factor authentication for admin roles or all users accessing cloud apps. This gap indicates missing baseline security controls in the identity protection framework.",
+      "situation_narrative": "The Entra tenant ausbeefchain.com has no Conditional Access policies enforcing strong authentication or trusted device controls across 8 conditional access policy resources. Neither device compliance requirements (compliant or hybrid joined devices) nor multi-factor authentication are mandated for administrator accounts or all users when accessing cloud applications. This absence of baseline security policies leaves authentication reliant solely on username and password combinations.",
+      "consequence_narrative": "An attacker who compromises user credentials through phishing, password spraying, or credential stuffing could authenticate from any unmanaged device without additional verification, gaining immediate access to Entra-protected resources. For admin accounts, this enables tenant-wide privilege escalation, user manipulation, and access to sensitive organizational data. This could result in a full identity infrastructure compromise, data exfiltration, and lateral movement across all connected cloud services.",
+      "access_required": "Valid user credentials (username and password) for any account in the tenant, obtainable through phishing, leaked credentials, or brute force attacks.",
+      "recommendations": "Enforce a Conditional Access baseline where admins or all users must satisfy at least one strong control: compliant device, hybrid joined device, or MFA.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy enforces application restrictions for unmanaged devices."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires approved client apps or app protection for mobile devices."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy blocks access from unknown or unsupported device platforms."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires compliant device, hybrid joined device, or MFA for admin roles or all users across all cloud apps."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy enforces sign-in frequency for non-corporate devices."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy blocks device code flow."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires MFA for device registration."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires an MDM-compliant device for all cloud app access."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policies Enforce Device and Access Controls",
+      "check_ids": [
+        "entra_intune_enrollment_sign_in_frequency_every_time",
+        "entra_managed_device_required_for_authentication",
+        "entra_managed_device_required_for_mfa_registration"
+      ],
+      "output_section": "AWS",
+      "instance_count": 3,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Microsoft Intune Enrollment lacks Conditional Access policy for MFA and per-session authentication",
+      "root_cause_narrative": "No Conditional Access policy has been configured to enforce strong authentication and per-session reauthentication for the Microsoft Intune Enrollment application. This configuration gap leaves the device enrollment process unprotected by modern authentication controls.",
+      "situation_narrative": "The Microsoft Entra environment for ausbeefchain.com lacks an active Conditional Access policy targeting the Intune Enrollment application (d4ebce55-015a-49b5-a083-c84d1797ae8c) with both MFA requirements and 'Every time' sign-in frequency. This finding affects 3 conditional access policy resources and means device enrollment can proceed without multi-factor authentication or per-session credential verification. The policy gap violates CIS 6.0 controls 5.2.2.11 and 5.2.3.1 for identity and access management.",
+      "consequence_narrative": "An attacker with compromised user credentials could enroll unauthorized devices into Intune without MFA challenge or session-based reauthentication. Once enrolled, these rogue devices would be treated as compliant endpoints, granting persistent access to corporate resources, email, and data. This creates a backdoor for data exfiltration and lateral movement that bypasses perimeter controls.",
+      "access_required": "Valid user credentials for any account authorized to enroll devices in Intune.",
+      "recommendations": "Implement a **Conditional Access** policy on the **Intune Enrollment** app that requires **MFA** or **authentication strength** and sets sign-in frequency to `Every time`.\nMicrosoft Entra requires this grant control when `Every time` is configured for Intune Enrollment, so Prowler validates both conditions together in a single check.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires strong authentication and enforces Every Time sign-in frequency for Intune Enrollment."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires a managed device for authentication."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy requires a managed device for MFA registration."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policy Excludes Emergency Access Accounts",
+      "check_ids": [
+        "entra_emergency_access_exclusion"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "No Emergency Access Account Excluded from Blocking Conditional Access Policies",
+      "root_cause_narrative": "The organization has not designated or configured emergency access (break glass) accounts to be excluded from Conditional Access policies with Block grant controls. This oversight typically occurs when Conditional Access policies are deployed without considering recovery scenarios for administrative lockout.",
+      "situation_narrative": "The Microsoft Entra tenant has 1 enabled Conditional Access policy configured with a Block grant control. No user or group accounts have been excluded from this blocking policy as emergency access accounts. Without designated break glass accounts excluded from all blocking policies, there is no fallback administrative access mechanism in place.",
+      "consequence_narrative": "A misconfigured or overly restrictive Conditional Access policy could lock out all administrators from the tenant, including global administrators. This would prevent any legitimate access to remediate the issue, requiring escalation to Microsoft support and potentially causing extended service disruption while access is restored through vendor channels.",
+      "access_required": "Administrative access to modify Conditional Access policies is required to create lockout conditions, though misconfiguration by existing administrators is the primary risk vector.",
+      "recommendations": "Create and maintain at least two emergency access accounts that are excluded from every Conditional Access policy with a **Block** grant control so they can never be denied access by a misconfiguration. Store credentials securely offline, monitor usage, and test access regularly. Follow **least privilege** principles for these accounts while ensuring they can recover tenant access when needed.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No user or group is excluded as emergency access from all 1 enabled Conditional Access policies with a Block grant control."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Identity Protection Risk Policies Enforce Sign-In and User Risk",
+      "check_ids": [
+        "entra_identity_protection_sign_in_risk_enabled",
+        "entra_identity_protection_user_risk_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 2,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Entra ID Missing Sign-In Risk-Based Conditional Access Policy with MFA Enforcement",
+      "root_cause_narrative": "The organization has not configured a Conditional Access policy that evaluates sign-in risk levels and enforces multi-factor authentication for medium and high-risk authentication attempts. This gap indicates either incomplete Zero Trust implementation or reliance on legacy authentication controls that do not leverage Microsoft Entra Identity Protection signals.",
+      "situation_narrative": "No Conditional Access policy currently enforces MFA based on sign-in risk across the ausbeefchain.com tenant. Microsoft Entra ID can detect anomalous sign-in patterns (impossible travel, anonymous IP addresses, credential leaks) and assign risk scores, but without a corresponding policy, these signals trigger no protective action. The finding affects 2 resources within the tenant's conditional access configuration. Authentication requests flagged as medium or high risk proceed without step-up verification or session restrictions.",
+      "consequence_narrative": "An attacker using compromised credentials or replayed tokens could authenticate successfully despite Identity Protection detecting anomalous behavior. Once authenticated, the attacker could establish persistent sessions, exfiltrate sensitive data, modify tenant configurations, create backdoor accounts, or move laterally to connected systems. This exposure enables full account takeover with the victim's existing privileges, directly compromising confidentiality and integrity across all cloud applications accessible to the compromised identity.",
+      "access_required": "Valid user credentials obtained through phishing, credential stuffing, token theft, or third-party breach—no prior Azure tenant access required.",
+      "recommendations": "Adopt a **risk-based Conditional Access** policy for sign-in risk that applies broadly and enforces **MFA** with `every-time` reauthentication for `Medium` and `High` risk. Align with **Zero Trust** and **least privilege**: ensure MFA enrollment, exclude emergency accounts, validate in report-only, then enforce and regularly review risky sign-in reports.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy is a sign-in risk based Identity Protection Policy."
+        },
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy is a user risk based Identity Protection Policy."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Tenant User Permissions Restricted to Administrators",
+      "check_ids": [
+        "entra_policy_ensure_default_user_cannot_create_tenants",
+        "entra_policy_guest_invite_only_for_admin_roles",
+        "entra_policy_restricts_user_consent_for_apps",
+        "entra_thirdparty_integrated_apps_not_allowed"
+      ],
+      "output_section": "AWS",
+      "instance_count": 4,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Guest Invitations Not Restricted to Administrative Roles in Entra ID",
+      "root_cause_narrative": "The Microsoft Entra authorization policy is configured with permissive guest invite settings, allowing non-administrative users to invite external guests. This typically results from default tenant configurations or intentional but overly broad delegation of invitation privileges without proper governance controls.",
+      "situation_narrative": "The authorization policy for ausbeefchain.com permits users beyond designated administrative roles to invite external guests to the tenant. The guest_invite_settings parameter is not set to 'adminsAndGuestInviters' or 'none', affecting 4 resources across the tenant. This configuration grants standard users the ability to create external identities and grant them access to organizational resources without administrative oversight or approval workflows.",
+      "consequence_narrative": "A compromised standard user account could onboard attacker-controlled guest identities, establishing persistent external access to Microsoft Teams, SharePoint sites, applications, and other tenant resources. These malicious guests could exfiltrate sensitive data, move laterally across collaborative workspaces, and maintain access even after the initial compromise is remediated, while complicating forensic investigations and audit trails.",
+      "access_required": "Valid credentials for any standard user account within the Entra ID tenant.",
+      "recommendations": "Apply **least privilege**: restrict invites to the **Guest Inviter** or designated admin roles (`adminsAndGuestInviters`), or disable invites (`none`).\n- Require approval and justification\n- Allowlist partner domains and use access reviews\n- Combine with Conditional Access and cross-tenant policies for defense in depth",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "authorizationPolicy",
+          "resource_name": "Authorization Policy",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Tenant creation is not disabled for non-admin users."
+        },
+        {
+          "resource_uid": "authorizationPolicy",
+          "resource_name": "Authorization Policy",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Guest invitations are not restricted to users with specific administrative roles only."
+        },
+        {
+          "resource_uid": "authorizationPolicy",
+          "resource_name": "Authorization Policy",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Entra allows users to consent apps accessing company data on their behalf."
+        },
+        {
+          "resource_uid": "authorizationPolicy",
+          "resource_name": "Authorization Policy",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "App creation is not disabled for non-admin users."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Users Are MFA Capable",
+      "check_ids": [
+        "entra_users_mfa_capable"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Microsoft Entra User Lacks MFA Registration (Microsoft Prowler)",
+      "root_cause_narrative": "The user account 'Microsoft Prowler' was provisioned without completing MFA registration requirements. This indicates missing enforcement of registration policies during onboarding or exemption from conditional access policies requiring MFA enrollment.",
+      "situation_narrative": "The Microsoft Entra user 'Microsoft Prowler' (ID: b01ca034-94aa-493c-a99f-219eae2ba690) in the ausbeefchain.com tenant is enabled but has no registered MFA methods. The account is classified as not MFA-capable, failing to meet CIS and ISO 27001 identity controls. This affects a single resource within the environment.",
+      "consequence_narrative": "An attacker who obtains this user's password through phishing, credential stuffing, or password spraying could immediately access the account without secondary authentication. This enables unauthorized access to email, files, and M365 services, with potential for lateral movement, data exfiltration, and configuration changes across the tenant.",
+      "access_required": "Valid username and password for the Microsoft Prowler account, obtainable through phishing, breach databases, or brute-force attacks.",
+      "recommendations": "Enforce **MFA** for all enabled users, prioritizing **phishing-resistant** methods (`FIDO2`/`passkeys`/`CBA`) and limiting `SMS`/`voice`. Apply least privilege and require MFA for privileged roles. Require registration during onboarding and routinely review coverage to sustain defense-in-depth.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "b01ca034-94aa-493c-a99f-219eae2ba690",
+          "resource_name": "Microsoft Prowler",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "User Microsoft Prowler is not MFA capable."
+        }
+      ]
+    },
+    {
+      "group_name": "Microsoft 365 Groups Have Private Visibility",
+      "check_ids": [
+        "admincenter_groups_not_public_visibility"
+      ],
+      "output_section": "AWS",
+      "instance_count": 3,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Moderate",
+      "finding_title": "Microsoft 365 Group Configured with Public Visibility Allowing Unrestricted Tenant Access",
+      "root_cause_narrative": "The Microsoft 365 group was created or configured with Public visibility instead of Private, likely due to default organizational settings that permit public groups or lack of governance controls on group creation and visibility management.",
+      "situation_narrative": "One Microsoft 365 group ('Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512') in the ausbeefchain.com tenant is configured with Public visibility. This affects 3 resources across 1 account. Public visibility allows any authenticated user within the tenant to discover the group, request membership or self-join, and access associated resources including files, conversations, SharePoint sites, and calendars without owner approval.",
+      "consequence_narrative": "An attacker with valid tenant credentials could join the group, access confidential files and communications, exfiltrate sensitive data from SharePoint sites and calendars, or modify group content to inject malicious information. This exposure could lead to data breach, loss of confidential business information, or compromise of collaboration integrity within the Viva Engage platform.",
+      "access_required": "Valid authenticated user credentials within the ausbeefchain.com tenant.",
+      "recommendations": "Set groups to `Private` by default and allow `Public` only for clearly non-sensitive communities.\nApply **least privilege**: restrict who can create or change visibility, require owner approval for membership, review access regularly, and use **sensitivity labels** to reinforce classification.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "215036be-c7fa-4640-be69-454915bc42bf",
+          "resource_name": "Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Group Group for Answers in Viva Engage – DO NOT DELETE 1521570594496512 has Public visibility and should be Private."
+        },
+        {
+          "resource_uid": "96d7a645-dc54-49b9-9e06-b873bf389358",
+          "resource_name": "All Company",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Group All Company has Public visibility and should be Private."
+        },
+        {
+          "resource_uid": "dff92ff6-c198-41dd-b923-9a1b9c523118",
+          "resource_name": "AusBeefChain",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Group AusBeefChain has Public visibility and should be Private."
+        }
+      ]
+    },
+    {
+      "group_name": "App Registration Has No Unused Privileged API Permissions",
+      "check_ids": [
+        "entra_app_registration_no_unused_privileged_permissions"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "OAuth Application Privileged API Permissions Cannot Be Evaluated for Usage",
+      "root_cause_narrative": "App Governance in Microsoft Defender for Cloud Apps is not enabled, and the ThreatHunting.Read.All permission has not been granted to the scanning identity. This prevents automated analysis of whether privileged API permissions assigned to OAuth applications are actively used.",
+      "situation_narrative": "OAuth Applications in the ausbeefchain.com tenant have been identified with privileged API permissions (High privilege level), but usage data is unavailable. Microsoft Entra app registrations may hold dormant privileged permissions that cannot currently be audited for active use. Without App Governance telemetry, security teams cannot determine if these permissions represent unnecessary risk or legitimate operational requirements.",
+      "consequence_narrative": "If privileged permissions remain assigned to unused or compromised OAuth applications, an attacker who gains control of the application credentials could leverage those permissions for privilege escalation, unauthorized data access across Microsoft 365 services, or lateral movement within the tenant. The lack of visibility prevents proactive risk reduction and increases the window of exposure.",
+      "access_required": "An attacker would need to compromise OAuth application credentials (client ID and secret or certificate) to exploit unused privileged permissions.",
+      "recommendations": "Apply the **principle of least privilege** by regularly reviewing and revoking unused privileged permissions from app registrations. Use Microsoft Defender for Cloud Apps App Governance to monitor permission usage.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "oauthApps",
+          "resource_name": "OAuth Applications",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "OAuth App Governance data is unavailable. Enable App Governance in Microsoft Defender for Cloud Apps and grant ThreatHunting.Read.All to evaluate unused privileged permissions."
+        }
+      ]
+    },
+    {
+      "group_name": "Defender XDR Critical Asset Classifications Reviewed and Approved",
+      "check_ids": [
+        "defenderxdr_critical_asset_management_pending_approvals"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "Microsoft Defender XDR Critical Asset Classifications Pending Approval",
+      "root_cause_narrative": "Security administrators have not reviewed and approved pending critical asset classifications in Microsoft Defender XDR. The query also failed due to missing ThreatHunting.Read.All permission, preventing automated verification of approval status.",
+      "situation_narrative": "Microsoft Defender XDR has identified assets requiring classification approval, but these pending approvals remain unreviewed in the ausbeefchain.com account. The Critical Asset Management system shows stale pending approvals for assets with lower confidence scores. Additionally, the security assessment could not verify the current approval queue status due to insufficient API permissions.",
+      "consequence_narrative": "Unclassified critical assets will not receive appropriate security monitoring, threat detection rules, or incident response prioritization. An attacker compromising high-value systems that are not flagged as critical may operate with reduced detection probability, as security teams will lack contextual awareness during alert triage and investigation.",
+      "access_required": "No attacker access required; this is an operational gap in security visibility and asset management processes.",
+      "recommendations": "Regularly review and approve pending critical asset classifications to ensure accurate asset visibility in Microsoft Defender XDR. Stale approvals reduce the effectiveness of security monitoring and incident response for critical assets.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "criticalAssetManagement",
+          "resource_name": "Critical Asset Management",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Unable to query Critical Asset Management status. Verify that ThreatHunting.Read.All permission is granted."
+        }
+      ]
+    },
+    {
+      "group_name": "Defender for Identity Has No Unresolved Health Issues",
+      "check_ids": [
+        "defenderidentity_health_issues_no_open"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Defender for Identity Health Status Cannot Be Verified Due to Missing API Permissions",
+      "root_cause_narrative": "The Service Principal used for security monitoring lacks the required Microsoft Graph API permissions (SecurityIdentitiesSensors.Read.All and SecurityIdentitiesHealth.Read.All) to query Defender for Identity health status. This prevents automated verification of sensor deployment and health issue detection.",
+      "situation_narrative": "Defender for Identity APIs are inaccessible for the ausbeefchain.com environment, preventing validation of MDI sensor deployment status and health issues. The monitoring system cannot determine whether domain controllers have active sensors or if unresolved health issues exist that would create blind spots in identity threat detection. This affects the entire hybrid identity infrastructure monitoring capability for the account.",
+      "consequence_narrative": "An attacker could exploit identity-based attack vectors such as Pass-the-Hash, Golden Ticket attacks, or lateral movement through Active Directory without detection if MDI sensors are misconfigured or missing. The lack of visibility into sensor health creates an unknown security posture where identity compromise techniques targeting domain controllers may succeed undetected, enabling privilege escalation and persistent access to the hybrid environment.",
+      "access_required": "An attacker would need valid domain credentials or initial access to an on-premises system to exploit unmonitored identity infrastructure.",
+      "recommendations": "Regularly monitor and resolve Defender for Identity health issues to maintain comprehensive visibility into identity-based threats across your hybrid infrastructure.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "defenderIdentity",
+          "resource_name": "Defender for Identity",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Defender for Identity APIs are not accessible. Ensure the Service Principal has SecurityIdentitiesSensors.Read.All and SecurityIdentitiesHealth.Read.All permissions granted."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Admin Portal Access Restricted to Administrative Roles",
+      "check_ids": [
+        "entra_admin_portals_access_restriction"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "Microsoft Entra Admin Portals Lack Conditional Access Restriction to Administrative Roles",
+      "root_cause_narrative": "No Conditional Access policy has been configured to restrict access to Microsoft admin portals. This configuration gap likely results from incomplete initial Conditional Access deployment or oversight during tenant security hardening.",
+      "situation_narrative": "The Microsoft Entra tenant for ausbeefchain.com does not enforce a Conditional Access policy that blocks non-administrative users from accessing the Entra Admin Center and other Microsoft admin portals. The current configuration permits all authenticated users, regardless of assigned roles, to reach administrative interfaces. This affects the Conditional Access Policies resource within the tenant.",
+      "consequence_narrative": "An attacker who compromises a standard user account could access admin portals to enumerate tenant configuration, organizational structure, user details, and security policies. This reconnaissance enables privilege escalation attacks, targeted phishing campaigns against administrators, and identification of security gaps to establish persistence mechanisms or weaken defensive controls.",
+      "access_required": "Valid credentials for any standard user account within the ausbeefchain.com Entra tenant.",
+      "recommendations": "Enforce **least privilege** with Conditional Access that blocks `MicrosoftAdminPortals` for everyone except approved admin roles. Add **defense in depth**: require strong MFA/authentication strength, compliant devices, and trusted locations; use JIT via PIM. Review role assignments and policies routinely.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "conditionalAccessPolicies",
+          "resource_name": "Conditional Access Policies",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No Conditional Access Policy limits Entra Admin Center access to administrative roles."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policies Enforce Insider Risk Protections",
+      "check_ids": [
+        "entra_conditional_access_policy_block_elevated_insider_risk",
+        "entra_conditional_access_policy_block_o365_elevated_insider_risk"
+      ],
+      "output_section": "AWS",
+      "instance_count": 2,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "Conditional Access Policy Does Not Block Elevated Insider Risk Users",
+      "root_cause_narrative": "Microsoft Purview Adaptive Protection is not configured to provide insider risk signals to Entra ID Conditional Access. Without this integration, Conditional Access policies cannot evaluate insider risk levels when making access decisions.",
+      "situation_narrative": "The Conditional Access policy 'Block legacy authentication' is configured to block all cloud apps but is not receiving insider risk signals from Microsoft Purview Adaptive Protection. This affects 2 resources in the ausbeefchain.com tenant. While the policy itself is enabled, it cannot restrict access based on elevated insider risk classifications because the upstream risk signal source is not configured.",
+      "consequence_narrative": "Malicious insiders or compromised accounts flagged with elevated risk by insider threat detection systems would retain unrestricted access to all cloud applications. This enables data exfiltration, unauthorized modifications to sensitive resources, and lateral movement within the tenant without automated access controls triggering.",
+      "access_required": "Valid user credentials for an account classified as elevated insider risk by Microsoft Purview (if it were configured).",
+      "recommendations": "Configure **Adaptive Protection** in Microsoft Purview to classify insider risk tiers, then create a Conditional Access policy that **blocks access** to all cloud apps for users with **elevated** risk. Only exclude dedicated break-glass accounts.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "10212e8d-3679-447b-912a-b29fb7a50405",
+          "resource_name": "Block legacy authentication",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Conditional Access Policy Block legacy authentication is configured to block all cloud apps and Microsoft Purview Adaptive Protection is not providing insider risk signals."
+        },
+        {
+          "resource_uid": "10212e8d-3679-447b-912a-b29fb7a50405",
+          "resource_name": "Block legacy authentication",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Conditional Access Policy Block legacy authentication is configured to block Office 365 and Microsoft Purview Adaptive Protection is not providing insider risk signals."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Conditional Access Policy Excludes Directory Sync Accounts",
+      "check_ids": [
+        "entra_conditional_access_policy_directory_sync_account_excluded"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "Directory Sync Account Not Excluded from Conditional Access Policy Requiring Legacy Auth Block",
+      "root_cause_narrative": "The Conditional Access policy 'Block legacy authentication' was configured to target all users without explicitly excluding the Directory Synchronization Accounts role. This oversight occurs when policies are created with broad user scopes without considering service accounts that require exceptions for operational functionality.",
+      "situation_narrative": "The Conditional Access policy 'Block legacy authentication' (ID: 10212e8d-3679-447b-912a-b29fb7a50405) in the ausbeefchain.com tenant applies to all users and all cloud applications but does not exclude the Directory Synchronization Accounts role. This policy configuration affects the Microsoft Entra Connect Sync Account, which is used for hybrid identity synchronization between on-premises Active Directory and Entra ID.",
+      "consequence_narrative": "This misconfiguration will break directory synchronization between on-premises Active Directory and Entra ID when the policy is enforced, preventing the Entra Connect Sync Account from authenticating. The resulting synchronization failure will cause identity inconsistencies, potentially preventing users from accessing cloud resources and disrupting authentication across the hybrid environment until manually resolved.",
+      "access_required": "No attacker access required; this is an operational misconfiguration that will self-trigger when the Conditional Access policy is enforced against the sync account.",
+      "recommendations": "Exclude the Directory Synchronization Accounts role from all Conditional Access policies that target all users and all cloud applications. This prevents breaking Entra Connect directory synchronization while maintaining security controls for interactive users.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "10212e8d-3679-447b-912a-b29fb7a50405",
+          "resource_name": "Block legacy authentication",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Conditional Access Policy Block legacy authentication does not exclude the Directory Synchronization Accounts role, which may break Entra Connect sync."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Default App Management Policy Enforces Credential Restrictions",
+      "check_ids": [
+        "entra_default_app_management_policy_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "Default App Management Policy Lacks Required Credential Restrictions in Entra ID",
+      "root_cause_narrative": "The default app management policy in Microsoft Entra ID has not been configured with mandatory credential restrictions. This occurs when administrators have not explicitly enforced security controls on application and service principal credentials during initial tenant setup or subsequent security hardening.",
+      "situation_narrative": "The default app management policy in the ausbeefchain.com Entra ID tenant is missing all four required credential restrictions: block password addition, restrict max password lifetime, block custom passwords, and restrict max certificate lifetime. This affects a single policy resource (00000000-0000-0000-0000-000000000000) that governs credential management for all applications and service principals in the tenant. Without these restrictions, applications can create and use credentials with insecure configurations.",
+      "consequence_narrative": "An attacker who compromises an application or service principal could create long-lived secrets or custom passwords that persist beyond typical rotation cycles, establishing persistent unauthorized access to tenant resources. Applications could inadvertently or maliciously configure credentials with multi-year lifetimes, creating dormant access vectors that evade detection during security reviews. This increases the window of opportunity for credential theft, lateral movement, and data exfiltration across all cloud resources accessible to these identities.",
+      "access_required": "An attacker would need to compromise an existing application or service principal with permission to manage its own credentials, or obtain access to an account with application administrator privileges.",
+      "recommendations": "Configure the **default app management policy** with all required credential restrictions: **block password addition**, **restrict max password lifetime**, **block custom passwords**, and **restrict max certificate lifetime**. These restrictions prevent applications from using insecure or long-lived credentials.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "00000000-0000-0000-0000-000000000000",
+          "resource_name": "Default App Management Policy",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Default app management policy is missing the following credential restrictions: Block password addition, Restrict max password lifetime, Block custom passwords, Restrict max certificate lifetime."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Password Hash Synchronization Enabled for Hybrid Identity",
+      "check_ids": [
+        "entra_password_hash_sync_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "Password Hash Synchronization Disabled for Hybrid Microsoft Entra Deployment",
+      "root_cause_narrative": "Password hash synchronization was not enabled when configuring the hybrid identity architecture between on-premises Active Directory and Microsoft Entra ID. This is typically an intentional omission during initial setup or a decision to rely solely on federation without implementing defense-in-depth redundancy.",
+      "situation_narrative": "The hybrid Microsoft Entra tenant for AusBeefChain does not have password hash synchronization enabled. This configuration affects the organization's ability to leverage cloud-based identity protection capabilities for hybrid accounts. The deployment relies entirely on on-premises authentication services without cloud-side password hash replication, removing a critical resilience layer for the hybrid identity infrastructure.",
+      "consequence_narrative": "An attacker who compromises credentials through phishing or password reuse will not be detected by Microsoft's leaked credential detection and risk-based authentication systems. During an on-premises infrastructure outage or ransomware attack affecting Active Directory, all hybrid users would lose authentication capability, resulting in organization-wide service disruption. The organization remains exposed to credential stuffing attacks without cloud-side detection mechanisms.",
+      "access_required": "An attacker would need compromised user credentials obtained through phishing, social engineering, or credential reuse to exploit the reduced detection capabilities.",
+      "recommendations": "Enable **password hash synchronization** for hybrid identities and keep it active even alongside federation as a resilient fallback. Combine with **MFA**, **Conditional Access**, and strong password policy enforcement for **defense in depth**. Apply **least privilege** and monitor sign-in risk to prevent account compromise.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "4bc0c11a-fdb2-4a7e-98ae-f04828017364",
+          "resource_name": "AusBeefChain",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "Password hash synchronization is not enabled for hybrid Microsoft Entra deployments."
+        }
+      ]
+    },
+    {
+      "group_name": "Entra Dynamic Group for Guest User Management",
+      "check_ids": [
+        "entra_dynamic_group_for_guests_created"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [
+        "ausbeefchain.com"
+      ],
+      "likelihood_rating": "Low",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "No Dynamic Group for Guest Users in Microsoft Entra ID",
+      "root_cause_narrative": "The organization has not created a dynamic membership group that automatically includes all guest users (userType equals 'Guest'). This typically occurs when guest user management processes rely on manual group assignments or when guest governance controls have not been implemented.",
+      "situation_narrative": "Microsoft Entra ID in the ausbeefchain.com tenant lacks a dynamic group configured to automatically include all guest users. Without this centralized grouping mechanism, guest accounts cannot be consistently targeted by Conditional Access policies, least-privilege role assignments, or automated access reviews. The absence of this foundational control structure prevents scalable enforcement of guest-specific security policies across the directory.",
+      "consequence_narrative": "Guest users may retain excessive permissions and evade access controls designed for external identities, enabling unauthorized access to sensitive data and resources. Stale or orphaned guest accounts could persist indefinitely without lifecycle management, providing potential entry points for attackers who compromise partner organizations or reuse abandoned credentials for lateral movement within the tenant.",
+      "access_required": "An attacker would need to compromise an existing guest user account through phishing, credential theft, or exploitation of a partner organization's security weaknesses.",
+      "recommendations": "Establish a **dynamic group** limited to users with `userType -eq \"Guest\"` and use it to scope **Conditional Access**, least-privilege roles, and access reviews.\nSegment guests by risk into separate groups, enforce lifecycle policies, and regularly audit membership and policy coverage.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "group",
+          "resource_name": "Group",
+          "account_uid": "ausbeefchain.com",
+          "account_name": "ausbeefchain.com",
+          "region": "global",
+          "resource_type": "NotDefined",
+          "status_extended": "No dynamic group for guest users was found in Microsoft Entra."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "run_id": "82135ebd-13b6-4288-907e-a03d98790839",
+  "group_count": 1,
+  "generated_at": "2026-07-08T06:38:04.175520+00:00",
+  "groups": [
+    {
+      "output_group_key": "s3_bucket_public_access:AWS",
+      "check_id": "s3_bucket_public_access",
+      "output_section": "AWS",
+      "instance_count": 2,
+      "likelihood_rating": "High",
+      "affected_account_names": [
+        "acme-prod"
+      ],
+      "affected_account_uids": [
+        "123456789012"
+      ],
+      "instance_ids": [
+        "14532fc6-fb43-4d50-a67a-9aa96020b120",
+        "36857ec5-b51d-450f-ac24-d42579bbe9b1"
+      ],
+      "representative": {
+        "finding_instance_id": "14532fc6-fb43-4d50-a67a-9aa96020b120",
+        "source_row_id": "Sheet:Sheet1 Row:2",
+        "check_id": "s3_bucket_public_access",
+        "check_title": "Ensure S3 bucket does not allow public access",
+        "severity": "high",
+        "service_name": "s3",
+        "resource_type": "AWSS3Bucket",
+        "region": "ap-southeast-2",
+        "completeness_score": 5,
+        "has_description": true,
+        "has_risk": true,
+        "has_remediation": true,
+        "human_review_required": false
+      },
+      "llm_context": {
+        "check_id": "s3_bucket_public_access",
+        "check_title": "Ensure S3 bucket does not allow public access",
+        "check_type": "Software and Configuration Checks",
+        "severity": "high",
+        "status": "FAIL",
+        "status_extended": "Bucket acme-logs is publicly accessible.",
+        "description": "This control checks whether Amazon S3 buckets have public access blocked.",
+        "risk": "If this setting is enabled, any policies or access control lists (ACLs) that grant public access to this bucket and the objects that it contains are blocked.",
+        "remediation_recommendation_text": "Enable S3 Block Public Access at the bucket level.",
+        "remediation_recommendation_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html",
+        "remediation_code_cli": "aws s3api put-public-access-block --bucket <bucket-name> --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true",
+        "remediation_code_terraform": null,
+        "remediation_code_nativeiac": null,
+        "service_name": "s3",
+        "subservice_name": null,
+        "resource_type": "AWSS3Bucket",
+        "resource_uid": "arn:aws:s3:::acme-logs",
+        "resource_name": "acme-logs",
+        "region": "ap-southeast-2",
+        "account_name": "acme-prod",
+        "categories": [
+          "internet-exposed",
+          "encryption"
+        ],
+        "compliance": [
+          "CIS-2.0",
+          "2.1.5",
+          "NIST-800-53",
+          "SC-7"
+        ],
+        "resource_tags": {
+          "Environment": "prod",
+          "Owner": "platform-team"
+        },
+        "instance_count": 2,
+        "likelihood_rating": "High",
+        "affected_account_names": [
+          "acme-prod"
+        ]
+      }
+    }
+  ]
+}

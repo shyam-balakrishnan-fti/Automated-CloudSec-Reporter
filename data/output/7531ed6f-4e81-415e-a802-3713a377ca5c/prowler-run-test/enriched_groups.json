@@ -1,0 +1,203 @@
+{
+  "run_id": "2110591e-3205-41c1-8721-a9e6b0e5ba8d",
+  "group_count": 4,
+  "enriched": 4,
+  "failed": 0,
+  "risk_ratings": {
+    "High": 2,
+    "Medium": 2,
+    "Low": 0,
+    "Unknown": 0
+  },
+  "generated_at": "2026-07-13T00:10:56.880915+00:00",
+  "groups": [
+    {
+      "group_name": "AWS Config Delegated Administrator and Organization Aggregator Configuration",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Moderate",
+      "finding_title": "AWS Config Organization Aggregator and Delegated Administrator Not Configured",
+      "root_cause_narrative": "The organization has not established centralized AWS Config governance by registering a delegated administrator through AWS Organizations or creating an organization-wide configuration aggregator. This gap typically results from incomplete initial setup or lack of awareness of multi-account compliance requirements.",
+      "situation_narrative": "AWS Config lacks an organization aggregator configured with OrganizationAggregationSource covering all regions in account 415019016144 (ap-southeast-2). No delegated administrator has been registered for AWS Config via AWS Organizations. This prevents centralized collection and aggregation of configuration data across organizational accounts and regions, fragmenting visibility into resource compliance and configuration state.",
+      "consequence_narrative": "Without centralized configuration aggregation, unauthorized changes or non-compliant resources in member accounts may go undetected for extended periods. Compliance violations, security drift, and policy breaches across the organization will not surface in unified reports, delaying incident response and exposing the organization to audit failures and regulatory penalties.",
+      "access_required": "This is a visibility and governance gap rather than an exploitable vulnerability; attackers with access to individual member accounts could make unauthorized changes that remain undetected due to lack of centralized monitoring.",
+      "recommendations": "Register a **delegated administrator** for AWS Config via AWS Organizations and create at least one **Configuration Aggregator** with an OrganizationAggregationSource that covers **all AWS regions**. This centralizes configuration data across the organization for unified compliance and audit reporting.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:config:ap-southeast-2:415019016144:config-aggregator/unknown",
+          "resource_name": "unknown",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsConfigConfigurationAggregator",
+          "status_extended": "AWS Config has no Organization Aggregator configured in any region (delegated administrator status could not be determined)."
+        }
+      ]
+    },
+    {
+      "group_name": "AWS Firewall Manager Policy Compliance Issues",
+      "check_ids": [
+        "fms_policy_compliant"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "AWS Firewall Manager Policy Non-Compliant for Account 415019016144",
+      "root_cause_narrative": "No compliant Firewall Manager policies are enforced for account 415019016144, indicating either missing policy assignments, policy drift, or exclusion from centralized security governance in the FMS administrator account.",
+      "situation_narrative": "AWS Firewall Manager reports that account 415019016144 in region us-east-1 has no compliant policies enforced. This account operates without mandatory security controls that should be centrally managed through FMS, including WAF rules, Shield protections, security group policies, or network firewall configurations. The finding affects a single resource (the account itself) under the FMS administrator scope.",
+      "consequence_narrative": "Resources in this account remain unprotected by organization-wide security baselines, enabling direct exposure to DDoS attacks, unrestricted network access, and web application exploits. An attacker scanning for vulnerable endpoints could identify and compromise workloads that lack WAF filtering, network firewall inspection, or security group enforcement, leading to data exfiltration or lateral movement across the environment.",
+      "access_required": "Internet-based attacker with no AWS credentials could exploit unprotected resources; internal attacker with account access could bypass missing security controls.",
+      "recommendations": "Maintain centralized enforcement with **Firewall Manager**: define mandatory policies for all relevant accounts/resources, enable automatic remediation where appropriate, and continuously monitor compliance. Apply **least privilege** and **defense in depth** by standardizing web, network, and DNS protections and alerting on drift.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:fms:us-east-1:415019016144:policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "us-east-1",
+          "resource_type": "Other",
+          "status_extended": "FMS without any compliant policy for account 415019016144."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Password Policy Does Not Meet Security Best Practices",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "output_section": "AWS",
+      "instance_count": 7,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "IAM Password Policy Does Not Enforce Password Expiration Within 90 Days",
+      "root_cause_narrative": "The AWS account's IAM password policy has not been configured to enforce password expiration. This is typically due to organizational reliance on default IAM settings or absence of password lifecycle governance requirements during account setup.",
+      "situation_narrative": "The IAM password policy for AWS account 415019016144 in ap-southeast-2 does not enforce password expiration. Currently, IAM user passwords can persist indefinitely without mandatory rotation. This misconfiguration affects the account-level password policy, impacting 7 resources across the IAM service.",
+      "consequence_narrative": "An attacker who obtains IAM user credentials through phishing, credential leaks, or prior breaches could retain console access indefinitely. Prolonged credential validity increases exposure to credential stuffing attacks and allows compromised accounts to be used for data exfiltration, resource manipulation, or lateral movement without detection from natural password rotation cycles.",
+      "access_required": "An attacker would need to obtain valid IAM user credentials through social engineering, third-party data breaches, malware, or network interception to exploit this weakness.",
+      "recommendations": "Enforce **password rotation** at `<= 90` days and **prevent reuse**. Pair with **MFA**, strong length/complexity, and prefer **federation/SSO** to reduce static passwords. Apply **least privilege**, monitor sign-ins, and remove inactive console passwords to limit exposure.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "Password expiration is not set."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one lowercase letter."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require minimum length of 14 characters."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one number."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy reuse prevention is less than 24 or not set."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one symbol."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one uppercase letter."
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon SageMaker Model Monitoring Not Enabled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Low",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "SageMaker Model Monitoring Schedule Not Configured in ap-southeast-2",
+      "root_cause_narrative": "No SageMaker Model Monitor schedules have been created or enabled in the ap-southeast-2 region. Organizations often deploy models without implementing continuous monitoring processes, treating model deployment as a one-time activity rather than an ongoing operational concern.",
+      "situation_narrative": "No active monitoring schedules exist for SageMaker models in region ap-southeast-2 (account 415019016144). SageMaker Model Monitor, which detects data drift, model quality degradation, and bias drift in production machine learning models, has not been configured. Any deployed SageMaker endpoints in this region are operating without automated quality assurance or drift detection capabilities.",
+      "consequence_narrative": "Deployed machine learning models may degrade silently over time due to data drift or concept drift, producing increasingly inaccurate predictions without alerting operations teams. Business systems relying on these models for fraud detection, access control, pricing, or other decisions would continue using degraded outputs, leading to incorrect business decisions, financial loss, or regulatory compliance failures.",
+      "access_required": "No attacker access is required; this is an operational gap that allows natural model degradation to go undetected during normal operations.",
+      "recommendations": "Enable **Amazon SageMaker Model Monitor** and keep at least one **monitoring schedule** in the `Scheduled` state so data quality, model quality, and bias drift are continuously evaluated against a baseline.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:sagemaker:ap-southeast-2:415019016144:monitoring-schedule/unknown",
+          "resource_name": "SageMaker Monitoring Schedules",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "Other",
+          "status_extended": "No SageMaker monitoring schedules found in region ap-southeast-2."
+        }
+      ]
+    }
+  ]
+}

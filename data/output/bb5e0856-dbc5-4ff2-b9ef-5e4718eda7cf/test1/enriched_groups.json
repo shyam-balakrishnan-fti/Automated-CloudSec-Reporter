@@ -1,0 +1,58 @@
+{
+  "run_id": "82135ebd-13b6-4288-907e-a03d98790839",
+  "group_count": 1,
+  "enriched": 1,
+  "failed": 0,
+  "risk_ratings": {
+    "High": 1,
+    "Medium": 0,
+    "Low": 0,
+    "Unknown": 0
+  },
+  "generated_at": "2026-07-08T06:39:30.927753+00:00",
+  "groups": [
+    {
+      "group_name": "S3 Bucket Public Access Not Blocked",
+      "check_ids": [
+        "s3_bucket_public_access"
+      ],
+      "output_section": "AWS",
+      "instance_count": 2,
+      "affected_accounts": [
+        "acme-prod"
+      ],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "S3 Bucket acme-logs Allows Public Access",
+      "root_cause_narrative": "The S3 Block Public Access feature has not been enabled on the acme-logs bucket. This allows policies or ACLs granting public access to override default security controls.",
+      "situation_narrative": "The acme-logs bucket in the acme-prod account is publicly accessible. S3 Block Public Access settings are not configured at the bucket level, allowing ACLs or bucket policies to grant unrestricted internet access. This affects production infrastructure owned by the platform-team and violates CIS 2.0 and NIST 800-53 compliance requirements.",
+      "consequence_narrative": "An attacker could enumerate and download all log files stored in this bucket without authentication. This exposure could reveal internal system architecture, application behavior, user activity, API keys, session tokens, or other sensitive data embedded in logs, enabling further attacks against the infrastructure.",
+      "access_required": "No authentication required; publicly accessible from the internet.",
+      "recommendations": "Enable S3 Block Public Access at the bucket level.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:s3:::acme-logs",
+          "resource_name": "acme-logs",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-logs is publicly accessible."
+        },
+        {
+          "resource_uid": "arn:aws:s3:::acme-backups",
+          "resource_name": "acme-backups",
+          "account_uid": "123456789012",
+          "account_name": "acme-prod",
+          "region": "ap-southeast-2",
+          "resource_type": "AWSS3Bucket",
+          "status_extended": "Bucket acme-backups is publicly accessible."
+        }
+      ]
+    }
+  ]
+}

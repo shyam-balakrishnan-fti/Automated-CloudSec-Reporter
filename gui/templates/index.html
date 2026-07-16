@@ -590,7 +590,7 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
 <!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="sb-logo">
-    <div class="logo-ph">YOUR LOGO</div>
+    <img src="/static/logo.jpeg" alt="Logo" style="height:36px;width:auto;object-fit:contain;margin-bottom:10px;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="logo-ph" style="display:none">LOGO</div>
     <div class="sb-product">Automated Cloud Security Reporter</div>
     <div class="sb-tagline">Pipeline management &amp; reporting</div>
   </div>
@@ -607,11 +607,12 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
       <span class="nav-badge" id="nav-eng-count" style="display:none"></span>
     </button>
 
-    <div class="sb-section" style="margin-top:8px">
-      <div class="sb-section-title">Pipelines</div>
-    </div>
-    <button class="nav-item" data-view="new-run" onclick="navigate('new-run')">
-      <span class="nav-icon">▷</span> New Run
+
+    <button class="nav-item" data-view="scans" onclick="navigate('scans')">
+      <span class="nav-icon">&#x29C6;</span> Run Scan
+    </button>
+    <button class="nav-item" data-view="exposure" onclick="navigate('exposure')">
+      <span class="nav-icon">&#x26A0;</span> Exposure
     </button>
     <button class="nav-item" data-view="tools" onclick="navigate('tools')">
       <span class="nav-icon">⚙</span> Tools &amp; Setup
@@ -790,9 +791,17 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
         <div class="progress-timeline" id="progress-timeline"></div>
       </div>
 
-      <!-- Review UI iframe (shown when awaiting_review) -->
-      <div class="review-iframe-container" id="review-iframe-container">
-        <iframe id="review-iframe" src="" title="Grouping Review"></iframe>
+      <!-- Review banner — opens review UI in new tab -->
+      <div class="review-banner" id="review-banner">
+        <div style="font-size:22px">⏸</div>
+        <div class="review-banner-text">
+          <div class="review-banner-title">Grouping Review Required</div>
+          <div class="review-banner-sub">The pipeline is paused waiting for your approval.
+            Click to open the review UI in a new tab, approve the grouping, then return here.</div>
+        </div>
+        <button class="btn btn-primary" id="btn-open-review" onclick="openReviewUI()">
+          Open Review UI →
+        </button>
       </div>
 
       <!-- Output files panel -->
@@ -855,6 +864,162 @@ body { display:flex; font-size:13px; color:var(--text); background:var(--bg); }
           <button class="btn btn-ghost" onclick="loadSettings()">Reset</button>
         </div>
         <div class="alert" id="settings-alert" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- ── Scans view ── -->
+    <div class="view" id="view-scans">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Run Scan</div>
+          <div class="page-sub">Execute a Prowler scan against an AWS or Azure environment</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNewScanModal()">+ New Scan</button>
+      </div>
+      <div id="scans-list">
+        <div class="empty-state"><div class="spinner spinner-lg"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Scan detail view ── -->
+    <div class="view" id="view-scan-detail">
+      <div style="margin-bottom:14px">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+                onclick="backFromScan()">← Back</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title" id="scan-detail-title">Scan</div>
+          <div class="page-sub" id="scan-detail-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px;padding-top:4px" id="scan-detail-actions"></div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="stage-bar" id="scan-stage-bar">
+        <div class="stage-step" id="scan-stage-pending">Pending</div>
+        <div class="stage-step" id="scan-stage-running">Scanning</div>
+        <div class="stage-step" id="scan-stage-complete">Complete</div>
+      </div>
+
+      <!-- Output ready banner -->
+      <div class="output-banner" id="scan-output-banner">
+        <div style="font-size:22px">✓</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:var(--success);font-family:var(--fh)">Scan Complete</div>
+          <div style="font-size:11px;color:var(--success);margin-top:2px" id="scan-output-filename"></div>
+        </div>
+        <button class="btn btn-primary" id="btn-use-scan-output" onclick="useScanOutput()">
+          Generate Report →
+        </button>
+      </div>
+
+      <!-- Live log -->
+      <div class="card" style="padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="card-title" style="margin-bottom:0">
+            Scan Output
+            <span class="spinner" id="scan-spinner" style="margin-left:8px;display:none"></span>
+          </div>
+          <span style="font-size:11px;color:var(--muted)" id="scan-elapsed"></span>
+        </div>
+        <div class="progress-timeline" id="scan-timeline"></div>
+      </div>
+    </div>
+
+    <!-- ── Exposure Scanner view ── -->
+    <div class="view" id="view-exposure">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="page-title">Exposure Scanner</div>
+          <div class="page-sub">Enumerate publicly accessible resources across AWS and Azure</div>
+        </div>
+        <button class="btn btn-primary" onclick="openNewExposureModal()">+ New Scan</button>
+      </div>
+      <div id="exposure-list">
+        <div class="empty-state"><div class="spinner spinner-lg"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Exposure detail view ── -->
+    <div class="view" id="view-exposure-detail">
+      <div style="margin-bottom:14px">
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:12px"
+                onclick="backFromExposure()">&#x2190; Back</button>
+      </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title" id="exposure-detail-title">Exposure Scan</div>
+          <div class="page-sub" id="exposure-detail-sub"></div>
+        </div>
+        <div style="display:flex;gap:8px" id="exposure-detail-actions"></div>
+      </div>
+
+      <!-- Summary cards -->
+      <div id="exposure-summary-cards" style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap"></div>
+
+      <!-- Stage bar -->
+      <div class="stage-bar" id="exposure-stage-bar" style="margin-bottom:14px">
+        <div class="stage-step" id="exp-stage-pending">Pending</div>
+        <div class="stage-step" id="exp-stage-running">Scanning</div>
+        <div class="stage-step" id="exp-stage-complete">Complete</div>
+      </div>
+
+      <!-- Live log (during scan) -->
+      <div class="card" id="exposure-log-card" style="padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="card-title" style="margin-bottom:0">Scan Progress</div>
+          <span class="spinner" id="exposure-spinner" style="display:none"></span>
+        </div>
+        <div id="exposure-log" style="font-family:var(--mono);font-size:11px;
+             max-height:200px;overflow-y:auto;color:var(--text-2);
+             background:var(--bg);border:1px solid var(--border);
+             border-radius:4px;padding:10px"></div>
+      </div>
+
+      <!-- Findings table (after complete) -->
+      <div id="exposure-findings-section" style="display:none">
+        <!-- Filters -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+          <select id="exp-filter-service"  onchange="filterExposureFindings()" style="font-size:12px">
+            <option value="">All Services</option>
+          </select>
+          <select id="exp-filter-severity" onchange="filterExposureFindings()" style="font-size:12px">
+            <option value="">All Severities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <select id="exp-filter-region"   onchange="filterExposureFindings()" style="font-size:12px">
+            <option value="">All Regions</option>
+          </select>
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn btn-ghost" style="font-size:12px"
+                    onclick="exportExposure('csv')">&#x2193; Export CSV</button>
+            <button class="btn btn-ghost" style="font-size:12px"
+                    onclick="exportExposure('xlsx')">&#x2193; Export Excel</button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:var(--bg);border-bottom:1px solid var(--border)">
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Severity</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Service</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Resource</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Region</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Exposure</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--text-2)">Details</th>
+              </tr>
+            </thead>
+            <tbody id="exposure-findings-tbody"></tbody>
+          </table>
+          <div id="exposure-findings-empty" style="padding:24px;text-align:center;color:var(--muted);display:none">
+            No exposed resources found
+          </div>
+        </div>
       </div>
     </div>
 
@@ -961,10 +1126,13 @@ let pendingRunRecord = null;  // holds created run record after confirm
 const VIEW_TITLES = {
   'dashboard': 'Dashboard',
   'engagements': 'Engagements',
-  'new-run': 'New Run',
   'tools': 'Tools & Setup',
   'run-detail': 'Run',
   'settings': 'Settings',
+  'scans': 'Run Scan',
+  'scan-detail': 'Scan',
+  'exposure': 'Exposure Scanner',
+  'exposure-detail': 'Exposure Scan',
   'engagement-detail': '',
 };
 
@@ -986,6 +1154,8 @@ function navigate(view) {
   if (view === 'dashboard') loadDashboard();
   if (view === 'tools') loadTools();
   if (view === 'settings') loadSettings();
+  if (view === 'scans') loadScans();
+  if (view === 'exposure') loadExposureScans();
   // Stop engagement detail polling when navigating away from it
   if (view !== 'engagement-detail' && _engDetailPoll) {
     clearInterval(_engDetailPoll);
@@ -1338,7 +1508,7 @@ async function submitCreateEngagement() {
 }
 
 // ── New Run Modal ─────────────────────────────────────────────────────
-function openNewRunModal(engId) {
+async function openNewRunModal(engId) {
   currentEngagementId = engId;
   const eng = engagements.find(e => e.id === engId);
 
@@ -1354,6 +1524,17 @@ function openNewRunModal(engId) {
   `;
 
   const _s = getSettings();
+  // Check if server has env-configured AWS keys — use them as default
+  let _envHasKeys = false;
+  try {
+    const defs = await api('GET', '/defaults');
+    _envHasKeys = defs.has_env_keys || false;
+    // If env keys are set and no profile configured, default to keys mode
+    if (_envHasKeys && !_s.aws_profile) {
+      _credMode = 'keys';
+    }
+  } catch(e) {}
+
   document.getElementById('new-run-modal-body').innerHTML = `
     <div class="alert alert-error" id="run-form-error"></div>
     <div class="form-row">
@@ -1451,12 +1632,28 @@ function setCredMode(mode) {
   document.getElementById('cred-keys-section').classList.toggle('visible', mode === 'keys');
 }
 
+// Store run form state so Back from preflight restores fields
+let _savedRunFormState = null;
+
 async function runPreflight() {
   const pipeline   = document.getElementById('run-pipeline').value;
   // Strip surrounding quotes — Windows users often paste paths with quotes
   const inputFile  = document.getElementById('run-input').value.trim().replace(/^["']|["']$/g, '');
   document.getElementById('run-input').value = inputFile; // update field too
   const tenantId   = document.getElementById('run-tenant') ? document.getElementById('run-tenant').value.trim() : '';
+
+  // Save form state before running preflight so Back can restore it
+  _savedRunFormState = {
+    pipeline,
+    inputFile,
+    format:     document.getElementById('run-format')?.value || 'auto',
+    tenantId:   document.getElementById('run-tenant')?.value || '',
+    credMode:   _credMode,
+    awsProfile: document.getElementById('run-profile')?.value || '',
+    awsRegion:  document.getElementById('run-region')?.value || document.getElementById('run-region-keys')?.value || '',
+    skipReview: document.getElementById('run-skip-review')?.checked || false,
+    skipLlm:    document.getElementById('run-skip-llm')?.checked || false,
+  };
 
   // Validate required fields
   let valid = true;
@@ -1897,7 +2094,7 @@ function stopElapsedTimer() {
 }
 
 function openReviewUI() {
-  if (reviewUrl) showReviewIframe(reviewUrl);
+  if (reviewUrl) window.open(reviewUrl, '_blank');
 }
 
 async function downloadExcel() {
@@ -2142,7 +2339,6 @@ function connectRunStream(runId) {
 }
 
 function showReviewBanner(url) {
-  // Replaced by showReviewIframe in Phase 6 — kept as no-op for compat
   showReviewIframe(url);
 }
 
@@ -2391,16 +2587,29 @@ const SETTINGS_KEY = 'csr_settings';
 const DEFAULT_SETTINGS = {
   aws_region:       'ap-southeast-2',
   aws_profile:      'default',
-  deployment_name:  'arn:aws:bedrock:ap-southeast-2:213146990554:application-inference-profile/mxnvznqf72bh',
+  deployment_name:  '',
   output_dir:       '',
   skip_review:      false,
   skip_llm:         false,
 };
 
-function loadSettings() {
+async function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    const s   = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+    let s = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+
+    // On first load (no saved settings), pull defaults from server environment
+    if (!raw) {
+      try {
+        const serverDefaults = await api('GET', '/defaults');
+        if (serverDefaults.deployment_name) s.deployment_name = serverDefaults.deployment_name;
+        if (serverDefaults.aws_region)      s.aws_region      = serverDefaults.aws_region;
+        if (serverDefaults.aws_profile)     s.aws_profile     = serverDefaults.aws_profile;
+        // Save so subsequent loads don't need to fetch
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      } catch(e) { /* server defaults unavailable — use DEFAULT_SETTINGS */ }
+    }
+
     document.getElementById('setting-aws-region').value      = s.aws_region;
     document.getElementById('setting-aws-profile').value     = s.aws_profile;
     document.getElementById('setting-deployment-name').value = s.deployment_name || '';
@@ -2630,20 +2839,22 @@ function _classifyError(logLines) {
 // ── Phase 6: Review iframe ────────────────────────────────────────────
 
 function showReviewIframe(url) {
-  const container = document.getElementById('review-iframe-container');
-  const iframe    = document.getElementById('review-iframe');
-  if (!container || !iframe) return;
-  iframe.src = url;
-  container.classList.add('visible');
-  // Scroll to iframe
-  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Open review UI in a new tab — not embedded
+  reviewUrl = url;
+  const banner = document.getElementById('review-banner');
+  if (banner) {
+    banner.classList.add('visible');
+    const btn = document.getElementById('btn-open-review');
+    if (btn) btn.onclick = () => window.open(url, '_blank');
+  }
 }
 
 function hideReviewIframe() {
+  const banner = document.getElementById('review-banner');
+  if (banner) banner.classList.remove('visible');
+  // Also hide iframe container if it exists (legacy)
   const container = document.getElementById('review-iframe-container');
-  const iframe    = document.getElementById('review-iframe');
   if (container) container.classList.remove('visible');
-  if (iframe)    iframe.src = '';
 }
 
 // ── Phase 6: Windows path normalisation ──────────────────────────────
@@ -2709,11 +2920,1458 @@ async function backFromPreflight() {
     pendingRunRecord = null;
   }
 
-  // Reopen the run config modal so analyst can adjust and retry
+  // Reopen the run config modal and restore saved form state
   if (currentEngagementId) {
     openNewRunModal(currentEngagementId);
+    if (_savedRunFormState) {
+      const s = _savedRunFormState;
+      setTimeout(() => {
+        const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+        const chk = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.checked = val; };
+        set('run-input', s.inputFile);
+        set('run-format', s.format);
+        set('run-tenant', s.tenantId);
+        set('run-profile', s.awsProfile);
+        set('run-region', s.awsRegion);
+        set('run-region-keys', s.awsRegion);
+        chk('run-skip-review', s.skipReview);
+        chk('run-skip-llm', s.skipLlm);
+        if (s.credMode) setCredMode(s.credMode);
+        if (s.pipeline) {
+          const pEl = document.getElementById('run-pipeline');
+          if (pEl) { pEl.value = s.pipeline; onRunPipelineChange(); }
+        }
+      }, 150);
+    }
   }
 }
+
+
+// ── Scanner state ─────────────────────────────────────────────────────
+let activeScanId      = null;
+let scanEvtSource     = null;
+let scanElapsedTimer  = null;
+let scanStartTime     = null;
+let completedScanOutput = null;  // output file path after scan completes
+let _scanDetailEngId  = null;
+let _activeScanType   = null;    // 'aws' | 'azure' | 'scubagear'
+let _awsServices         = [];
+let _azureServices       = [];
+let _scubaProducts       = [];
+let _scubaProductLabels  = {};
+let _scanDetailPoll   = null;
+
+// ── Load services list ────────────────────────────────────────────────
+async function _ensureServices() {
+  if (_awsServices.length) return;
+  try {
+    const s = await api('GET', '/meta/services');
+    _awsServices        = s.aws            || [];
+    _azureServices      = s.azure          || [];
+    _scubaProducts      = s.scubagear      || [];
+    _scubaProductLabels = s.scubagear_labels || {};
+  } catch(e) {}
+}
+
+// ── Scans list view ───────────────────────────────────────────────────
+async function loadScans() {
+  const container = document.getElementById('scans-list');
+  container.innerHTML = '<div class="empty-state"><div class="spinner spinner-lg"></div></div>';
+  try {
+    // Collect scans across all engagements for the dashboard view
+    const engs = await api('GET', '/engagements');
+    let allScans = [];
+    for (const eng of engs) {
+      const scans = await api('GET', `/engagements/${eng.id}/scans`);
+      scans.forEach(s => s._engagement = eng);
+      allScans = allScans.concat(scans);
+    }
+    allScans.sort((a,b) => b.created_at.localeCompare(a.created_at));
+
+    if (!allScans.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">⬡</div>
+          <div class="empty-title">No scans yet</div>
+          <div class="empty-sub">Configure and run a Prowler scan to get started</div>
+          <br>
+          <button class="btn btn-primary" onclick="openNewScanModal()">+ New Scan</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${allScans.map(s => scanRowHTML(s)).join('')}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load scans: ${esc(e.message)}</div>`;
+  }
+}
+
+function scanRowHTML(s) {
+  const eng     = s._engagement;
+  const created = new Date(s.created_at).toLocaleString();
+  const badge   = s.provider === 'aws'
+    ? '<span class="eng-badge eng-badge-prowler">AWS</span>'
+    : '<span class="eng-badge" style="background:#e0f2fe;color:#0369a1">Azure</span>';
+  const dur = s.duration_secs ? _formatDuration(
+    s.created_at,
+    new Date(new Date(s.created_at).getTime() + s.duration_secs * 1000).toISOString()
+  ) : '';
+
+  return `
+    <div style="padding:14px 16px;border:1px solid var(--border);border-radius:4px;background:#fafbfc;cursor:pointer"
+         onclick="openScanDetail('${s.id}','${eng ? eng.id : ''}')">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        ${badge}
+        <span class="status-badge status-${s.status}">${statusLabel(s.status)}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text)">
+          ${eng ? esc(eng.client_name) : 'Unknown engagement'}
+        </span>
+        <span style="font-size:11px;color:var(--muted)">${created}</span>
+        ${dur ? `<span style="font-size:11px;color:var(--muted);margin-left:auto">${dur}</span>` : ''}
+        ${s.findings_count != null
+          ? `<span style="font-size:11px;font-family:var(--mono);color:var(--muted)">${s.findings_count} findings</span>`
+          : ''}
+      </div>
+      ${s.scan_region ? `<div style="font-size:11px;color:var(--muted);margin-top:6px">Region: ${esc(s.scan_region)}</div>` : ''}
+      ${s.output_file ? `
+        <div style="font-size:11px;color:var(--success);margin-top:6px">
+          ✓ Output: ${esc(s.output_file.split(/[\\/]/).pop())}
+        </div>` : ''}
+    </div>`;
+}
+
+// ── New Scan Modal ────────────────────────────────────────────────────
+let _currentScanEngId = null;
+
+async function openNewScanModal(engId) {
+  await _ensureServices();
+  _currentScanEngId = engId || currentEngagementId || null;
+
+  // Engagement picker
+  const engs = await api('GET', '/engagements');
+  const engOptions = engs.map(e =>
+    `<option value="${esc(e.id)}" ${e.id === _currentScanEngId ? 'selected' : ''}>
+      ${esc(e.client_name)} — ${esc(e.assessment_period)}
+    </option>`
+  ).join('');
+
+  const profileOptions = (platform && platform.aws_profiles.length)
+    ? platform.aws_profiles.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('')
+    : '<option value="default">default</option>';
+
+  const s = getSettings();
+
+  document.getElementById('new-scan-modal-body').innerHTML = `
+    <div class="alert alert-error" id="scan-form-error" style="display:none"></div>
+
+    <div class="form-row">
+      <label>Engagement *</label>
+      <select id="scan-engagement">${engOptions}</select>
+    </div>
+
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Scan Type *</label>
+        <select id="scan-provider" onchange="onScanProviderChange()">
+          <option value="aws">Prowler -- AWS</option>
+          <option value="azure">Prowler -- Azure</option>
+          <option value="scubagear" id="opt-scubagear-scan">ScubaGear -- Microsoft 365</option>
+        </select>
+      </div>
+      <div class="form-row" id="scan-region-row">
+        <label>AWS Region *</label>
+        <input type="text" id="scan-region" value="${s.aws_region || 'us-east-1'}"
+               placeholder="us-east-1">
+      </div>
+    </div>
+
+    <!-- AWS credentials -->
+    <div id="scan-aws-creds">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px">Scan Credentials (AWS)</div>
+      <div class="cred-toggle">
+        <button class="cred-opt active" id="scan-cred-opt-keys" onclick="setScanCredMode('keys')">Temporary Keys</button>
+        <button class="cred-opt" id="scan-cred-opt-profile" onclick="setScanCredMode('profile')">AWS Profile</button>
+      </div>
+      <div class="cred-section visible" id="scan-keys-section">
+        <div class="form-row">
+          <label>Access Key ID *</label>
+          <input type="text" id="scan-key-id" placeholder="AKIA...">
+        </div>
+        <div class="form-row">
+          <label>Secret Access Key *</label>
+          <input type="password" id="scan-key-secret" placeholder="••••••••">
+        </div>
+        <div class="form-row">
+          <label>Session Token <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input type="password" id="scan-key-token" placeholder="Optional">
+        </div>
+        <div class="form-row">
+          <label>Account ID <span style="font-weight:400;text-transform:none">(optional)</span></label>
+          <input type="text" id="scan-account-id" placeholder="123456789012">
+        </div>
+      </div>
+      <div class="cred-section" id="scan-profile-section">
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label>AWS Profile</label>
+            <select id="scan-profile">${profileOptions}</select>
+          </div>
+          <div class="form-row">
+            <label>Account ID <span style="font-weight:400;text-transform:none">(optional)</span></label>
+            <input type="text" id="scan-account-id-p" placeholder="123456789012">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Azure credentials -->
+    <div id="scan-azure-creds" style="display:none">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px">Scan Credentials (Azure)</div>
+      <div class="form-hint" style="margin-bottom:12px">
+        Requires a Service Principal with Reader role on target subscriptions
+        and Microsoft Graph API permissions for Entra ID checks.
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Tenant ID *</label>
+          <input type="text" id="scan-azure-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+        <div class="form-row">
+          <label>Client ID *</label>
+          <input type="text" id="scan-azure-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Client Secret *</label>
+        <input type="password" id="scan-azure-secret" placeholder="••••••••">
+      </div>
+      <div class="form-row">
+        <label>Subscription ID <span style="font-weight:400;text-transform:none">(optional — blank = all subscriptions)</span></label>
+        <input type="text" id="scan-azure-sub" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Scope -->
+    <!-- ScubaGear config section -->
+    <div id="scan-scubagear-config" style="display:none">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px">ScubaGear Configuration</div>
+      <div class="unavailable-notice" style="margin-bottom:14px">
+        <span class="un-icon">&#x2139;</span>
+        <span>ScubaGear will open in its own window. Authenticate when prompted,
+        click Run ScubaGear, then return here. This page updates automatically when the scan completes.</span>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Tenant Domain *</label>
+          <input type="text" id="scan-tenant-domain" placeholder="contoso.onmicrosoft.com">
+          <div class="form-hint">Your organisation's primary M365 domain</div>
+        </div>
+        <div class="form-row">
+          <label>M365 Environment</label>
+          <select id="scan-m365-env">
+            <option value="commercial">Commercial</option>
+            <option value="gcc">GCC</option>
+            <option value="gcchigh">GCC High</option>
+            <option value="dod">DoD</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-title" style="margin-bottom:8px">Scope <span style="font-weight:400;font-size:12px;color:var(--muted)">(optional — blank = full scan)</span></div>
+
+    <div class="form-row">
+      <label>Services <span style="font-weight:400;text-transform:none;color:var(--muted)">(select specific services to scan)</span></label>
+      <div id="services-selector" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;padding:8px;display:flex;flex-wrap:wrap;gap:6px">
+        <!-- populated by onScanProviderChange() -->
+      </div>
+      <div class="form-hint">Leave all unselected to scan all services</div>
+    </div>
+
+    <div class="form-row">
+      <label>Resource ARNs / IDs <span style="font-weight:400;text-transform:none;color:var(--muted)">(one per line)</span></label>
+      <textarea id="scan-resource-arns" rows="4"
+        placeholder="arn:aws:iam::123456789012:role/MyRole&#10;arn:aws:s3:::my-bucket&#10;(leave blank for all resources)"></textarea>
+      <div class="form-hint">Prowler will only evaluate these specific resources</div>
+    </div>
+  `;
+
+  onScanProviderChange();
+  openModal('modal-new-scan');
+}
+
+let _scanCredMode = 'keys';
+
+function setScanCredMode(mode) {
+  _scanCredMode = mode;
+  document.getElementById('scan-cred-opt-keys').classList.toggle('active', mode === 'keys');
+  document.getElementById('scan-cred-opt-profile').classList.toggle('active', mode === 'profile');
+  document.getElementById('scan-keys-section').classList.toggle('visible', mode === 'keys');
+  document.getElementById('scan-profile-section').classList.toggle('visible', mode === 'profile');
+}
+
+function onScanProviderChange() {
+  const provider = document.getElementById('scan-provider')?.value;
+  if (!provider) return;
+
+  const isAws    = provider === 'aws';
+  const isAzure  = provider === 'azure';
+  const isScuba  = provider === 'scubagear';
+
+  const awsCreds    = document.getElementById('scan-aws-creds');
+  const azCreds     = document.getElementById('scan-azure-creds');
+  const scubaCfg    = document.getElementById('scan-scubagear-config');
+  const regRow      = document.getElementById('scan-region-row');
+  const scopeArns   = document.getElementById('scan-resource-arns')?.closest('.form-row');
+
+  if (awsCreds)  awsCreds.style.display  = isAws   ? '' : 'none';
+  if (azCreds)   azCreds.style.display   = isAzure ? '' : 'none';
+  if (scubaCfg)  scubaCfg.style.display  = isScuba ? '' : 'none';
+  if (regRow)    regRow.style.display    = isAws   ? '' : 'none';
+
+  // Hide ARN scope for ScubaGear (uses products instead)
+  if (scopeArns) scopeArns.style.display = isScuba ? 'none' : '';
+
+  // Disable ScubaGear option on non-Windows
+  const scubaOpt = document.getElementById('opt-scubagear-scan');
+  if (scubaOpt && platform && !platform.scubagear_available) {
+    scubaOpt.disabled = true;
+    scubaOpt.textContent = 'ScubaGear -- Microsoft 365 (Windows only)';
+    if (isScuba) document.getElementById('scan-provider').value = 'aws';
+  }
+
+  // Populate services selector
+  let services = isAws ? _awsServices : isAzure ? _azureServices : _scubaProducts;
+  let labels   = isScuba ? _scubaProductLabels : null;
+
+  const sel = document.getElementById('services-selector');
+  if (sel) {
+    sel.innerHTML = services.map(svc => `
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;
+                    padding:3px 8px;border:1px solid var(--border);border-radius:3px;
+                    background:#fff;white-space:nowrap">
+        <input type="checkbox" class="svc-check" value="${esc(svc)}"
+               ${isScuba ? 'checked' : ''}>
+        ${esc(labels ? (labels[svc] || svc) : svc)}
+      </label>`).join('');
+  }
+}
+
+async function submitNewScan() {
+  const provider  = document.getElementById('scan-provider')?.value;
+  const engId     = document.getElementById('scan-engagement')?.value;
+  const errEl     = document.getElementById('scan-form-error');
+
+  const showErr = (msg) => {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  };
+
+  if (!engId) { showErr('Please select an engagement'); return; }
+  if (!provider) { showErr('Please select a provider'); return; }
+
+  // Collect services
+  const checkedSvcs = Array.from(
+    document.querySelectorAll('.svc-check:checked')
+  ).map(el => el.value);
+
+  // Collect resource ARNs
+  const arnsRaw = document.getElementById('scan-resource-arns')?.value || '';
+  const arns    = arnsRaw.split('\n').map(s => s.trim()).filter(Boolean);
+
+  // Build payload
+  const isScuba = provider === 'scubagear';
+  const payload = {
+    provider,
+    scan_type: isScuba ? 'scubagear' : (provider === 'azure' ? 'prowler_azure' : 'prowler_aws'),
+    resource_scope: arns,
+    services_scope: checkedSvcs,
+    credential_source: _scanCredMode === 'profile' ? 'profile' : 'keys',
+    aws_profile: '',
+    scan_region: '',
+    scan_account_id: '',
+    azure_tenant_id: '',
+    azure_client_id: '',
+    azure_subscription_id: '',
+    tenant_domain: '',
+    m365_environment: 'commercial',
+  };
+
+  // Secrets (never stored in DB)
+  const secrets = {};
+
+  if (isScuba) {
+    payload.tenant_domain    = document.getElementById('scan-tenant-domain')?.value?.trim();
+    payload.m365_environment = document.getElementById('scan-m365-env')?.value || 'commercial';
+    payload.azure_tenant_id  = payload.tenant_domain;
+    if (!payload.tenant_domain) { showErr('Tenant domain is required for ScubaGear'); return; }
+  } else if (provider === 'aws') {
+    payload.scan_region = document.getElementById('scan-region')?.value?.trim() || '';
+    if (!payload.scan_region) { showErr('AWS Region is required'); return; }
+
+    if (_scanCredMode === 'keys') {
+      secrets.aws_access_key_id     = document.getElementById('scan-key-id')?.value?.trim();
+      secrets.aws_secret_access_key = document.getElementById('scan-key-secret')?.value?.trim();
+      secrets.aws_session_token     = document.getElementById('scan-key-token')?.value?.trim() || null;
+      payload.scan_account_id       = document.getElementById('scan-account-id')?.value?.trim();
+      if (!secrets.aws_access_key_id || !secrets.aws_secret_access_key) {
+        showErr('Access Key ID and Secret Access Key are required'); return;
+      }
+    } else {
+      payload.credential_source = 'profile';
+      payload.aws_profile       = document.getElementById('scan-profile')?.value || 'default';
+      payload.scan_account_id   = document.getElementById('scan-account-id-p')?.value?.trim();
+    }
+  } else if (provider === 'azure') {
+    payload.azure_tenant_id       = document.getElementById('scan-azure-tenant')?.value?.trim();
+    payload.azure_client_id       = document.getElementById('scan-azure-client')?.value?.trim();
+    payload.azure_subscription_id = document.getElementById('scan-azure-sub')?.value?.trim();
+    secrets.azure_client_secret   = document.getElementById('scan-azure-secret')?.value?.trim();
+
+    if (!payload.azure_tenant_id || !payload.azure_client_id || !secrets.azure_client_secret) {
+      showErr('Tenant ID, Client ID, and Client Secret are required'); return;
+    }
+  }
+
+  const btn = document.getElementById('btn-start-scan');
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+
+  try {
+    // 1. Create scan record
+    const scan = await api('POST', `/engagements/${engId}/scans`, payload);
+
+    // 2. Register secrets
+    if (Object.keys(secrets).length) {
+      await api('POST', `/scans/${scan.id}/secrets`, secrets);
+    }
+
+    // 3. Start scan
+    await api('POST', `/scans/${scan.id}/start`, {});
+
+    closeModal('modal-new-scan');
+    _scanDetailEngId = engId;
+    openScanDetail(scan.id, engId);
+  } catch(e) {
+    showErr(`Failed to start scan: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Start Scan →';
+  }
+}
+
+// ── Scan detail view ──────────────────────────────────────────────────
+
+function _resetScanDetailState() {
+  if (scanEvtSource)    { scanEvtSource.close(); scanEvtSource = null; }
+  if (scanElapsedTimer) { clearInterval(scanElapsedTimer); scanElapsedTimer = null; }
+  if (_scanDetailPoll)  { clearInterval(_scanDetailPoll); _scanDetailPoll = null; }
+  activeScanId        = null;
+  _activeScanType     = null;
+  window._scanLogLines = [];
+  completedScanOutput = null;
+  // Always clear ScubaGear banner — never carry over between scans
+  const scubaBanner = document.getElementById('scuba-path-banner');
+  if (scubaBanner) scubaBanner.remove();
+  const tl = document.getElementById('scan-timeline');
+  if (tl) tl.innerHTML = '';
+  const ob = document.getElementById('scan-output-banner');
+  if (ob) ob.classList.remove('visible');
+  const sp = document.getElementById('scan-spinner');
+  if (sp) sp.style.display = 'none';
+  const el = document.getElementById('scan-elapsed');
+  if (el) el.textContent = '';
+  document.querySelectorAll('[id^="scan-stage-"]').forEach(el => {
+    el.className = 'stage-step';
+  });
+}
+
+function _updateScanStageBar(status) {
+  const map = { pending:0, running:1, complete:2, failed:1, cancelled:1 };
+  const idx = map[status] ?? 0;
+  const stages = ['pending','running','complete'];
+  stages.forEach((s, i) => {
+    const el = document.getElementById(`scan-stage-${s}`);
+    if (!el) return;
+    el.className = 'stage-step';
+    if (status === 'failed' || status === 'cancelled') {
+      if (i === 1) el.classList.add('failed');
+      else if (i < 1) el.classList.add('done');
+    } else {
+      if (i < idx)      el.classList.add('done');
+      else if (i === idx) el.classList.add('active');
+    }
+  });
+  if (status === 'complete') {
+    document.getElementById('scan-stage-complete')?.classList.replace('active','done');
+  }
+}
+
+async function openScanDetail(scanId, engId) {
+  _resetScanDetailState();
+  activeScanId     = scanId;
+  _scanDetailEngId = engId;
+  navigate('scan-detail');
+
+  let scan;
+  try {
+    scan = await api('GET', `/scans/${scanId}`);
+  } catch(e) {
+    return;
+  }
+
+  _activeScanType = scan.scan_type || scan.provider;
+  document.getElementById('scan-detail-title').textContent =
+    `${scan.provider.toUpperCase()} Scan`;
+  document.getElementById('scan-detail-sub').textContent =
+    `Scan ID: ${scanId.slice(0,8)}… · ${new Date(scan.created_at).toLocaleString()}`;
+
+  _updateScanStageBar(scan.status);
+  _updateScanActions(scan.status, scan);
+
+  if (['complete','failed','cancelled'].includes(scan.status)) {
+    // Replay logs
+    try {
+      const logs = await api('GET', `/scans/${scanId}/logs`);
+      const tl = document.getElementById('scan-timeline');
+      if (tl) {
+        logs.forEach(l => {
+          const div = document.createElement('div');
+          div.className = 'timeline-item ' + (scan.status === 'complete' ? 'done' : 'failed');
+          div.innerHTML = `<div class="tl-dot">${scan.status === 'complete' ? '✓' : '✕'}</div>
+            <div class="tl-body"><div class="tl-sub">${esc(l.line)}</div></div>`;
+          tl.appendChild(div);
+        });
+      }
+    } catch(e) {}
+
+    if (scan.output_file) {
+      completedScanOutput = scan.output_file;
+      _showScanOutputBanner(scan.output_file);
+    }
+    return;
+  }
+
+  // Active scan — connect SSE
+  const sp = document.getElementById('scan-spinner');
+  if (sp) sp.style.display = 'inline-block';
+  scanStartTime = Date.now();
+  scanElapsedTimer = setInterval(() => {
+    const secs = Math.floor((Date.now() - scanStartTime) / 1000);
+    const el = document.getElementById('scan-elapsed');
+    if (el) el.textContent = `${Math.floor(secs/60)}m ${secs%60}s elapsed`;
+  }, 1000);
+
+  _connectScanStream(scanId);
+
+  // Poll DB every 5s as safety net
+  _scanDetailPoll = setInterval(async () => {
+    if (!activeScanId) { clearInterval(_scanDetailPoll); return; }
+    try {
+      const s = await api('GET', `/scans/${activeScanId}`);
+      _updateScanStageBar(s.status);
+      _updateScanActions(s.status, s);
+      if (s.output_file && !completedScanOutput) {
+        completedScanOutput = s.output_file;
+        _showScanOutputBanner(s.output_file);
+      }
+      if (['complete','failed','cancelled'].includes(s.status)) {
+        clearInterval(_scanDetailPoll); _scanDetailPoll = null;
+        clearInterval(scanElapsedTimer); scanElapsedTimer = null;
+        if (sp) sp.style.display = 'none';
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
+function _connectScanStream(scanId) {
+  if (scanEvtSource) { scanEvtSource.close(); scanEvtSource = null; }
+
+  const es = new EventSource(`/api/scans/${scanId}/stream`);
+  scanEvtSource = es;
+  const tl = document.getElementById('scan-timeline');
+
+  es.onmessage = (e) => {
+    let data;
+    try { data = JSON.parse(e.data); } catch(err) { return; }
+    if (data.type === 'heartbeat') return;
+
+    if (data.type === 'log' && tl) {
+      const div = document.createElement('div');
+      div.className = 'timeline-item active';
+      div.innerHTML = `<div class="tl-dot">●</div>
+        <div class="tl-body"><div class="tl-sub" style="font-family:var(--mono);font-size:11px;
+          color:${data.stream === 'stderr' ? 'var(--danger)' : 'var(--text-2)'}">
+          ${esc(data.text)}</div></div>`;
+      tl.appendChild(div);
+      tl.scrollTop = tl.scrollHeight;
+    }
+
+    if (data.type === 'status') {
+      _updateScanStageBar(data.value);
+      if (['complete','failed','cancelled'].includes(data.value)) {
+        clearInterval(scanElapsedTimer); scanElapsedTimer = null;
+        const sp = document.getElementById('scan-spinner');
+        if (sp) sp.style.display = 'none';
+        es.close(); scanEvtSource = null;
+      }
+    }
+
+    if (data.type === 'scan_complete') {
+      completedScanOutput = data.output_file;
+      _showScanOutputBanner(data.output_file);
+      if (tl && window._scanLogLines) {
+        _renderScanSummary(tl, window._scanLogLines, 'complete');
+      }
+    }
+
+    if (data.type === 'scuba_instructions') {
+      // Only show for ScubaGear scans — not Prowler
+      if (_activeScanType === 'scubagear' || data.output_path) {
+        _showScubaPathBanner(data.output_path);
+      }
+    }
+  };
+
+  es.onerror = () => {
+    es.close(); scanEvtSource = null;
+    // Poll will handle final state
+  };
+}
+
+function _showScanOutputBanner(filePath) {
+  const banner   = document.getElementById('scan-output-banner');
+  const filename = document.getElementById('scan-output-filename');
+  if (banner) banner.classList.add('visible');
+  if (filename) filename.textContent = normalisePath(filePath);
+}
+
+function _updateScanActions(status, scan) {
+  const actions = document.getElementById('scan-detail-actions');
+  if (!actions) return;
+  actions.innerHTML = '';
+  if (status === 'running') {
+    actions.innerHTML = `
+      <button class="btn btn-danger" onclick="cancelActiveScan()">Cancel Scan</button>`;
+  }
+  if (status === 'complete' && scan?.output_file) {
+    actions.innerHTML = `
+      <button class="btn btn-primary" onclick="useScanOutput()">Generate Report →</button>`;
+  }
+}
+
+async function cancelActiveScan() {
+  if (!activeScanId) return;
+  if (!confirm('Cancel this scan? The Prowler process will be terminated.')) return;
+  try {
+    await api('POST', `/scans/${activeScanId}/cancel`, {});
+  } catch(e) {
+    alert(`Cancel failed: ${e.message}`);
+  }
+}
+
+async function useScanOutput() {
+  if (!completedScanOutput || !activeScanId) return;
+
+  // Get the scan to find the engagement
+  const scan = await api('GET', `/scans/${activeScanId}`);
+  const engId = scan.engagement_id;
+
+  // Open the new run modal pre-filled with the scan output
+  closeModal('modal-new-scan');
+  currentEngagementId = engId;
+
+  // Open run modal with scan output pre-filled
+  openNewRunModal(engId);
+
+  // Pre-fill input file after modal renders
+  setTimeout(() => {
+    const inputEl = document.getElementById('run-input');
+    if (inputEl) {
+      inputEl.value = normalisePath(completedScanOutput);
+      // Auto-detect format
+      const formatEl = document.getElementById('run-format');
+      if (formatEl) formatEl.value = 'csv';
+    }
+  }, 100);
+}
+
+function backFromScan() {
+  _resetScanDetailState();
+  if (_scanDetailEngId) openEngagementDetail(_scanDetailEngId);
+  else navigate('scans');
+}
+
+
+
+// ── Scan progress rendering ───────────────────────────────────────────
+// Accumulates raw log lines and renders them as structured stage cards
+// instead of a raw terminal dump.
+
+window._scanLogLines = [];
+
+function _appendScanLog(text, stream, tl) {
+  window._scanLogLines.push(text);
+  _renderScanSummary(tl, window._scanLogLines, 'running');
+}
+
+function _renderScanSummary(tl, lines, status) {
+  if (!tl) return;
+
+  // Parse lines into meaningful stages
+  const stages = _parseScanStages(lines, status);
+
+  tl.innerHTML = stages.map(stage => `
+    <div class="timeline-item ${stage.cls}">
+      <div class="tl-dot">${stage.dot}</div>
+      <div class="tl-body">
+        <div class="tl-title">${esc(stage.title)}</div>
+        <div class="tl-sub">${esc(stage.sub)}</div>
+        ${stage.detail ? `
+          <div class="tl-lines visible" style="margin-top:6px;max-height:80px">
+            ${stage.detail.map(l => `<span style="color:${l.err?'var(--danger)':'inherit'}">${esc(l.text)}</span>`).join('')}
+          </div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function _parseScanStages(lines, status) {
+  const isFailed   = status === 'failed';
+  const isComplete = status === 'complete';
+  const allText    = lines.join('\n').toLowerCase();
+
+  const hasStarted   = lines.length > 0;
+  const hasDiscovery = allText.includes('region') || allText.includes('executing') ||
+                       allText.includes('check');
+  const hasChecks    = allText.includes('pass') || allText.includes('fail');
+  const hasOutput    = allText.includes('csv') || allText.includes('prowler-output');
+
+  // Extract only the meaningful progress lines — skip noise
+  const MEANINGFUL = [
+    l => /executing\s+\d+\s+check/i.test(l),        // "Executing 47 checks"
+    l => /\[\d+\/\d+\]/i.test(l),                   // "[12/47]"
+    l => /\d+\s*%/i.test(l),                         // "25%"
+    l => /^(pass|fail|muted):/i.test(l.trim()),      // result lines
+    l => /(high|medium|low|critical)\s+\d+/i.test(l),// severity counts
+    l => /total\s+\d+/i.test(l),                     // totals
+    l => /✓|✗/.test(l) && l.length < 80,            // short check result
+  ];
+
+  const keyLines = lines
+    .filter(l => MEANINGFUL.some(fn => fn(l)))
+    .slice(-4)
+    .map(l => ({ text: l.trim(), err: /error|exception/i.test(l) }));
+
+  const errorLines = lines
+    .filter(l => /error|exception/i.test(l.toLowerCase()))
+    .slice(-3)
+    .map(l => ({ text: l.trim(), err: true }));
+
+  const stages = [];
+
+  // Stage 1: Initialising
+  stages.push({
+    cls:   hasStarted ? (isFailed && !hasDiscovery ? 'failed' : 'done') : 'active',
+    dot:   hasStarted ? (isFailed && !hasDiscovery ? '\u2717' : '\u2713') : '\u25cf',
+    title: 'Initialising',
+    sub:   hasStarted ? 'Connected to AWS — checks loaded' : 'Connecting to AWS',
+    detail: null,
+    detailExpanded: false,
+  });
+
+  // Stage 2: Running checks
+  if (hasStarted) {
+    const progress = _extractProgress(lines);
+    const count    = _extractCheckCount(lines);
+
+    stages.push({
+      cls:   isComplete ? 'done' : isFailed ? 'failed' : 'active',
+      dot:   isComplete ? '\u2713' : isFailed ? '\u2717' : '\u25cf',
+      title: 'Running Checks',
+      sub:   isComplete
+        ? 'All checks executed'
+        : isFailed
+        ? 'Scan encountered an error'
+        : count
+        ? 'Executing ' + count + (progress ? ' — ' + progress + ' complete' : '')
+        : 'Scanning resources\u2026',
+      detail: isFailed ? errorLines : (keyLines.length ? keyLines : null),
+      detailExpanded: isFailed,   // only auto-open on failure
+    });
+  }
+
+  // Stage 3: Writing output
+  if (isComplete || hasOutput) {
+    stages.push({
+      cls:   isComplete ? 'done' : 'active',
+      dot:   isComplete ? '\u2713' : '\u25cf',
+      title: 'Saving Results',
+      sub:   isComplete ? 'CSV output saved — ready to generate report' : 'Writing findings to CSV\u2026',
+      detail: null,
+      detailExpanded: false,
+    });
+  }
+
+  // Stage 4: Summary (complete only)
+  if (isComplete) {
+    const summaryLines = lines
+      .filter(l => /fail|pass|muted|high|medium|low|total/i.test(l) && l.length < 100)
+      .slice(-5)
+      .map(l => ({ text: l.trim(), err: false }));
+
+    if (summaryLines.length) {
+      stages.push({
+        cls:   'done',
+        dot:   '\u2713',
+        title: 'Summary',
+        sub:   _extractFindingCount(lines),
+        detail: summaryLines,
+        detailExpanded: true,
+      });
+    }
+  }
+
+  return stages;
+}
+
+function _extractCheckCount(lines) {
+  for (const line of [...lines]) {
+    const m = line.match(/executing\s+(\d+)\s+check/i);
+    if (m) return m[1] + ' checks';
+  }
+  return '';
+}
+
+function _extractFindingCount(lines) {
+  for (const line of [...lines].reverse()) {
+    const m = line.match(/(\d+)\s+(FAIL|finding|check)/i);
+    if (m) return `${m[1]} ${m[2].toLowerCase()}s`;
+  }
+  return 'findings';
+}
+
+function _extractProgress(lines) {
+  // Look for percentage or count indicators
+  for (const line of [...lines].reverse()) {
+    const pct = line.match(/(\d+\.?\d*)\s*%/);
+    if (pct) return `${pct[1]}%`;
+    const cnt = line.match(/\[(\d+)\/(\d+)\]/);
+    if (cnt) return `${cnt[1]}/${cnt[2]}`;
+  }
+  return '';
+}
+
+
+
+// ── ScubaGear output path banner ─────────────────────────────────────
+function _showScubaPathBanner(outputPath) {
+  const tl = document.getElementById('scan-timeline');
+  if (!tl) return;
+
+  const existing = document.getElementById('scuba-path-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'scuba-path-banner';
+  banner.style.cssText = 'background:var(--warning-bg);border:2px solid #d97706;border-radius:6px;padding:16px 18px;margin-bottom:14px';
+
+  // Store path on the banner element so copy fn can read it safely
+  banner.dataset.path = outputPath;
+
+  banner.innerHTML =
+    '<div style="font-weight:700;color:#92400e;font-family:var(--fh);font-size:14px;margin-bottom:10px">' +
+      'ScubaGear is running' +
+    '</div>' +
+    '<div style="font-size:13px;color:var(--text-2);margin-bottom:10px">' +
+      'In the <strong>ScubaGear window → Advanced Settings</strong>, ' +
+      'set <strong>Output Path</strong> to the path below. ' +
+      'Or leave it blank — we search Documents and Desktop automatically.' +
+    '</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+      '<input id="scuba-path-input" type="text" readonly ' +
+        'style="flex:1;background:#fff;border:1px solid var(--border);border-radius:4px;' +
+               'padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--text)"' +
+        ' value="">' +
+      '<button class="btn btn-primary" style="flex-shrink:0;white-space:nowrap" ' +
+              'onclick="_copyScubaPath(this)">Copy Path</button>' +
+    '</div>' +
+    '<div style="font-size:11px;color:var(--muted)">' +
+      'Polling every 10 seconds. This page updates automatically when the scan completes.' +
+    '</div>';
+
+  // Set value after insertion to avoid HTML injection issues
+  tl.parentNode.insertBefore(banner, tl);
+  const input = document.getElementById('scuba-path-input');
+  if (input) input.value = outputPath;
+}
+
+function _copyScubaPath(btn) {
+  const input = document.getElementById('scuba-path-input');
+  if (!input) return;
+  const path = input.value;
+  // Use input select+execCommand as fallback (works on HTTP without permissions)
+  input.select();
+  input.setSelectionRange(0, 99999);
+  try {
+    document.execCommand('copy');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Path', 2000);
+  } catch(e) {
+    // Try clipboard API as secondary
+    navigator.clipboard.writeText(path).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy Path', 2000);
+    }).catch(() => {
+      // Last resort — select the text so user can Ctrl+C
+      btn.textContent = 'Select + Ctrl+C';
+    });
+  }
+}
+
+
+
+// ── Exposure Scanner ──────────────────────────────────────────────────
+
+let activeExposureScanId  = null;
+let exposureEvtSource     = null;
+let _exposureDetailEngId  = null;
+let _exposureFindings     = [];
+let _exposureDetailPoll   = null;
+let _awsExposureServices  = {};
+let _azureExposureServices = {};
+
+async function _ensureExposureServices() {
+  if (Object.keys(_awsExposureServices).length) return;
+  try {
+    const s = await api('GET', '/meta/exposure-services');
+    _awsExposureServices   = s.aws   || {};
+    _azureExposureServices = s.azure || {};
+  } catch(e) {}
+}
+
+// ── Exposure list view ────────────────────────────────────────────────
+
+async function loadExposureScans() {
+  const container = document.getElementById('exposure-list');
+  container.innerHTML = '<div class="empty-state"><div class="spinner spinner-lg"></div></div>';
+  try {
+    const engs = await api('GET', '/engagements');
+    let all = [];
+    for (const eng of engs) {
+      const scans = await api('GET', `/engagements/${eng.id}/exposures`);
+      scans.forEach(s => s._engagement = eng);
+      all = all.concat(scans);
+    }
+    all.sort((a, b) => b.created_at.localeCompare(a.created_at));
+
+    if (!all.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">&#x26A0;</div>
+          <div class="empty-title">No exposure scans yet</div>
+          <div class="empty-sub">Scan a cloud account to discover publicly accessible resources</div>
+          <br>
+          <button class="btn btn-primary" onclick="openNewExposureModal()">+ New Scan</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px">
+      ${all.map(s => exposureRowHTML(s)).join('')}
+    </div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="alert alert-error visible">Failed to load: ${esc(e.message)}</div>`;
+  }
+}
+
+function exposureRowHTML(s) {
+  const eng     = s._engagement;
+  const created = new Date(s.created_at).toLocaleString();
+  const badge   = s.provider === 'aws'
+    ? '<span class="eng-badge eng-badge-prowler">AWS</span>'
+    : '<span class="eng-badge" style="background:#e0f2fe;color:#0369a1">Azure</span>';
+
+  const counts = s.status === 'complete' ? `
+    <span style="font-size:11px;font-family:var(--mono);color:var(--danger)">${s.high_count || 0} High</span>
+    <span style="font-size:11px;color:var(--muted)">|</span>
+    <span style="font-size:11px;font-family:var(--mono);color:var(--warning-dark)">${s.medium_count || 0} Med</span>
+    <span style="font-size:11px;color:var(--muted)">|</span>
+    <span style="font-size:11px;font-family:var(--mono);color:var(--success)">${s.low_count || 0} Low</span>
+  ` : '';
+
+  return `
+    <div style="padding:14px 16px;border:1px solid var(--border);border-radius:4px;
+                background:#fafbfc;cursor:pointer"
+         onclick="openExposureDetail('${s.id}','${eng ? eng.id : ''}')">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        ${badge}
+        <span class="status-badge status-${s.status}">${statusLabel(s.status)}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text)">
+          ${eng ? esc(eng.client_name) : 'Unknown engagement'}
+        </span>
+        <span style="font-size:11px;color:var(--muted)">${created}</span>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">${counts}</span>
+      </div>
+      ${s.aws_region ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">Region: ${esc(s.aws_region)}</div>` : ''}
+    </div>`;
+}
+
+// ── New Exposure Modal ────────────────────────────────────────────────
+
+let _expCredMode = 'keys';
+
+async function openNewExposureModal(engId) {
+  await _ensureExposureServices();
+  const engs = await api('GET', '/engagements');
+  const engOptions = engs.map(e =>
+    `<option value="${esc(e.id)}" ${e.id === (engId || currentEngagementId) ? 'selected' : ''}>
+      ${esc(e.client_name)} -- ${esc(e.assessment_period)}
+    </option>`).join('');
+
+  const s = getSettings();
+
+  document.getElementById('exposure-modal-body').innerHTML = `
+    <div class="alert alert-error" id="exp-form-error" style="display:none"></div>
+
+    <div class="form-row">
+      <label>Engagement *</label>
+      <select id="exp-engagement">${engOptions}</select>
+    </div>
+
+    <div class="form-grid-2">
+      <div class="form-row">
+        <label>Cloud Provider *</label>
+        <select id="exp-provider" onchange="onExpProviderChange()">
+          <option value="aws">AWS</option>
+          <option value="azure">Azure</option>
+        </select>
+      </div>
+      <div class="form-row" id="exp-region-row">
+        <label>AWS Region(s)</label>
+        <input type="text" id="exp-regions" value="${s.aws_region || 'us-east-1'}"
+               placeholder="us-east-1, ap-southeast-2">
+        <div class="form-hint">Comma-separated. Leave blank for account-level checks only.</div>
+      </div>
+    </div>
+
+    <!-- AWS creds -->
+    <div id="exp-aws-creds">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:10px">AWS Credentials</div>
+      <div class="cred-toggle">
+        <button class="cred-opt active" id="exp-cred-keys" onclick="setExpCredMode('keys')">Temporary Keys</button>
+        <button class="cred-opt" id="exp-cred-profile" onclick="setExpCredMode('profile')">AWS Profile</button>
+      </div>
+      <div class="cred-section visible" id="exp-keys-section">
+        <div class="form-row">
+          <label>Access Key ID *</label>
+          <input type="text" id="exp-key-id" placeholder="AKIA...">
+        </div>
+        <div class="form-row">
+          <label>Secret Access Key *</label>
+          <input type="password" id="exp-key-secret" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+        </div>
+        <div class="form-row">
+          <label>Session Token <span style="font-weight:400">(optional)</span></label>
+          <input type="password" id="exp-key-token" placeholder="Optional">
+        </div>
+      </div>
+      <div class="cred-section" id="exp-profile-section">
+        <div class="form-row">
+          <label>AWS Profile</label>
+          <input type="text" id="exp-profile" value="${s.aws_profile || 'default'}">
+        </div>
+      </div>
+    </div>
+
+    <!-- Azure creds -->
+    <div id="exp-azure-creds" style="display:none">
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:10px">Azure Credentials</div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label>Tenant ID *</label>
+          <input type="text" id="exp-azure-tenant" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+        <div class="form-row">
+          <label>Client ID *</label>
+          <input type="text" id="exp-azure-client" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Client Secret *</label>
+        <input type="password" id="exp-azure-secret" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+      </div>
+      <div class="form-row">
+        <label>Subscription ID *</label>
+        <input type="text" id="exp-azure-sub" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="card-title" style="margin-bottom:8px">
+      Services to Scan
+      <span style="font-weight:400;font-size:11px;color:var(--muted)">(all selected by default)</span>
+    </div>
+    <div id="exp-services-selector" style="max-height:160px;overflow-y:auto;border:1px solid var(--border);
+         border-radius:4px;padding:8px;display:flex;flex-wrap:wrap;gap:6px"></div>
+  `;
+
+  onExpProviderChange();
+  openModal('modal-new-exposure');
+}
+
+function setExpCredMode(mode) {
+  _expCredMode = mode;
+  document.getElementById('exp-cred-keys').classList.toggle('active', mode === 'keys');
+  document.getElementById('exp-cred-profile').classList.toggle('active', mode === 'profile');
+  document.getElementById('exp-keys-section').classList.toggle('visible', mode === 'keys');
+  document.getElementById('exp-profile-section').classList.toggle('visible', mode === 'profile');
+}
+
+function onExpProviderChange() {
+  const provider = document.getElementById('exp-provider')?.value;
+  if (!provider) return;
+  const isAws = provider === 'aws';
+  document.getElementById('exp-aws-creds').style.display   = isAws ? '' : 'none';
+  document.getElementById('exp-azure-creds').style.display = isAws ? 'none' : '';
+  document.getElementById('exp-region-row').style.display  = isAws ? '' : 'none';
+
+  const services = isAws ? _awsExposureServices : _azureExposureServices;
+  const sel = document.getElementById('exp-services-selector');
+  if (sel) {
+    sel.innerHTML = Object.entries(services).map(([key, label]) => `
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;
+             padding:3px 8px;border:1px solid var(--border);border-radius:3px;
+             background:#fff;white-space:nowrap">
+        <input type="checkbox" class="exp-svc-check" value="${esc(key)}" checked>
+        ${esc(label)}
+      </label>`).join('');
+  }
+}
+
+async function submitExposureScan() {
+  const provider = document.getElementById('exp-provider')?.value;
+  const engId    = document.getElementById('exp-engagement')?.value;
+  const errEl    = document.getElementById('exp-form-error');
+  const showErr  = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
+
+  if (!engId)    { showErr('Please select an engagement'); return; }
+  if (!provider) { showErr('Please select a provider'); return; }
+
+  const checkedSvcs = Array.from(
+    document.querySelectorAll('.exp-svc-check:checked')
+  ).map(el => el.value);
+
+  const payload = {
+    provider,
+    credential_source: _expCredMode === 'profile' ? 'profile' : 'keys',
+    aws_profile: '', aws_region: '', aws_account_id: '',
+    azure_tenant_id: '', azure_client_id: '', azure_subscription_id: '',
+    regions_scope: [], services_scope: checkedSvcs,
+  };
+  const secrets = {};
+
+  if (provider === 'aws') {
+    const regionsRaw = document.getElementById('exp-regions')?.value || '';
+    payload.regions_scope = regionsRaw.split(',').map(r => r.trim()).filter(Boolean);
+    payload.aws_region    = payload.regions_scope[0] || 'us-east-1';
+
+    if (_expCredMode === 'keys') {
+      secrets.aws_access_key_id     = document.getElementById('exp-key-id')?.value?.trim();
+      secrets.aws_secret_access_key = document.getElementById('exp-key-secret')?.value?.trim();
+      secrets.aws_session_token     = document.getElementById('exp-key-token')?.value?.trim() || null;
+      if (!secrets.aws_access_key_id || !secrets.aws_secret_access_key) {
+        showErr('Access Key ID and Secret Access Key are required'); return;
+      }
+    } else {
+      payload.aws_profile = document.getElementById('exp-profile')?.value || 'default';
+    }
+  } else {
+    payload.azure_tenant_id       = document.getElementById('exp-azure-tenant')?.value?.trim();
+    payload.azure_client_id       = document.getElementById('exp-azure-client')?.value?.trim();
+    payload.azure_subscription_id = document.getElementById('exp-azure-sub')?.value?.trim();
+    secrets.azure_client_secret   = document.getElementById('exp-azure-secret')?.value?.trim();
+    secrets.azure_subscription_id = payload.azure_subscription_id;
+
+    if (!payload.azure_tenant_id || !payload.azure_client_id || !secrets.azure_client_secret) {
+      showErr('Tenant ID, Client ID, and Client Secret are required'); return;
+    }
+    if (!payload.azure_subscription_id) {
+      showErr('Subscription ID is required for Azure exposure scanning'); return;
+    }
+  }
+
+  const btn = document.getElementById('btn-start-exposure');
+  btn.disabled = true; btn.textContent = 'Starting...';
+
+  try {
+    const scan = await api('POST', `/engagements/${engId}/exposures`, payload);
+    if (Object.keys(secrets).length) {
+      await api('POST', `/exposures/${scan.id}/secrets`, secrets);
+    }
+    await api('POST', `/exposures/${scan.id}/start`, {});
+    closeModal('modal-new-exposure');
+    _exposureDetailEngId = engId;
+    openExposureDetail(scan.id, engId);
+  } catch(e) {
+    showErr(`Failed to start scan: ${e.message}`);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Start Scan \u2192';
+  }
+}
+
+// ── Exposure detail view ──────────────────────────────────────────────
+
+function _resetExposureDetailState() {
+  if (exposureEvtSource)   { exposureEvtSource.close(); exposureEvtSource = null; }
+  if (_exposureDetailPoll) { clearInterval(_exposureDetailPoll); _exposureDetailPoll = null; }
+  activeExposureScanId = null;
+  _exposureFindings    = [];
+  const log = document.getElementById('exposure-log');
+  if (log) log.innerHTML = '';
+  const sp = document.getElementById('exposure-spinner');
+  if (sp) sp.style.display = 'none';
+  document.getElementById('exposure-summary-cards').innerHTML = '';
+  document.getElementById('exposure-findings-section').style.display = 'none';
+  document.getElementById('exposure-log-card').style.display = '';
+  document.querySelectorAll('[id^="exp-stage-"]').forEach(el => el.className = 'stage-step');
+}
+
+function _updateExpStageBar(status) {
+  const map = {pending: 0, running: 1, complete: 2, failed: 1, cancelled: 1};
+  const idx = map[status] ?? 0;
+  ['pending','running','complete'].forEach((s, i) => {
+    const el = document.getElementById(`exp-stage-${s}`);
+    if (!el) return;
+    el.className = 'stage-step';
+    if (status === 'failed' || status === 'cancelled') {
+      if (i === 1) el.classList.add('failed');
+      else if (i < 1) el.classList.add('done');
+    } else {
+      if (i < idx)      el.classList.add('done');
+      else if (i === idx) el.classList.add('active');
+    }
+  });
+  if (status === 'complete') {
+    document.getElementById('exp-stage-complete')?.classList.replace('active','done');
+  }
+}
+
+function _renderSummaryCards(scan) {
+  const cards = document.getElementById('exposure-summary-cards');
+  if (!cards) return;
+  const total = scan.total_exposed || 0;
+  const high  = scan.high_count   || 0;
+  const med   = scan.medium_count || 0;
+  const low   = scan.low_count    || 0;
+
+  cards.innerHTML = [
+    { label:'Total Exposed', value: total, color:'var(--teal)',   bg:'var(--teal-bg)'   },
+    { label:'High',          value: high,  color:'var(--danger)', bg:'#fff1f1'          },
+    { label:'Medium',        value: med,   color:'#d97706',       bg:'#fffbeb'          },
+    { label:'Low',           value: low,   color:'var(--success)','bg':'var(--success-bg)'},
+  ].map(c => `
+    <div style="padding:14px 20px;border-radius:6px;border:1px solid ${c.color}33;
+                background:${c.bg};min-width:100px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:${c.color};font-family:var(--fh)">${c.value}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;
+                  letter-spacing:.05em">${c.label}</div>
+    </div>`).join('');
+}
+
+async function openExposureDetail(scanId, engId) {
+  _resetExposureDetailState();
+  activeExposureScanId = scanId;
+  _exposureDetailEngId = engId;
+  navigate('exposure-detail');
+
+  let scan;
+  try { scan = await api('GET', `/exposures/${scanId}`); }
+  catch(e) { return; }
+
+  document.getElementById('exposure-detail-title').textContent =
+    `${scan.provider.toUpperCase()} Exposure Scan`;
+  document.getElementById('exposure-detail-sub').textContent =
+    `${scan.aws_region || scan.azure_subscription_id || ''} \u00b7 ${new Date(scan.created_at).toLocaleString()}`;
+
+  _updateExpStageBar(scan.status);
+
+  if (scan.status === 'complete') {
+    _renderSummaryCards(scan);
+    await _loadAndRenderFindings(scanId);
+    document.getElementById('exposure-log-card').style.display = 'none';
+    document.getElementById('exposure-findings-section').style.display = '';
+    return;
+  }
+
+  if (scan.status === 'failed' || scan.status === 'cancelled') {
+    return;
+  }
+
+  // Active — connect SSE
+  document.getElementById('exposure-spinner').style.display = 'inline-block';
+  _connectExposureStream(scanId);
+
+  _exposureDetailPoll = setInterval(async () => {
+    if (!activeExposureScanId) { clearInterval(_exposureDetailPoll); return; }
+    try {
+      const s = await api('GET', `/exposures/${activeExposureScanId}`);
+      _updateExpStageBar(s.status);
+      if (['complete','failed','cancelled'].includes(s.status)) {
+        clearInterval(_exposureDetailPoll); _exposureDetailPoll = null;
+        document.getElementById('exposure-spinner').style.display = 'none';
+        if (s.status === 'complete') {
+          _renderSummaryCards(s);
+          await _loadAndRenderFindings(activeExposureScanId);
+          document.getElementById('exposure-log-card').style.display = 'none';
+          document.getElementById('exposure-findings-section').style.display = '';
+        }
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
+function _connectExposureStream(scanId) {
+  if (exposureEvtSource) { exposureEvtSource.close(); exposureEvtSource = null; }
+  const es = new EventSource(`/api/exposures/${scanId}/stream`);
+  exposureEvtSource = es;
+  const log = document.getElementById('exposure-log');
+
+  es.onmessage = async (e) => {
+    let data;
+    try { data = JSON.parse(e.data); } catch(err) { return; }
+    if (data.type === 'heartbeat') return;
+
+    if (data.type === 'log' && log) {
+      const line = document.createElement('div');
+      line.style.color = data.stream === 'stderr' ? 'var(--danger)' : 'inherit';
+      line.textContent = data.text;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    if (data.type === 'status') {
+      _updateExpStageBar(data.value);
+      if (['complete','failed','cancelled'].includes(data.value)) {
+        es.close(); exposureEvtSource = null;
+        document.getElementById('exposure-spinner').style.display = 'none';
+      }
+    }
+
+    if (data.type === 'exposure_complete') {
+      try {
+        const s = await api('GET', `/exposures/${scanId}`);
+        _renderSummaryCards(s);
+        await _loadAndRenderFindings(scanId);
+        document.getElementById('exposure-log-card').style.display = 'none';
+        document.getElementById('exposure-findings-section').style.display = '';
+      } catch(ex) {}
+    }
+  };
+
+  es.onerror = () => { es.close(); exposureEvtSource = null; };
+}
+
+// ── Findings table ────────────────────────────────────────────────────
+
+async function _loadAndRenderFindings(scanId) {
+  try {
+    _exposureFindings = await api('GET', `/exposures/${scanId}/findings`);
+    _populateExposureFilters(_exposureFindings);
+    _renderFindingsTable(_exposureFindings);
+  } catch(e) {}
+}
+
+function _populateExposureFilters(findings) {
+  const services = [...new Set(findings.map(f => f.service))].sort();
+  const regions  = [...new Set(findings.map(f => f.region).filter(Boolean))].sort();
+
+  const svcSel = document.getElementById('exp-filter-service');
+  if (svcSel) {
+    svcSel.innerHTML = '<option value="">All Services</option>' +
+      services.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  }
+  const regSel = document.getElementById('exp-filter-region');
+  if (regSel) {
+    regSel.innerHTML = '<option value="">All Regions</option>' +
+      regions.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  }
+}
+
+function filterExposureFindings() {
+  const svc = document.getElementById('exp-filter-service')?.value  || '';
+  const sev = document.getElementById('exp-filter-severity')?.value || '';
+  const reg = document.getElementById('exp-filter-region')?.value   || '';
+
+  const filtered = _exposureFindings.filter(f =>
+    (!svc || f.service  === svc) &&
+    (!sev || f.severity === sev) &&
+    (!reg || f.region   === reg)
+  );
+  _renderFindingsTable(filtered);
+}
+
+const SEV_COLOURS = { High: '#dc2626', Medium: '#d97706', Low: '#16a34a' };
+const SEV_BG      = { High: '#fff1f1', Medium: '#fffbeb', Low: '#f0fdf4' };
+
+function _renderFindingsTable(findings) {
+  const tbody = document.getElementById('exposure-findings-tbody');
+  const empty = document.getElementById('exposure-findings-empty');
+  if (!tbody) return;
+
+  if (!findings.length) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  tbody.innerHTML = findings.map(f => {
+    const details = typeof f.details === 'object'
+      ? Object.entries(f.details).map(([k,v]) => `${k}: ${v}`).join(', ')
+      : String(f.details || '');
+
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:9px 12px">
+        <span style="background:${SEV_BG[f.severity]};color:${SEV_COLOURS[f.severity]};
+              padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">
+          ${esc(f.severity)}
+        </span>
+      </td>
+      <td style="padding:9px 12px;font-size:12px;font-family:var(--mono)">${esc(f.service)}</td>
+      <td style="padding:9px 12px">
+        <div style="font-size:12px;font-weight:600">${esc(f.resource_name || f.resource_id)}</div>
+        ${f.resource_arn ? `<div style="font-size:10px;color:var(--muted);font-family:var(--mono);
+          word-break:break-all">${esc(f.resource_arn)}</div>` : ''}
+      </td>
+      <td style="padding:9px 12px;font-size:11px;color:var(--muted)">${esc(f.region || '--')}</td>
+      <td style="padding:9px 12px;font-size:12px">${esc(f.exposure_type)}</td>
+      <td style="padding:9px 12px;font-size:11px;color:var(--muted);max-width:200px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+          title="${esc(details)}">${esc(details)}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function exportExposure(fmt) {
+  if (!activeExposureScanId) return;
+  window.open(`/api/exposures/${activeExposureScanId}/findings/export?fmt=${fmt}`, '_blank');
+}
+
+function backFromExposure() {
+  _resetExposureDetailState();
+  navigate('exposure');
+}
+
 
 // ── Boot ──────────────────────────────────────────────────────────────
 // Run platform detection and dashboard load in parallel.
@@ -2726,5 +4384,40 @@ async function backFromPreflight() {
   startGlobalPoll();         // background refresh for all views
 })();
 </script>
+<!-- ── New Scan Modal ── -->
+<div class="modal-overlay" id="modal-new-scan">
+  <div class="modal" style="width:640px">
+    <div class="modal-header">
+      <span class="modal-title">Configure Scan</span>
+      <button class="modal-close" onclick="closeModal('modal-new-scan')">✕</button>
+    </div>
+    <div class="modal-body" id="new-scan-modal-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-scan')">Cancel</button>
+      <button class="btn btn-primary" id="btn-start-scan" onclick="submitNewScan()">
+        Start Scan →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Exposure Scan Modal ── -->
+<div class="modal-overlay" id="modal-new-exposure">
+  <div class="modal" style="width:620px">
+    <div class="modal-header">
+      <span class="modal-title">New Exposure Scan</span>
+      <button class="modal-close" onclick="closeModal('modal-new-exposure')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="exposure-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-exposure')">Cancel</button>
+      <button class="btn btn-primary" id="btn-start-exposure" onclick="submitExposureScan()">
+        Start Scan &#x2192;
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

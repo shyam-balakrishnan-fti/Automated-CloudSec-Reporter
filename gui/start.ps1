@@ -146,6 +146,14 @@ if ($scubaModule) {
         Install-Module -Name PowerShellGet -Force -AllowClobber -Scope CurrentUser -ErrorAction SilentlyContinue
         Install-Module -Name ScubaGear -Force -AllowClobber -Scope CurrentUser
         Write-Success "ScubaGear installed"
+        Write-Info "Installing ScubaGear dependencies (powershell-yaml, Microsoft.Graph etc.)..."
+        try {
+            Import-Module ScubaGear -Force
+            Initialize-SCuBA -SkipUpdate
+            Write-Success "ScubaGear dependencies installed"
+        } catch {
+            Write-Warn "Initialize-SCuBA failed -- run it manually before using ScubaGear scans."
+        }
     } catch {
         Write-Warn "ScubaGear install failed: $_"
         Write-Warn "You can retry from Tools and Setup in the GUI."
@@ -164,10 +172,15 @@ if (-not (Test-Path $venvPath)) {
     uv venv $venvPath --python 3.12
 }
 
-Write-Info "Installing openpyxl, pydantic, boto3, tomli..."
+Write-Info "Installing pipeline dependencies (openpyxl, boto3, azure-mgmt-*)..."
 try {
-    uv pip install --python $venvPython openpyxl pydantic boto3 tomli `
-        "pandas>=2.0.0" --only-binary pandas --link-mode copy --quiet
+    uv pip install --python $venvPython `
+        openpyxl pydantic boto3 tomli `
+        "pandas>=2.0.0" --only-binary pandas `
+        azure-identity azure-mgmt-compute azure-mgmt-storage azure-mgmt-sql `
+        azure-mgmt-network azure-mgmt-containerservice azure-mgmt-keyvault `
+        azure-mgmt-cosmosdb azure-mgmt-web azure-mgmt-containerregistry `
+        --link-mode copy --quiet
     Write-Success "Pipeline dependencies ready"
 } catch {
     Write-Warn "Some dependencies failed: $_"
@@ -189,6 +202,14 @@ try {
 
 # -- 8. Launch -------------------------------------------------
 Write-Header "Step 8: Launch"
+
+# Check for Bedrock deployment name
+if (-not $env:BEDROCK_DEPLOYMENT_NAME) {
+    Write-Warn "BEDROCK_DEPLOYMENT_NAME environment variable is not set."
+    Write-Warn "Set it before running:"
+    Write-Warn '  $env:BEDROCK_DEPLOYMENT_NAME = "arn:aws:bedrock:..."'
+    Write-Warn "Or enter it in Settings in the GUI after launch."
+}
 
 $URL = "http://localhost:$PORT"
 Write-Info "Starting GUI on $URL"

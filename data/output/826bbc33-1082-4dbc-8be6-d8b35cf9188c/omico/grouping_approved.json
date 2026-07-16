@@ -1,0 +1,603 @@
+{
+  "run_id": "a778d094-1cc6-4523-bac4-8c55e65d7f32",
+  "approved_at": "2026-07-10T04:18:39.122Z",
+  "groups": [
+    {
+      "group_name": "CloudTrail S3 Bucket Lacks Comprehensive Protection Controls",
+      "check_ids": [
+        "cloudtrail_bucket_requires_mfa_delete",
+        "cloudtrail_log_file_validation_enabled",
+        "cloudtrail_logs_s3_bucket_access_logging_enabled",
+        "cloudtrail_logs_s3_bucket_is_not_publicly_accessible"
+      ],
+      "rationale": "All four checks address different protective controls for CloudTrail logging infrastructure that share the common goal of ensuring CloudTrail log integrity and security. The root cause is insufficient protective configuration on CloudTrail trails and their associated S3 buckets, including missing MFA delete protection, log file validation, access logging, and public access controls. These can be remediated in a single session by an engineer configuring comprehensive CloudTrail and S3 bucket security settings, as they all relate to hardening the same CloudTrail logging infrastructure against tampering, unauthorized access, and lack of auditability.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Root Account MFA Not Properly Configured",
+      "check_ids": [
+        "iam_root_hardware_mfa_enabled",
+        "iam_root_mfa_enabled"
+      ],
+      "rationale": "Both checks address the same root cause: lack of MFA protection on the root account. They share the same attack vector (credential compromise) and can be remediated together by enabling hardware MFA, which satisfies both requirements.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Lambda Functions Publicly Accessible via Resource Policy",
+      "check_ids": [
+        "awslambda_function_not_publicly_accessible"
+      ],
+      "rationale": "This critical finding identifies Lambda functions with resource-based policies that permit public invocation, potentially allowing unauthorized code execution and API abuse. This is a Lambda-specific IAM resource policy misconfiguration requiring review and restriction of function-level permissions, distinct from other compute or access control issues.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Buckets Exposed to Public Access",
+      "check_ids": [
+        "s3_bucket_policy_public_write_access",
+        "s3_bucket_public_access",
+        "s3_bucket_public_list_acl",
+        "s3_bucket_public_write_acl"
+      ],
+      "rationale": "These checks all identify S3 buckets with various forms of public access exposure through either bucket policies or ACLs that grant permissions to Everyone or Any AWS user, including read, write, and list operations. All share the root cause of inadequate S3 public access controls and can be remediated together by reviewing bucket policies, ACLs, and enabling S3 Block Public Access settings, following a unified approach to eliminating public S3 exposure.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Secrets Exposed in AWS Service Configurations and Logs",
+      "check_ids": [
+        "cloudformation_stack_outputs_find_secrets",
+        "cloudwatch_log_group_no_secrets_in_logs",
+        "awslambda_function_no_secrets_in_code",
+        "awslambda_function_no_secrets_in_variables"
+      ],
+      "rationale": "All four checks detect hardcoded secrets in various AWS service configurations: CloudFormation outputs, CloudWatch log streams, Lambda function code, and Lambda environment variables. The shared root cause is developers embedding sensitive credentials directly in infrastructure-as-code, application code, or logs rather than using AWS Secrets Manager or Parameter Store. Remediation requires the same pattern: identifying the exposed secrets, rotating them, migrating to secure secret storage services, and updating application code to retrieve secrets dynamically at runtime.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Organizations Delegated Administrators Require Trust Validation",
+      "check_ids": [
+        "organizations_delegated_administrators"
+      ],
+      "rationale": "This check identifies delegated administrator accounts in AWS Organizations that may not be properly vetted or trusted. It requires reviewing and validating which accounts have delegated administrative permissions to prevent unauthorized organizational control.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon EC2 Transit Gateway Auto-Accept VPC Attachments Enabled",
+      "check_ids": [
+        "ec2_transitgateway_auto_accept_vpc_attachments"
+      ],
+      "rationale": "This check identifies Transit Gateways configured to automatically accept VPC attachment requests without approval, which bypasses security review processes and could allow unauthorized network connections. This is a distinct architectural security control that requires its own remediation workflow and governance process separate from other networking configurations.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "CloudWatch Log Groups Publicly Accessible",
+      "check_ids": [
+        "cloudwatch_log_group_not_publicly_accessible"
+      ],
+      "rationale": "This check identifies CloudWatch Log Groups with resource policies that permit public access, which could expose sensitive application and infrastructure logs to unauthorized parties. This is a distinct service-level misconfiguration requiring specific IAM resource policy remediation for CloudWatch Logs and warrants separate tracking due to its high severity and potential for data exposure.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "EBS Snapshot Public Access Not Blocked at Account Level",
+      "check_ids": [
+        "ec2_ebs_snapshot_account_block_public_access"
+      ],
+      "rationale": "This check identifies accounts where the account-level block public access setting for EBS snapshots is not enabled, allowing potential accidental or intentional public sharing of volume data. This is an EC2 account-level setting distinct from individual resource configurations and requires a one-time account-wide remediation.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Policies Grant Overly Permissive Administrative Privileges",
+      "check_ids": [
+        "iam_aws_attached_policy_no_administrative_privileges",
+        "iam_inline_policy_no_administrative_privileges",
+        "iam_inline_policy_no_full_access_to_kms",
+        "iam_policy_allows_privilege_escalation",
+        "iam_inline_policy_allows_privilege_escalation"
+      ],
+      "rationale": "All five checks identify IAM policies (AWS-managed, customer-managed, or inline) that grant excessive permissions such as full administrative access (*:*), unrestricted KMS access (kms:*), or permission combinations that enable privilege escalation attacks. These share the same root cause of overly permissive IAM policy design and the same remediation approach: applying least-privilege principles by scoping down permissions, removing wildcard grants, and eliminating dangerous permission combinations. A single security engineer can address all of these by reviewing and refactoring the identified policies following AWS IAM best practices in one remediation session.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Roles with Overly Permissive or Risky Policies",
+      "check_ids": [
+        "iam_role_administratoraccess_policy",
+        "iam_role_cross_account_readonlyaccess_policy",
+        "iam_role_cross_service_confused_deputy_prevention"
+      ],
+      "rationale": "These three checks all identify IAM role policy misconfigurations that violate least-privilege principles or create trust boundary vulnerabilities. The root cause is inadequate IAM role design: granting AdministratorAccess when narrow permissions suffice, allowing cross-account ReadOnlyAccess without justification, and failing to implement confused deputy prevention in service roles. A single IAM engineer can remediate all three by reviewing role policies, implementing condition keys (aws:SourceAccount, aws:SourceArn), replacing AdministratorAccess with scoped policies, and restricting cross-account trusts to specific principals with business justification.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Root Account Credentials Management Not Centralized",
+      "check_ids": [
+        "iam_root_credentials_management_enabled"
+      ],
+      "rationale": "This check addresses a distinct control for centralizing root credential management across AWS Organizations. While related to root account security, it requires different remediation steps than MFA configuration and represents a separate organizational governance control.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Multi-Region CloudTrail Configuration Not Enabled",
+      "check_ids": [
+        "cloudtrail_multi_region_enabled"
+      ],
+      "rationale": "This finding identifies AWS accounts lacking multi-region CloudTrail configuration, which creates audit visibility gaps across regions and undermines forensic readiness. This is a distinct CloudTrail service configuration issue requiring enablement of the multi-region trail feature, separate from other logging mechanisms.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Instance Does Not Enforce Transport Encryption",
+      "check_ids": [
+        "rds_instance_transport_encrypted"
+      ],
+      "rationale": "This check identifies RDS instances that do not enforce SSL/TLS encryption for client connections. The root cause is the absence of required SSL/TLS parameter configuration or enforcement at the database instance level. This warrants a separate entry because RDS transport encryption remediation involves database-specific parameter groups and connection policies distinct from at-rest encryption or other service encryption requirements.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Buckets Allow Cross-Account Access Without Proper Controls",
+      "check_ids": [
+        "s3_bucket_cross_account_access"
+      ],
+      "rationale": "This check identifies S3 bucket policies that grant access to external AWS accounts, representing a trust boundary violation risk. This warrants a separate finding because cross-account access is an intentional business requirement that requires validation and approval rather than blanket denial, and remediation involves reviewing and potentially restricting specific principal statements in bucket policies rather than applying a universal configuration change.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Buckets Exposed to Public Access",
+      "check_ids": [
+        "s3_account_level_public_access_blocks",
+        "s3_bucket_level_public_access_block"
+      ],
+      "rationale": "These checks belong to the existing group 'S3 Buckets Exposed to Public Access' from earlier chunks, as both identify gaps in public access block configurations that could allow unintended public exposure of S3 data. The account-level and bucket-level public access blocks share the same root cause\u2014failure to implement comprehensive public access restrictions\u2014and are remediated through the same AWS S3 Block Public Access feature at different scopes.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "SNS Topics Exposed to Public Access",
+      "check_ids": [
+        "sns_topics_not_publicly_accessible"
+      ],
+      "rationale": "This check identifies SNS topics with resource policies that permit public access, creating an internet-exposed attack surface. This is a distinct service-level misconfiguration that requires reviewing and restricting SNS topic policies to prevent unauthorized subscription or publication. The issue warrants its own entry because SNS policy remediation involves different controls and IAM principals than other public-access findings like S3 or Lambda.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "SNS Topics Lack KMS Encryption at Rest",
+      "check_ids": [
+        "sns_topics_kms_encryption_at_rest_enabled"
+      ],
+      "rationale": "This check identifies SNS topics that are not encrypted at rest using KMS. The root cause is the absence of KMS encryption configuration on SNS topics, which can expose message content to unauthorized access. This warrants a separate entry because SNS encryption configuration is service-specific and requires enabling KMS encryption at the topic level, distinct from other messaging or logging service encryption requirements.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Account Contact Details Not Properly Segmented",
+      "check_ids": [
+        "account_maintain_different_contact_details_to_security_billing_and_operations"
+      ],
+      "rationale": "This check identifies AWS accounts where security, billing, and operations contact details are not properly separated, creating a single point of communication failure and reducing incident response effectiveness. This is an account-level configuration issue requiring updates to alternate contact information through the AWS account settings. The finding is kept separate because it addresses organizational resilience and notification routing rather than technical security controls, requiring coordination with business operations and finance teams rather than infrastructure engineering.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Config Recorder Not Enabled in All Regions",
+      "check_ids": [
+        "config_recorder_all_regions_enabled"
+      ],
+      "rationale": "This check detects AWS accounts where Config Recorder is not enabled across all regions, preventing continuous compliance monitoring and configuration change tracking. This is a service-specific configuration gap requiring AWS Config enablement and differs from other logging or auditing services in its purpose and remediation approach.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Elastic Disaster Recovery (DRS) Not Configured",
+      "check_ids": [
+        "drs_job_exist"
+      ],
+      "rationale": "This check detects that AWS Elastic Disaster Recovery service has not been enabled or configured with replication jobs across 102 instances, representing a significant business continuity risk. DRS enables continuous block-level replication of on-premises and cloud-based applications to AWS for rapid recovery during disasters. Remediation requires a distinct workflow from monitoring alarms: initializing the DRS service, installing replication agents on source servers, configuring replication settings, and defining launch templates\u2014activities that involve infrastructure provisioning rather than log metric configuration. Given the high instance count and specialized nature of disaster recovery planning, this finding warrants dedicated project management and separate reporting from CloudWatch monitoring gaps.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Glue Data Catalog Lacks Encryption Configuration",
+      "check_ids": [
+        "glue_data_catalogs_connection_passwords_encryption_enabled",
+        "glue_data_catalogs_metadata_encryption_enabled"
+      ],
+      "rationale": "Both checks identify missing encryption settings within AWS Glue Data Catalog configuration. The root cause is the lack of encryption enablement in the Glue Data Catalog settings, which controls both connection password encryption and metadata encryption. A single remediation session can address both by configuring the catalog-level encryption settings in AWS Glue, making these checks part of the same underlying security gap.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Organizations Tag Policies Not Enabled and Attached",
+      "check_ids": [
+        "organizations_tags_policies_enabled_and_attached"
+      ],
+      "rationale": "This check identifies missing tag policy enforcement in AWS Organizations needed for consistent resource tagging. It requires enabling tag policies at the organization level and attaching them to organizational units or accounts to enforce tagging standards.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Security Hub Not Enabled",
+      "check_ids": [
+        "securityhub_enabled"
+      ],
+      "rationale": "This check identifies regions where AWS Security Hub is not enabled or lacks proper standard subscriptions, preventing centralized security posture management and automated compliance checking. Security Hub is a foundational security service that aggregates findings from multiple AWS security services and third-party tools, and its absence represents a significant visibility gap that warrants a dedicated finding due to its broad impact on overall security operations and compliance monitoring.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon Bedrock Model Invocation Logging Not Enabled",
+      "check_ids": [
+        "bedrock_model_invocation_logging_enabled"
+      ],
+      "rationale": "This check identifies Amazon Bedrock instances where model invocation logging is not enabled. The root cause is the absence of logging configuration for Bedrock model invocations, which impacts forensic readiness and auditability of AI/ML model usage. This warrants its own entry because Bedrock logging configuration is specific to this service and requires enabling invocation logging at the model or account level.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon GuardDuty Not Enabled",
+      "check_ids": [
+        "guardduty_is_enabled"
+      ],
+      "rationale": "This check identifies AWS accounts where GuardDuty threat detection service is not enabled, eliminating intelligent threat detection and continuous security monitoring capabilities. This is a standalone service enablement issue requiring GuardDuty activation and differs fundamentally from configuration-based logging services.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon Inspector2 Active Findings Require Remediation",
+      "check_ids": [
+        "inspector2_active_findings_exist"
+      ],
+      "rationale": "This check identifies existing security vulnerabilities discovered by Inspector2 that require remediation. It is separate from enablement and represents actual findings that need investigation and patching, requiring a different response workflow than service activation.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Amazon Inspector2 Not Enabled",
+      "check_ids": [
+        "inspector2_is_enabled"
+      ],
+      "rationale": "This check identifies regions and accounts where Inspector2 scanning is not enabled for EC2, ECR, and Lambda resources. It represents a fundamental vulnerability management gap that must be addressed by enabling the service across all in-scope resource types.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "CloudFormation Stack Termination Protection Not Enabled",
+      "check_ids": [
+        "cloudformation_stacks_termination_protection_enabled"
+      ],
+      "rationale": "This check identifies CloudFormation stacks lacking termination protection, allowing accidental deletion of infrastructure-as-code managed resources. This is a CloudFormation-specific availability and change control issue that prevents stack deletion through console or API until protection is explicitly disabled. The finding warrants its own entry because enabling termination protection is a CloudFormation stack property distinct from resource-level deletion policies, and requires review of which stacks manage production-critical infrastructure.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "CloudTrail Logs Lack Encryption at Rest with KMS CMK",
+      "check_ids": [
+        "cloudtrail_kms_encryption_enabled"
+      ],
+      "rationale": "This check identifies CloudTrail logs that are not encrypted at rest using customer-managed KMS keys. The root cause is the absence of KMS CMK encryption configuration on CloudTrail trails, which can be remediated by enabling KMS encryption in the trail settings. This warrants a separate entry because CloudTrail encryption configuration is distinct from other AWS service encryption settings and requires specific trail-level remediation.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "CloudWatch Log Groups Lack KMS Encryption",
+      "check_ids": [
+        "cloudwatch_log_group_kms_encryption_enabled"
+      ],
+      "rationale": "This check identifies CloudWatch log groups that are not protected by AWS KMS encryption. The root cause is the absence of KMS key association when creating or updating log groups. This warrants its own entry because CloudWatch log group encryption remediation requires specific configuration at the log group level and affects a different service than other logging or encryption findings.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "CloudWatch Log Groups Lack Retention Policy Configuration",
+      "check_ids": [
+        "cloudwatch_log_group_retention_policy_specific_days_enabled"
+      ],
+      "rationale": "This check identifies CloudWatch Log Groups that do not have explicit retention policies configured, allowing logs to be retained indefinitely. The finding represents a distinct compliance and cost management concern separate from encryption or public access issues, requiring administrators to evaluate data retention requirements and apply appropriate retention periods (e.g., 90, 365, or 400 days) based on regulatory and operational needs. Remediation involves using PutRetentionPolicy API calls or console actions to set retention periods on each affected log group, a task distinct from the alarm configuration checks and warranting separate tracking.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "EBS Snapshot Lifecycle Policies Not Defined",
+      "check_ids": [
+        "dlm_ebs_snapshot_lifecycle_policy_exists"
+      ],
+      "rationale": "This finding identifies accounts lacking Data Lifecycle Manager policies for automated EBS snapshot management, which impacts backup consistency and recovery capabilities. This is a specific DLM service configuration issue requiring policy creation and is distinct from other snapshot-related security controls.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Password Policy Does Not Meet Security Requirements",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "rationale": "All seven checks address specific deficiencies within the same AWS account-level IAM password policy configuration, including missing complexity requirements (lowercase, uppercase, numbers, symbols, minimum length), password expiration settings, and password reuse prevention. These findings all stem from a single misconfigured or absent IAM password policy object and can be remediated together by updating the account's password policy settings in one operation through the AWS Console, CLI, or Infrastructure-as-Code, applying all required password strength and lifecycle controls simultaneously.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Support Role Not Created for Incident Management",
+      "check_ids": [
+        "iam_support_role_created"
+      ],
+      "rationale": "This check identifies missing support roles needed for AWS Support case management. It represents a distinct operational requirement with different remediation steps than other IAM security controls and affects incident response capabilities rather than authentication security.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Kinesis Data Firehose Streams Lack Encryption at Rest",
+      "check_ids": [
+        "firehose_stream_encrypted_at_rest"
+      ],
+      "rationale": "This check identifies Kinesis Data Firehose delivery streams that do not have encryption at rest enabled, exposing streaming data to potential unauthorized access at the storage layer. While thematically similar to other encryption-at-rest findings, Firehose has its own encryption configuration mechanism and data protection model that warrants separate tracking and remediation.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Lambda Functions Using Obsolete or Unsupported Runtimes",
+      "check_ids": [
+        "awslambda_function_using_supported_runtimes"
+      ],
+      "rationale": "This check identifies Lambda functions running on deprecated runtime versions that no longer receive security updates. It requires updating function code and configurations to use supported runtime versions, representing a distinct technical debt and security maintenance issue.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Missing CloudWatch Alarm for KMS CMK Deletion Events",
+      "check_ids": [
+        "cloudwatch_log_metric_filter_disable_or_scheduled_deletion_of_kms_cmk"
+      ],
+      "rationale": "This check identifies the absence of CloudWatch log metric filters and alarms monitoring for KMS CMK disabling or deletion events. The root cause is missing detective controls for critical KMS key lifecycle events that could impact data encryption across the environment. This requires creating specific metric filters and CloudWatch alarms, which is a distinct remediation from configuring encryption itself.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Missing CloudWatch Alarm for Network ACL Changes",
+      "check_ids": [
+        "cloudwatch_changes_to_network_acls_alarm_configured"
+      ],
+      "rationale": "This check identifies the absence of CloudWatch metric filters and alarms for detecting unauthorized changes to Network ACLs, which could indicate an attacker attempting to modify network perimeter controls. This is a monitoring gap for a specific high-risk change type (NACL modifications) that requires creating a CloudWatch Logs metric filter against CloudTrail logs and associating it with an SNS-backed alarm. The finding is kept separate because it addresses detective controls for a specific network security boundary change, distinct from other alarm types like KMS deletion or other configuration changes.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Missing CloudWatch Alarms for Authentication and Authorization Events",
+      "check_ids": [
+        "cloudwatch_log_metric_filter_authentication_failures",
+        "cloudwatch_log_metric_filter_root_usage",
+        "cloudwatch_log_metric_filter_sign_in_without_mfa",
+        "cloudwatch_log_metric_filter_unauthorized_api_calls"
+      ],
+      "rationale": "These four checks detect the absence of CloudWatch monitoring for critical authentication and authorization security events in the AWS account. They share a common root cause\u2014lack of real-time alerting for suspicious or high-risk identity activity\u2014and all require creating CloudWatch log metric filters that parse CloudTrail authentication data for specific event patterns: failed console sign-ins, root account API calls, MFA-absent logins, and AccessDenied/UnauthorizedOperation responses. The remediation workflow is identical across all four: define metric filters on CloudTrail log groups using eventName and errorCode patterns, then create CloudWatch alarms with SNS notification actions. These controls can be implemented together as a cohesive identity threat detection layer.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Missing CloudWatch Alarms for Critical Infrastructure Changes",
+      "check_ids": [
+        "cloudwatch_changes_to_network_gateways_alarm_configured",
+        "cloudwatch_changes_to_network_route_tables_alarm_configured",
+        "cloudwatch_changes_to_vpcs_alarm_configured"
+      ],
+      "rationale": "These three checks all detect the absence of CloudWatch metric filters and alarms for changes to core VPC networking components (gateways, route tables, and VPCs themselves). They share the same root cause\u2014lack of proactive monitoring configuration for network infrastructure modifications\u2014and require identical remediation: creating CloudWatch log metric filters from CloudTrail logs and configuring corresponding SNS-backed alarms. A single engineer can implement all three monitoring controls in one session using the same CloudWatch Logs Insights queries and alarm templates, differing only in the specific API calls being filtered (CreateCustomerGateway, CreateRoute, CreateVpc, etc.).",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Missing CloudWatch Alarms for Security Configuration Changes",
+      "check_ids": [
+        "cloudwatch_log_metric_filter_and_alarm_for_aws_config_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_and_alarm_for_cloudtrail_configuration_changes_enabled",
+        "cloudwatch_log_metric_filter_policy_changes",
+        "cloudwatch_log_metric_filter_for_s3_bucket_policy_changes",
+        "cloudwatch_log_metric_filter_security_group_changes",
+        "cloudwatch_log_metric_filter_aws_organizations_changes"
+      ],
+      "rationale": "These checks all identify missing CloudWatch metric filters and alarms for changes to critical security and governance configurations across multiple AWS services. The root cause is a systematic gap in change-detection monitoring for security-relevant resources including AWS Config rules, CloudTrail trails, IAM policies, S3 bucket policies, security groups, and Organizations settings. All six findings require the same remediation approach: defining CloudWatch log metric filters that parse CloudTrail management events for specific API patterns (PutConfigRule, StopLogging, PutUserPolicy, PutBucketPolicy, AuthorizeSecurityGroupIngress, CreateOrganizationalUnit, etc.) and attaching SNS-triggered alarms. A security engineer can implement these monitoring controls in a single remediation session using consistent filter syntax and alarm configuration templates.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "Network ACLs Allow Overly Permissive Ingress Rules",
+      "check_ids": [
+        "ec2_networkacl_allow_ingress_any_port",
+        "ec2_networkacl_allow_ingress_tcp_port_22",
+        "ec2_networkacl_allow_ingress_tcp_port_3389"
+      ],
+      "rationale": "These checks all identify Network ACLs with rules permitting ingress from 0.0.0.0/0 to various ports (any port, SSH, and RDP), sharing the same root cause of overly permissive network-level access controls at the subnet boundary. All three can be remediated by the same network engineer reviewing and tightening NACL ingress rules, following the principle of least privilege for network-layer filtering.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Aurora MySQL Clusters Lack Backtrack Capability",
+      "check_ids": [
+        "rds_cluster_backtrack_enabled"
+      ],
+      "rationale": "This check identifies Aurora MySQL clusters without backtrack enabled for point-in-time recovery without restoring from backups. It represents a specific Aurora feature gap that requires enabling backtrack during cluster configuration or modification.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS CloudWatch Logs Integration Not Enabled",
+      "check_ids": [
+        "rds_cluster_integration_cloudwatch_logs",
+        "rds_instance_integration_cloudwatch_logs"
+      ],
+      "rationale": "Both checks identify RDS resources (clusters and instances) that are not forwarding database logs to CloudWatch Logs for centralized monitoring and retention. The root cause is the same: failure to enable log export configuration during RDS provisioning or updates. A single engineer can remediate both by enabling CloudWatch Logs integration through the same RDS console or API workflow, applying identical steps to clusters and instances.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Clusters Lack IAM Database Authentication",
+      "check_ids": [
+        "rds_cluster_iam_authentication_enabled"
+      ],
+      "rationale": "This check identifies RDS clusters not configured for IAM database authentication, requiring password-based access instead of IAM credentials. It represents a distinct authentication architecture gap that requires enabling IAM authentication and modifying connection methods.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Clusters Not Protected by AWS Backup Plans",
+      "check_ids": [
+        "rds_cluster_protected_by_backup_plan"
+      ],
+      "rationale": "This check identifies RDS clusters not included in AWS Backup plans for centralized backup management and compliance. It represents a backup governance gap that requires creating or updating AWS Backup plans to include these database clusters.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Clusters and Instances Lack IAM Database Authentication",
+      "check_ids": [
+        "rds_instance_iam_authentication_enabled"
+      ],
+      "rationale": "This check belongs to the existing group 'RDS Clusters Lack IAM Database Authentication' from earlier chunks, as it identifies the same security gap\u2014RDS instances not leveraging IAM authentication for database access. The root cause is the failure to enable IAM database authentication at the RDS instance level, requiring the same remediation steps as the cluster-level check already grouped.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Clusters and Instances Using Default Administrator Usernames",
+      "check_ids": [
+        "rds_cluster_default_admin",
+        "rds_instance_default_admin"
+      ],
+      "rationale": "Both checks identify RDS resources using default master usernames that are well-known and increase brute-force attack risk. They share the same root cause (use of predictable credentials) and require similar remediation of creating new admin users with custom names before removing defaults.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Event Subscriptions for Security Monitoring Not Configured",
+      "check_ids": [
+        "rds_instance_event_subscription_security_groups"
+      ],
+      "rationale": "This check identifies missing event subscriptions for RDS security group events, which prevents timely notification of security-relevant changes to RDS network access controls. This is a distinct monitoring gap specific to RDS security groups and warrants a separate finding because it addresses operational visibility rather than preventive controls, and requires configuring SNS topics and event subscription filters specific to RDS security group changes.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Bucket Access Control Lists (ACLs) Not Disabled",
+      "check_ids": [
+        "s3_bucket_acl_prohibited"
+      ],
+      "rationale": "This check identifies S3 buckets still using legacy ACLs instead of bucket policies, which is a distinct configuration issue from public access blocks. AWS recommends disabling ACLs in favor of bucket policies for better access control management, and remediation requires specifically setting the BucketOwnerEnforced setting for object ownership, which is a different control mechanism than public access blocks or other S3 security features.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Bucket Event Notifications Not Configured for Monitoring",
+      "check_ids": [
+        "s3_bucket_event_notifications_enabled"
+      ],
+      "rationale": "This check identifies S3 buckets lacking event notifications, which prevents automated detection and response to object-level operations. This is a distinct monitoring and integration capability that requires configuring event destinations (SNS, SQS, or Lambda) and is separate from access control, encryption, or logging configurations, making it a unique operational visibility gap that warrants its own finding.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Bucket MFA Delete Protection Not Enabled",
+      "check_ids": [
+        "s3_bucket_no_mfa_delete"
+      ],
+      "rationale": "This check identifies S3 buckets lacking MFA delete protection, which is a specific data protection control that requires multi-factor authentication to permanently delete object versions. MFA delete is a distinct security feature from versioning, public access blocks, or encryption, and requires enabling versioning first and then specifically configuring MFA delete through the AWS CLI or API with root account credentials, making it a unique hardening requirement.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Bucket Object Versioning Not Enabled",
+      "check_ids": [
+        "s3_bucket_object_versioning"
+      ],
+      "rationale": "This check identifies S3 buckets without object versioning enabled, which is a foundational data protection and recovery capability. Versioning is a prerequisite for features like MFA delete and is a distinct configuration from encryption, access controls, or logging, requiring a separate finding because it addresses data durability and recovery rather than confidentiality or access management.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Bucket Server Access Logging Not Enabled",
+      "check_ids": [
+        "s3_bucket_server_access_logging_enabled"
+      ],
+      "rationale": "This finding identifies S3 buckets without server access logging enabled, which prevents tracking of bucket-level access requests and undermines audit trails for object storage. This is a specific S3 logging feature requiring per-bucket configuration and is distinct from other S3 security controls like encryption or public access blocking.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Buckets Allow Unencrypted Transport",
+      "check_ids": [
+        "s3_bucket_secure_transport_policy"
+      ],
+      "rationale": "This check identifies S3 buckets that lack bucket policies enforcing secure transport (HTTPS/TLS). The root cause is the absence of a bucket policy that denies requests not using aws:SecureTransport. This warrants its own entry because transport-layer security enforcement through bucket policies is a distinct remediation from at-rest encryption configuration and requires specific IAM policy statements.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Buckets Lack Encryption Configuration",
+      "check_ids": [
+        "s3_bucket_default_encryption",
+        "s3_bucket_kms_encryption"
+      ],
+      "rationale": "Both checks identify S3 buckets without proper encryption configuration at rest. The root cause is missing default encryption settings on S3 buckets, where buckets either lack any default encryption or specifically lack KMS encryption. These can be remediated together by configuring S3 bucket encryption settings, with the KMS check being a more stringent version of the default encryption requirement.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "VPC Endpoint Trust Boundary Violations",
+      "check_ids": [
+        "vpc_endpoint_connections_trust_boundaries"
+      ],
+      "rationale": "This check identifies VPC endpoints with connection policies that permit access from untrusted AWS accounts or organizations, creating potential lateral movement vectors. This is a VPC-specific trust boundary issue that requires reviewing VPC endpoint policies and allowed principals. The finding warrants separate treatment because VPC endpoint remediation involves network security controls and principals distinct from IAM role trust policies, requiring coordination with network engineering teams.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "VPC Endpoint for Amazon EC2 Service Not Configured",
+      "check_ids": [
+        "vpc_endpoint_for_ec2_enabled"
+      ],
+      "rationale": "This check identifies VPCs that lack VPC endpoints for the Amazon EC2 service, forcing EC2 API calls to traverse the public internet rather than staying within the AWS network backbone. This represents a specific VPC endpoint configuration gap for EC2 service that requires creating interface endpoints, distinct from other VPC endpoint types or services.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "VPC Multi-Region Redundancy Not Implemented",
+      "check_ids": [
+        "vpc_different_regions"
+      ],
+      "rationale": "This check identifies a lack of VPCs across multiple AWS regions, which represents a high availability and disaster recovery gap rather than a security vulnerability. While multi-region architecture has security benefits, this is primarily an availability and resilience concern that requires architectural changes to deploy workloads across regions, making it distinct from network security controls like NACLs, security groups, or VPC flow logs.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "VPCs Lack Network Firewall Protection",
+      "check_ids": [
+        "networkfirewall_in_all_vpc"
+      ],
+      "rationale": "This check identifies VPCs without AWS Network Firewall deployed for advanced threat protection and traffic filtering. It represents a network security architecture gap that requires deploying and configuring Network Firewall resources with appropriate rule groups.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "WAFv2 WebACL Rule CloudWatch Metrics Not Enabled",
+      "check_ids": [
+        "wafv2_webacl_rule_logging_enabled"
+      ],
+      "rationale": "This check identifies WAFv2 WebACL rules lacking CloudWatch metrics enablement, preventing visibility into rule match rates and blocked requests. This is a WAF-specific logging configuration gap that requires enabling metrics at the rule or rule group level. The finding is kept separate because WAFv2 metric configuration is distinct from application-level or database logging, requiring specialized knowledge of WAF operations and DDoS/attack pattern analysis.",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}

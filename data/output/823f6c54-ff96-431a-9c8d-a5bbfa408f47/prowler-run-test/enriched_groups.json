@@ -1,0 +1,1025 @@
+{
+  "run_id": "b75213b6-cd38-483a-8e8e-53a0ede52239",
+  "group_count": 10,
+  "enriched": 10,
+  "failed": 0,
+  "risk_ratings": {
+    "High": 2,
+    "Medium": 6,
+    "Low": 2,
+    "Unknown": 0
+  },
+  "generated_at": "2026-07-14T06:45:04.321774+00:00",
+  "groups": [
+    {
+      "group_name": "AWS Config Delegated Administrator and Organization Aggregator Missing",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Moderate",
+      "finding_title": "AWS Config Organization Aggregator Not Configured for Centralized Compliance Visibility",
+      "root_cause_narrative": "The organization has not registered a delegated administrator for AWS Config or created an organization-wide configuration aggregator. This gap typically occurs when AWS Config is deployed in a decentralized manner without leveraging AWS Organizations integration for centralized governance.",
+      "situation_narrative": "AWS Config lacks an organization aggregator with OrganizationAggregationSource covering all regions in account 213146990554 (ap-southeast-2). No delegated administrator is registered for the config.amazonaws.com service principal. Without this centralized configuration, AWS Config data remains siloed at the account level, preventing unified compliance monitoring and audit reporting across the organization.",
+      "consequence_narrative": "Security teams cannot detect configuration drift, unauthorized changes, or compliance violations across member accounts in real-time. Adversaries can exploit misconfigurations in unmonitored accounts to establish persistence, escalate privileges, or exfiltrate data without triggering centralized alerts. Regulatory audits will fail to demonstrate organization-wide compliance posture, exposing the organization to penalties and remediation delays.",
+      "access_required": "No attacker access is required to exploit this; the risk materializes from reduced visibility into existing misconfigurations and unauthorized changes across member accounts.",
+      "recommendations": "Register a **delegated administrator** for AWS Config via AWS Organizations and create at least one **Configuration Aggregator** with an OrganizationAggregationSource that covers **all AWS regions**. This centralizes configuration data across the organization for unified compliance and audit reporting.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:config:ap-southeast-2:213146990554:config-aggregator/unknown",
+          "resource_name": "unknown",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsConfigConfigurationAggregator",
+          "status_extended": "AWS Config has no Organization Aggregator configured in any region (delegated administrator status could not be determined)."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Service Roles Vulnerable to Confused Deputy Attack",
+      "check_ids": [
+        "iam_role_cross_service_confused_deputy_prevention"
+      ],
+      "output_section": "AWS",
+      "instance_count": 4,
+      "affected_accounts": [],
+      "likelihood_rating": "High",
+      "risk_rating": "High",
+      "consequence_rating": "Major",
+      "finding_title": "IAM Service Role Lacks Confused Deputy Protection via Source Constraints",
+      "root_cause_narrative": "The IAM service role trust policy allows EventBridge to assume the role without binding the trust to a specific source account or resource ARN. This overly permissive trust relationship was likely created using default console settings or templates that omit aws:SourceAccount or aws:SourceArn conditions.",
+      "situation_narrative": "The IAM service role Amazon_EventBridge_Invoke_Step_Functions_347775329 in account 213146990554 permits EventBridge to assume it without source constraints. This finding affects 4 resources across the environment. The trust policy grants sts:AssumeRole to the EventBridge service principal without requiring aws:SourceAccount or aws:SourceArn condition keys to verify the caller's origin.",
+      "consequence_narrative": "An attacker with access to EventBridge in a different AWS account could exploit the confused deputy vulnerability to assume this role and invoke Step Functions workflows. This could enable unauthorized workflow execution, data exfiltration from Step Functions state machines, or lateral movement within the account by leveraging the role's permissions.",
+      "access_required": "An attacker needs the ability to create or modify EventBridge rules in any AWS account, then configure those rules to target the vulnerable role in account 213146990554.",
+      "recommendations": "Constrain service-role trust to expected callers using `aws:SourceArn`/`aws:SourceAccount` to bind service principals to specific resources or accounts. If unsupported, apply equivalent limits in resource-based policies or org-level controls. Apply **least privilege** and review trust relationships regularly.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam::213146990554:role/service-role/Amazon_EventBridge_Invoke_Step_Functions_347775329",
+          "resource_name": "Amazon_EventBridge_Invoke_Step_Functions_347775329",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamRole",
+          "status_extended": "IAM Service Role Amazon_EventBridge_Invoke_Step_Functions_347775329 does not prevent against a cross-service confused deputy attack."
+        },
+        {
+          "resource_uid": "arn:aws:iam::213146990554:role/service-role/backups-progress-role-11zn78wb",
+          "resource_name": "backups-progress-role-11zn78wb",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamRole",
+          "status_extended": "IAM Service Role backups-progress-role-11zn78wb does not prevent against a cross-service confused deputy attack."
+        },
+        {
+          "resource_uid": "arn:aws:iam::213146990554:role/service-role/backups-trigger-lambda-function-role",
+          "resource_name": "backups-trigger-lambda-function-role",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamRole",
+          "status_extended": "IAM Service Role backups-trigger-lambda-function-role does not prevent against a cross-service confused deputy attack."
+        },
+        {
+          "resource_uid": "arn:aws:iam::213146990554:role/service-role/StepFunctions-ConfluenceBackupStepFunctionTest-role-xzrbs7uh9",
+          "resource_name": "StepFunctions-ConfluenceBackupStepFunctionTest-role-xzrbs7uh9",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamRole",
+          "status_extended": "IAM Service Role StepFunctions-ConfluenceBackupStepFunctionTest-role-xzrbs7uh9 does not prevent against a cross-service confused deputy attack."
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon Bedrock Guardrails Not Configured",
+      "check_ids": [
+        "bedrock_guardrails_configured"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "Amazon Bedrock Guardrails Not Configured in ap-southeast-2 Region",
+      "root_cause_narrative": "No Bedrock guardrails have been created in the ap-southeast-2 region. This typically occurs when teams deploy Bedrock models without establishing centralized safety policies, either due to unfamiliarity with guardrail capabilities or reliance on application-level controls.",
+      "situation_narrative": "Region ap-southeast-2 (account 213146990554) has no configured Bedrock guardrails. While this check confirms the absence of reusable safety policies, it does not evaluate whether individual model invocations implement alternative content filtering mechanisms. Organizations using Bedrock in this region lack native policy objects to enforce standardized protections against harmful content, prompt injection, or sensitive data exposure across model interactions.",
+      "consequence_narrative": "Applications invoking Bedrock models in this region may generate or accept harmful content (hate speech, violence, sexual content), leak sensitive data through model responses, or fall victim to prompt injection attacks if developers have not implemented equivalent protections at the application layer. This creates compliance risk under frameworks requiring AI safety controls and may result in reputational damage or regulatory penalties if unfiltered harmful outputs reach end users.",
+      "access_required": "Valid AWS credentials with bedrock:InvokeModel permissions to interact with unprotected foundation models and potentially manipulate inputs or capture unfiltered outputs.",
+      "recommendations": "Create at least one **Bedrock guardrail** in each region where Bedrock is used, then separately ensure those guardrails are attached to relevant agents and invocation paths.\n- Configure **content filters** for harmful categories (hate, violence, sexual, misconduct)\n- Add **sensitive information filters** and **denied topic policies**\n- Apply guardrails at the API call level using `guardrailIdentifier` where supported",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:bedrock:ap-southeast-2:213146990554:guardrails",
+          "resource_name": "bedrock-guardrails",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "Other",
+          "status_extended": "Bedrock has no guardrails configured in region ap-southeast-2."
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon Bedrock Model Invocation Logging Disabled",
+      "check_ids": [
+        "bedrock_model_invocation_logging_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "Amazon Bedrock Model Invocation Logging Disabled in ap-southeast-2",
+      "root_cause_narrative": "Model invocation logging has not been configured for Amazon Bedrock in the ap-southeast-2 region. This is typically due to oversight during initial service setup or lack of awareness regarding forensic and compliance requirements for generative AI workloads.",
+      "situation_narrative": "Amazon Bedrock model invocation logging is disabled for account 213146990554 in region ap-southeast-2. Without this configuration, API calls to Converse, ConverseStream, InvokeModel, and InvokeModelWithResponseStream are not being captured. No CloudWatch Logs or S3 destinations have been configured to receive invocation records, eliminating visibility into model usage patterns and request/response metadata.",
+      "consequence_narrative": "An attacker with compromised credentials could invoke Bedrock models to exfiltrate data or execute prompt injection attacks without detection. Unauthorized model usage, including potential jailbreak attempts or excessive spending, would remain invisible. Incident response and forensic investigations would lack the audit trail needed to determine scope, timeline, or impact of malicious activity.",
+      "access_required": "Valid AWS credentials with bedrock:InvokeModel or related permissions to the account.",
+      "recommendations": "Enable **model invocation logging** and route events to **CloudWatch Logs** and/or **S3**.\nEnforce **least privilege** on log access, use encryption, and set retention/lifecycle policies. Monitor for anomalies and alerts to support **defense in depth** and **separation of duties**.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:bedrock:ap-southeast-2:213146990554:model-invocation-logging",
+          "resource_name": "model-invocation-logging",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "Other",
+          "status_extended": "Bedrock Model Invocation Logging is disabled."
+        }
+      ]
+    },
+    {
+      "group_name": "EC2 Security Groups Created by Launch Wizard",
+      "check_ids": [
+        "ec2_securitygroup_from_launch_wizard"
+      ],
+      "output_section": "AWS",
+      "instance_count": 30,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "EC2 Security Group Created by Launch Wizard Detected Across 30 Resources",
+      "root_cause_narrative": "Security group sg-0e24f3f2bbca5b5fa (launch-wizard-9) was created using the EC2 Launch Wizard, which auto-generates rules without organizational baseline controls or change management processes. Launch Wizard groups are designed for rapid provisioning and typically bypass security review.",
+      "situation_narrative": "Security group sg-0e24f3f2bbca5b5fa in ap-southeast-2 was identified as a Launch Wizard-generated group based on its naming pattern. This finding affects 30 resources across the environment. Launch Wizard groups are not subject to baseline security configurations or infrastructure-as-code governance, indicating a gap in security group management processes.",
+      "consequence_narrative": "An attacker could exploit overly permissive rules commonly present in Launch Wizard groups to conduct port scans and brute-force attacks against exposed administrative services. Successful compromise would enable lateral movement to additional resources protected by these 30 affected groups, leading to unauthorized data access and potential exfiltration across multiple workloads.",
+      "access_required": "Network access to any EC2 instance protected by this security group; no AWS credentials required to exploit permissive inbound rules.",
+      "recommendations": "Replace or harden these groups. Apply **least privilege**: restrict inbound to required sources, avoid public admin ports, and minimize egress. Use approved baseline security groups, enforce change control with IaC and guardrails, prefer private administration (bastion or Session Manager), and remove unused rules.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e24f3f2bbca5b5fa",
+          "resource_name": "sg-0e24f3f2bbca5b5fa",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-9 (sg-0e24f3f2bbca5b5fa) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-01b40d1c357914bca",
+          "resource_name": "sg-01b40d1c357914bca",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-24 (sg-01b40d1c357914bca) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-00b892f9efa4e0814",
+          "resource_name": "sg-00b892f9efa4e0814",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-14 (sg-00b892f9efa4e0814) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0bc66643e651629dd",
+          "resource_name": "sg-0bc66643e651629dd",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-15 (sg-0bc66643e651629dd) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-04a9ab6d35a6a8de4",
+          "resource_name": "sg-04a9ab6d35a6a8de4",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-12 (sg-04a9ab6d35a6a8de4) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0003161c3fb914627",
+          "resource_name": "sg-0003161c3fb914627",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-28 (sg-0003161c3fb914627) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e3756b7faacf9749",
+          "resource_name": "sg-0e3756b7faacf9749",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-2 (sg-0e3756b7faacf9749) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0b8ded5ed0698a732",
+          "resource_name": "sg-0b8ded5ed0698a732",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-16 (sg-0b8ded5ed0698a732) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0a7306065b047c47a",
+          "resource_name": "sg-0a7306065b047c47a",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-3 (sg-0a7306065b047c47a) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e126e8fe16324420",
+          "resource_name": "sg-0e126e8fe16324420",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-21 (sg-0e126e8fe16324420) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-05dd4ebdd18f412c1",
+          "resource_name": "sg-05dd4ebdd18f412c1",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-19 (sg-05dd4ebdd18f412c1) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0d759a2bdfa128cd1",
+          "resource_name": "sg-0d759a2bdfa128cd1",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-7 (sg-0d759a2bdfa128cd1) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-045dc2456086efc1d",
+          "resource_name": "sg-045dc2456086efc1d",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-11 (sg-045dc2456086efc1d) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0fa04d76ad5a60f29",
+          "resource_name": "sg-0fa04d76ad5a60f29",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-13 (sg-0fa04d76ad5a60f29) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0b304f3d171f7dd95",
+          "resource_name": "sg-0b304f3d171f7dd95",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-25 (sg-0b304f3d171f7dd95) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0f4d71516c8b2e2d3",
+          "resource_name": "sg-0f4d71516c8b2e2d3",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-18 (sg-0f4d71516c8b2e2d3) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-08acc1093fd79a732",
+          "resource_name": "sg-08acc1093fd79a732",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-6 (sg-08acc1093fd79a732) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0de6d2a27e144ae35",
+          "resource_name": "sg-0de6d2a27e144ae35",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-27 (sg-0de6d2a27e144ae35) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0c41cea7345a9798c",
+          "resource_name": "sg-0c41cea7345a9798c",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-26 (sg-0c41cea7345a9798c) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-045790af312b78364",
+          "resource_name": "sg-045790af312b78364",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-23 (sg-045790af312b78364) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-04fcbe519245d2d53",
+          "resource_name": "sg-04fcbe519245d2d53",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-20 (sg-04fcbe519245d2d53) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-080e0a6bfdfded924",
+          "resource_name": "sg-080e0a6bfdfded924",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-29 (sg-080e0a6bfdfded924) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0ffe3f16ec9186f36",
+          "resource_name": "sg-0ffe3f16ec9186f36",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-8 (sg-0ffe3f16ec9186f36) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-047f254a8ebdbbf30",
+          "resource_name": "sg-047f254a8ebdbbf30",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-4 (sg-047f254a8ebdbbf30) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-060a180310cc93e3a",
+          "resource_name": "sg-060a180310cc93e3a",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-1 (sg-060a180310cc93e3a) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-06d75823ce655fc42",
+          "resource_name": "sg-06d75823ce655fc42",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-5 (sg-06d75823ce655fc42) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0b3f5038592545c0e",
+          "resource_name": "sg-0b3f5038592545c0e",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-22 (sg-0b3f5038592545c0e) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-008231ea5552078ba",
+          "resource_name": "sg-008231ea5552078ba",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-30 (sg-008231ea5552078ba) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-09af3d1131f67434c",
+          "resource_name": "sg-09af3d1131f67434c",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-10 (sg-09af3d1131f67434c) was created using the EC2 Launch Wizard."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-04cb06d277b67eb6c",
+          "resource_name": "sg-04cb06d277b67eb6c",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-17 (sg-04cb06d277b67eb6c) was created using the EC2 Launch Wizard."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM Password Policy Does Not Meet Security Best Practices",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less",
+        "iam_password_policy_lowercase",
+        "iam_password_policy_minimum_length_14",
+        "iam_password_policy_number",
+        "iam_password_policy_reuse_24",
+        "iam_password_policy_symbol",
+        "iam_password_policy_uppercase"
+      ],
+      "output_section": "AWS",
+      "instance_count": 7,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "IAM Password Policy Does Not Enforce Password Expiration Within 90 Days",
+      "root_cause_narrative": "The AWS account password policy has not been configured to enforce password expiration. This indicates that password lifecycle controls were either never established or were intentionally disabled, leaving IAM user credentials without mandatory rotation requirements.",
+      "situation_narrative": "The IAM account password policy for AWS account 213146990554 in ap-southeast-2 does not enforce password expiration. Password expiration is currently not set, allowing IAM user passwords to remain valid indefinitely without forced rotation. This configuration affects 7 resources and fails to meet CIS AWS Foundations Benchmark, ISO 27001, and other compliance framework requirements for password lifecycle management.",
+      "consequence_narrative": "An attacker who compromises an IAM user password through credential stuffing, brute force, or password reuse would retain console access indefinitely. This persistent access could enable data exfiltration, privilege escalation through IAM policy manipulation, and prolonged unauthorized activity that evades detection, ultimately compromising the confidentiality and integrity of AWS resources.",
+      "access_required": "An attacker would need valid IAM user credentials obtained through phishing, credential leaks, brute force attacks, or password reuse from breached third-party services.",
+      "recommendations": "Enforce **password rotation** at `<= 90` days and **prevent reuse**. Pair with **MFA**, strong length/complexity, and prefer **federation/SSO** to reduce static passwords. Apply **least privilege**, monitor sign-ins, and remove inactive console passwords to limit exposure.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "Password expiration is not set."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one lowercase letter."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require minimum length of 14 characters."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one number."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy reuse prevention is less than 24 or not set."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one symbol."
+        },
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:213146990554:password-policy",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one uppercase letter."
+        }
+      ]
+    },
+    {
+      "group_name": "VPCs Not Deployed Across Multiple Regions",
+      "check_ids": [
+        "vpc_different_regions"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "VPC Infrastructure Deployed in Single Region Only",
+      "root_cause_narrative": "The AWS account contains VPC resources deployed exclusively within a single region (ap-southeast-2), indicating lack of multi-region network architecture planning. This configuration suggests workloads were designed without geographic redundancy requirements or disaster recovery considerations.",
+      "situation_narrative": "Security assessment identified that all non-default VPCs in AWS account 213146990554 are deployed only in the ap-southeast-2 region. No secondary VPC infrastructure exists in alternative AWS regions to support geographic distribution of network resources. This affects 1 VPC resource and represents a single-region dependency for the entire network topology.",
+      "consequence_narrative": "A regional AWS service disruption, availability zone failure, or region-wide network event would render all VPC-hosted workloads unavailable simultaneously. Recovery time objectives would be constrained by the need to rebuild network infrastructure in an alternate region during an active incident, extending downtime and impacting business continuity.",
+      "access_required": "This is an architectural gap rather than an exploitable vulnerability; no attacker access is required as the risk stems from AWS service availability dependencies.",
+      "recommendations": "Adopt a **multi-region network design**:\n- Create VPCs in at least two regions for critical workloads\n- Replicate routing, security controls, and endpoints consistently\n- Apply **fault tolerance** and **defense in depth** with data replication and resilient DNS/failover to avoid single-region dependency",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:vpc",
+          "resource_name": "213146990554",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2Vpc",
+          "status_extended": "VPCs found only in one region."
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon Bedrock Prompt Management Not Configured",
+      "check_ids": [
+        "bedrock_prompt_management_exists"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Low",
+      "risk_rating": "Low",
+      "consequence_rating": "Minor",
+      "finding_title": "Bedrock Prompt Management Not Adopted in ap-southeast-2",
+      "root_cause_narrative": "The organization has not adopted Bedrock Prompt Management in the ap-southeast-2 region, indicating prompts are likely embedded directly in application code or managed through external systems without centralized governance controls.",
+      "situation_narrative": "No managed prompts were found in the Bedrock Prompt Management service within the ap-southeast-2 region for account 213146990554. This suggests applications using Bedrock foundation models in this region are handling prompts through unmanaged methods, lacking centralized versioning, audit trails, and governance oversight. The absence of managed prompts indicates a gap in adopting AWS best practices for generative AI governance.",
+      "consequence_narrative": "Without centralized prompt management, the organization lacks visibility into what instructions are being sent to foundation models, making it difficult to audit model behavior, track prompt changes, or enforce consistent security policies. Ungoverned prompts increase the risk of sensitive data leakage through poorly designed instructions, compliance violations due to untracked model interactions, and inability to quickly respond to prompt-related security incidents across the application portfolio.",
+      "access_required": "No attacker access is required; this is a governance and operational visibility gap rather than an exploitable vulnerability.",
+      "recommendations": "Adopt **Bedrock Prompt Management** to centralize prompt definitions, enforce versioning, and maintain governance over model interactions.\nUse managed prompts with **guardrails** and apply **least privilege** access controls to restrict who can create or modify prompts.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:bedrock:ap-southeast-2:213146990554:prompt-management",
+          "resource_name": "prompt-management",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "Other",
+          "status_extended": "No Bedrock Prompt Management prompts exist in region ap-southeast-2."
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon SageMaker Model Monitoring Not Enabled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Low",
+      "risk_rating": "Medium",
+      "consequence_rating": "Moderate",
+      "finding_title": "SageMaker Model Monitoring Schedule Not Enabled in ap-southeast-2",
+      "root_cause_narrative": "Amazon SageMaker Model Monitor has not been configured with an active monitoring schedule in the ap-southeast-2 region. This represents a gap in operational best practices where continuous model quality validation was not implemented during or after model deployment.",
+      "situation_narrative": "No active SageMaker monitoring schedules were found in region ap-southeast-2 (account 213146990554). Amazon SageMaker Model Monitor remains unconfigured, meaning deployed machine learning models in this region lack automated validation for data drift, model quality degradation, and bias drift. Without scheduled monitoring jobs, there is no baseline comparison or alerting mechanism to detect when model predictions become unreliable.",
+      "consequence_narrative": "Machine learning models deployed in this region may degrade over time without detection, leading to incorrect predictions that affect business decisions. If models are used for fraud detection, access control, pricing, or other automated decisions, undetected quality degradation could result in financial losses, incorrect access grants, biased outcomes, or regulatory compliance violations. The lack of monitoring creates operational blind spots where model performance issues accumulate silently until manual investigation reveals the problem.",
+      "access_required": "No attacker access is required; this is an operational gap where legitimate model deployments lack quality monitoring, allowing natural model drift to go undetected.",
+      "recommendations": "Enable **Amazon SageMaker Model Monitor** and keep at least one **monitoring schedule** in the `Scheduled` state so data quality, model quality, and bias drift are continuously evaluated against a baseline.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:sagemaker:ap-southeast-2:213146990554:monitoring-schedule/unknown",
+          "resource_name": "SageMaker Monitoring Schedules",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "Other",
+          "status_extended": "No SageMaker monitoring schedules found in region ap-southeast-2."
+        }
+      ]
+    },
+    {
+      "group_name": "Non-Default EC2 Security Groups Not In Use",
+      "check_ids": [
+        "ec2_securitygroup_not_used"
+      ],
+      "output_section": "AWS",
+      "instance_count": 39,
+      "affected_accounts": [],
+      "likelihood_rating": "Low",
+      "risk_rating": "Low",
+      "consequence_rating": "Minor",
+      "finding_title": "Unused Non-Default Security Group Retained in ap-southeast-2",
+      "root_cause_narrative": "Security group sg-0e24f3f2bbca5b5fa (launch-wizard-9) was created but never deleted after its associated resources were decommissioned. Lack of automated lifecycle policies and hygiene processes allowed this orphaned group to persist without ownership tracking or regular cleanup reviews.",
+      "situation_narrative": "Security group sg-0e24f3f2bbca5b5fa in account 213146990554 (ap-southeast-2) has zero attached network interfaces, no Lambda associations, and no references from other security groups. This finding affects 39 unused security groups across the environment. The group remains defined with its ruleset intact but serves no active purpose in the current infrastructure.",
+      "consequence_narrative": "An operator or attacker with EC2 permissions could attach this dormant security group to instances without triggering change review processes, instantly applying any overly permissive inbound rules it contains. This bypass of normal security reviews could enable unauthorized network access to production workloads, leading to data exfiltration or lateral movement.",
+      "access_required": "An attacker would need IAM permissions to modify EC2 instance network interfaces (ec2:ModifyInstanceAttribute or ec2:ModifyNetworkInterfaceAttribute) to attach the unused security group to a running instance.",
+      "recommendations": "Apply **least privilege** and strong lifecycle management: delete or quarantine **unused security groups**, enforce ownership tags and retention policies, review regularly, and manage changes via IaC with approvals. Restrict who can attach groups and use guardrails to prevent reuse of stale or permissive groups.",
+      "ai_enriched": true,
+      "llm_failed": false,
+      "human_review_required": false,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e24f3f2bbca5b5fa",
+          "resource_name": "sg-0e24f3f2bbca5b5fa",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-9 (sg-0e24f3f2bbca5b5fa) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0dd8eae2e1153c210",
+          "resource_name": "sg-0dd8eae2e1153c210",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2025.4-amd64-AutogenByAWSMP--1 (sg-0dd8eae2e1153c210) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-01b40d1c357914bca",
+          "resource_name": "sg-01b40d1c357914bca",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-24 (sg-01b40d1c357914bca) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-00b892f9efa4e0814",
+          "resource_name": "sg-00b892f9efa4e0814",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-14 (sg-00b892f9efa4e0814) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0bc66643e651629dd",
+          "resource_name": "sg-0bc66643e651629dd",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-15 (sg-0bc66643e651629dd) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-04a9ab6d35a6a8de4",
+          "resource_name": "sg-04a9ab6d35a6a8de4",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-12 (sg-04a9ab6d35a6a8de4) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-044ad0ea7338dbce0",
+          "resource_name": "sg-044ad0ea7338dbce0",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2026.1-amd64-AutogenByAWSMP--4 (sg-044ad0ea7338dbce0) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0003161c3fb914627",
+          "resource_name": "sg-0003161c3fb914627",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-28 (sg-0003161c3fb914627) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0b16338608e021959",
+          "resource_name": "sg-0b16338608e021959",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2026.1-amd64-AutogenByAWSMP--7 (sg-0b16338608e021959) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-034bdb14753e85207",
+          "resource_name": "sg-034bdb14753e85207",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2026.1-amd64-AutogenByAWSMP--6 (sg-034bdb14753e85207) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-03667e84668fbefee",
+          "resource_name": "sg-03667e84668fbefee",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group EG-SG (sg-03667e84668fbefee) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e3756b7faacf9749",
+          "resource_name": "sg-0e3756b7faacf9749",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-2 (sg-0e3756b7faacf9749) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0b8ded5ed0698a732",
+          "resource_name": "sg-0b8ded5ed0698a732",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-16 (sg-0b8ded5ed0698a732) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0a7306065b047c47a",
+          "resource_name": "sg-0a7306065b047c47a",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-3 (sg-0a7306065b047c47a) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0e126e8fe16324420",
+          "resource_name": "sg-0e126e8fe16324420",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-21 (sg-0e126e8fe16324420) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-05dd4ebdd18f412c1",
+          "resource_name": "sg-05dd4ebdd18f412c1",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-19 (sg-05dd4ebdd18f412c1) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0d759a2bdfa128cd1",
+          "resource_name": "sg-0d759a2bdfa128cd1",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-7 (sg-0d759a2bdfa128cd1) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-045dc2456086efc1d",
+          "resource_name": "sg-045dc2456086efc1d",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-11 (sg-045dc2456086efc1d) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-07c211d3ff7ed3416",
+          "resource_name": "sg-07c211d3ff7ed3416",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2026.1-amd64-AutogenByAWSMP--1 (sg-07c211d3ff7ed3416) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0fa04d76ad5a60f29",
+          "resource_name": "sg-0fa04d76ad5a60f29",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-13 (sg-0fa04d76ad5a60f29) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0b304f3d171f7dd95",
+          "resource_name": "sg-0b304f3d171f7dd95",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-25 (sg-0b304f3d171f7dd95) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-091fb088c3998e4c9",
+          "resource_name": "sg-091fb088c3998e4c9",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2026.1-amd64-AutogenByAWSMP--3 (sg-091fb088c3998e4c9) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0f4d71516c8b2e2d3",
+          "resource_name": "sg-0f4d71516c8b2e2d3",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-18 (sg-0f4d71516c8b2e2d3) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-08acc1093fd79a732",
+          "resource_name": "sg-08acc1093fd79a732",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-6 (sg-08acc1093fd79a732) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0de6d2a27e144ae35",
+          "resource_name": "sg-0de6d2a27e144ae35",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-27 (sg-0de6d2a27e144ae35) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0c41cea7345a9798c",
+          "resource_name": "sg-0c41cea7345a9798c",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-26 (sg-0c41cea7345a9798c) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-045790af312b78364",
+          "resource_name": "sg-045790af312b78364",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-23 (sg-045790af312b78364) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-04fcbe519245d2d53",
+          "resource_name": "sg-04fcbe519245d2d53",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-20 (sg-04fcbe519245d2d53) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-080e0a6bfdfded924",
+          "resource_name": "sg-080e0a6bfdfded924",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-29 (sg-080e0a6bfdfded924) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0ffe3f16ec9186f36",
+          "resource_name": "sg-0ffe3f16ec9186f36",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-8 (sg-0ffe3f16ec9186f36) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-02ddfdb7c2274ed3b",
+          "resource_name": "sg-02ddfdb7c2274ed3b",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2026.1-amd64-AutogenByAWSMP--5 (sg-02ddfdb7c2274ed3b) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-047f254a8ebdbbf30",
+          "resource_name": "sg-047f254a8ebdbbf30",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-4 (sg-047f254a8ebdbbf30) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-060a180310cc93e3a",
+          "resource_name": "sg-060a180310cc93e3a",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-1 (sg-060a180310cc93e3a) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-06d75823ce655fc42",
+          "resource_name": "sg-06d75823ce655fc42",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-5 (sg-06d75823ce655fc42) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0b3f5038592545c0e",
+          "resource_name": "sg-0b3f5038592545c0e",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-22 (sg-0b3f5038592545c0e) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-008231ea5552078ba",
+          "resource_name": "sg-008231ea5552078ba",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-30 (sg-008231ea5552078ba) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-0edc7e028df8de3e9",
+          "resource_name": "sg-0edc7e028df8de3e9",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2026.1-amd64-AutogenByAWSMP--2 (sg-0edc7e028df8de3e9) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-03f34a362761817bd",
+          "resource_name": "sg-03f34a362761817bd",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group Kali Linux-2025.2-amd64-AutogenByAWSMP--1 (sg-03f34a362761817bd) it is not being used."
+        },
+        {
+          "resource_uid": "arn:aws:ec2:ap-southeast-2:213146990554:security-group/sg-04cb06d277b67eb6c",
+          "resource_name": "sg-04cb06d277b67eb6c",
+          "account_uid": "213146990554",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsEc2SecurityGroup",
+          "status_extended": "Security group launch-wizard-17 (sg-04cb06d277b67eb6c) it is not being used."
+        }
+      ]
+    }
+  ]
+}

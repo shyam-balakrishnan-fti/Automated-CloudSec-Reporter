@@ -148,3 +148,78 @@ class PlatformInfo(BaseModel):
     prowler_installed:   bool
     scubagear_installed: bool
     aws_profiles:        list[str]
+
+
+# ── Scans ─────────────────────────────────────────────────────────────
+
+class ScanProvider(str, Enum):
+    AWS       = "aws"
+    AZURE     = "azure"
+    SCUBAGEAR = "scubagear"
+
+
+class ScanType(str, Enum):
+    PROWLER_AWS   = "prowler_aws"
+    PROWLER_AZURE = "prowler_azure"
+    SCUBAGEAR     = "scubagear"
+
+
+class ScanStatus(str, Enum):
+    PENDING   = "pending"
+    RUNNING   = "running"
+    COMPLETE  = "complete"
+    FAILED    = "failed"
+    CANCELLED = "cancelled"
+
+
+class ScanCreate(BaseModel):
+    provider:       ScanProvider
+    scan_type:      str = Field(default="prowler_aws")
+    tenant_domain:  str = Field(default="")
+    m365_environment: str = Field(default="commercial")
+
+    # Credential source
+    credential_source: CredentialSource = CredentialSource.KEYS
+    aws_profile:    str = Field(default="")
+
+    # AWS fields
+    scan_region:    str = Field(default="")
+    scan_account_id: str = Field(default="")
+
+    # Azure fields — secrets injected at launch, never stored
+    azure_tenant_id:       str = Field(default="")
+    azure_client_id:       str = Field(default="")
+    azure_subscription_id: str = Field(default="")
+
+    # Scope (optional)
+    resource_scope: list[str] = Field(default_factory=list)  # ARN list
+    services_scope: list[str] = Field(default_factory=list)  # service names
+
+    # Raw secrets — never stored in DB, injected into subprocess env only
+    aws_access_key_id:      Optional[str] = Field(default=None, exclude=True)
+    aws_secret_access_key:  Optional[str] = Field(default=None, exclude=True)
+    aws_session_token:      Optional[str] = Field(default=None, exclude=True)
+    azure_client_secret:    Optional[str] = Field(default=None, exclude=True)
+
+
+class ScanResponse(BaseModel):
+    id:                   str
+    engagement_id:        str
+    provider:             str
+    status:               str
+    credential_source:    str
+    aws_profile:          str
+    scan_region:          str
+    scan_account_id:      str
+    azure_tenant_id:      str
+    azure_client_id:      str
+    azure_subscription_id: str
+    resource_scope:       list[str]
+    services_scope:       list[str]
+    output_dir:           str
+    output_file:          str
+    created_at:           str
+    started_at:           Optional[str]
+    completed_at:         Optional[str]
+    findings_count:       Optional[int]
+    duration_secs:        Optional[int]

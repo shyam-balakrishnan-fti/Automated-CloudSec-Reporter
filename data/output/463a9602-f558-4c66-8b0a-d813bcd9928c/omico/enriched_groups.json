@@ -1,0 +1,335 @@
+{
+  "run_id": "6680fdd7-dd95-444a-adcd-d6e0bd548b0d",
+  "group_count": 10,
+  "enriched": 0,
+  "failed": 10,
+  "risk_ratings": {
+    "High": 0,
+    "Medium": 0,
+    "Low": 0,
+    "Unknown": 10
+  },
+  "generated_at": "2026-07-10T07:27:33.360772+00:00",
+  "groups": [
+    {
+      "group_name": "AWS Config has a delegated administrator and an organization aggregator covering all AWS regions",
+      "check_ids": [
+        "config_delegated_admin_and_org_aggregator_all_regions"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "High",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] AWS Config has a delegated administrator and an organization aggregator covering all AWS regions",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Register a **delegated administrator** for AWS Config via AWS Organizations and create at least one **Configuration Aggregator** with an OrganizationAggregationSource that covers **all AWS regions**. This centralizes configuration data across the organization for unified compliance and audit reporting.",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:config:ap-southeast-2:415019016144:config-aggregator/unknown",
+          "resource_name": "unknown",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsConfigConfigurationAggregator",
+          "status_extended": "AWS Config has no Organization Aggregator configured in any region (delegated administrator status could not be determined)."
+        }
+      ]
+    },
+    {
+      "group_name": "All AWS FMS policies in the admin account are compliant for all accounts",
+      "check_ids": [
+        "fms_policy_compliant"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "High",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] All AWS FMS policies in the admin account are compliant for all accounts",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Maintain centralized enforcement with **Firewall Manager**: define mandatory policies for all relevant accounts/resources, enable automatic remediation where appropriate, and continuously monitor compliance. Apply **least privilege** and **defense in depth** by standardizing web, network, and DNS protections and alerting on drift.",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:fms:us-east-1:415019016144:policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "us-east-1",
+          "resource_type": "Other",
+          "status_extended": "FMS without any compliant policy for account 415019016144."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM account password policy enforces password expiration within 90 days or less",
+      "check_ids": [
+        "iam_password_policy_expires_passwords_within_90_days_or_less"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] IAM account password policy enforces password expiration within 90 days or less",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Enforce **password rotation** at `<= 90` days and **prevent reuse**. Pair with **MFA**, strong length/complexity, and prefer **federation/SSO** to reduce static passwords. Apply **least privilege**, monitor sign-ins, and remove inactive console passwords to limit exposure.",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "Password expiration is not set."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy prevents reuse of the last 24 passwords",
+      "check_ids": [
+        "iam_password_policy_reuse_24"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] IAM password policy prevents reuse of the last 24 passwords",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Set the password policy to remember `24` previous passwords to block reuse. Combine with **MFA**, strong length and complexity, and avoid rotation practices that encourage predictable patterns. Apply **least privilege** and monitor authentication events as part of **defense in depth**.",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy reuse prevention is less than 24 or not set."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one number",
+      "check_ids": [
+        "iam_password_policy_number"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] IAM password policy requires at least one number",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Enforce the password policy option to `require at least one number`. Combine with strong length, mixed case, and symbols, and prevent reuse. Enable **MFA** for all users and prefer **federated access** to limit static credentials, supporting **defense in depth** against guessing attacks.",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one number."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one symbol",
+      "check_ids": [
+        "iam_password_policy_symbol"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] IAM password policy requires at least one symbol",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Enforce the `Require at least one non-alphanumeric character` rule in the **IAM password policy**, alongside strong minimum length, mixed character sets, and password reuse prevention. Apply **MFA** for all human users and uphold **least privilege** to limit impact. *Consider periodic rotation based on risk.*",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one symbol."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one uppercase letter",
+      "check_ids": [
+        "iam_password_policy_uppercase"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] IAM password policy requires at least one uppercase letter",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Enable the uppercase rule within a **strong password policy** that also requires length, lowercase, numbers, and symbols. Pair with **MFA** and **least privilege** to reduce blast radius. Regularly review policy effectiveness and prefer **federated SSO** to minimize long-lived IAM passwords.",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one uppercase letter."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires passwords to be at least 14 characters long",
+      "check_ids": [
+        "iam_password_policy_minimum_length_14"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Medium",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] IAM password policy requires passwords to be at least 14 characters long",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Set the **minimum password length** to `>= 14` (prefer `16+`).\n- Require mixed character types and prevent reuse\n- Enforce **MFA** for all console users\n- Prefer SSO over local IAM users\n- Apply least privilege and monitor authentication events",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require minimum length of 14 characters."
+        }
+      ]
+    },
+    {
+      "group_name": "Amazon SageMaker has a monitoring schedule scheduled",
+      "check_ids": [
+        "sagemaker_models_monitor_enabled"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Low",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] Amazon SageMaker has a monitoring schedule scheduled",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Enable **Amazon SageMaker Model Monitor** and keep at least one **monitoring schedule** in the `Scheduled` state so data quality, model quality, and bias drift are continuously evaluated against a baseline.",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:sagemaker:ap-southeast-2:415019016144:monitoring-schedule/unknown",
+          "resource_name": "SageMaker Monitoring Schedules",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "Other",
+          "status_extended": "No SageMaker monitoring schedules found in region ap-southeast-2."
+        }
+      ]
+    },
+    {
+      "group_name": "IAM password policy requires at least one lowercase letter",
+      "check_ids": [
+        "iam_password_policy_lowercase"
+      ],
+      "output_section": "AWS",
+      "instance_count": 1,
+      "affected_accounts": [],
+      "likelihood_rating": "Low",
+      "risk_rating": null,
+      "consequence_rating": "Moderate",
+      "finding_title": "[REQUIRES_HUMAN_INPUT] IAM password policy requires at least one lowercase letter",
+      "root_cause_narrative": "[REQUIRES_HUMAN_INPUT: root_cause_narrative]",
+      "situation_narrative": "[REQUIRES_HUMAN_INPUT: situation_narrative]",
+      "consequence_narrative": "[REQUIRES_HUMAN_INPUT: consequence_narrative]",
+      "access_required": "[REQUIRES_HUMAN_INPUT: access_required]",
+      "recommendations": "Adopt a strong password policy that:\n- Enables `Require at least one lowercase letter` plus uppercase, number, and symbol\n- Sets sufficient length and blocks reuse\n- Requires **MFA** for all users\n- Applies **least privilege** to limit blast radius",
+      "ai_enriched": false,
+      "llm_failed": true,
+      "human_review_required": true,
+      "affected_resources": [
+        {
+          "resource_uid": "arn:aws:iam:ap-southeast-2:415019016144:password-policy",
+          "resource_name": "415019016144",
+          "account_uid": "415019016144",
+          "account_name": "",
+          "region": "ap-southeast-2",
+          "resource_type": "AwsIamPolicy",
+          "status_extended": "IAM password policy does not require at least one lowercase letter."
+        }
+      ]
+    }
+  ]
+}

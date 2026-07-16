@@ -1,0 +1,134 @@
+{
+  "run_id": "a0c60036-831c-4132-aa78-574aa6e7cea5",
+  "approved_at": "2026-07-09T06:33:00.746Z",
+  "groups": [
+    {
+      "group_name": "EC2 Security Group Allows Public SSH Access",
+      "check_ids": [
+        "ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22"
+      ],
+      "rationale": "This check identifies security groups with overly permissive SSH access from the internet (0.0.0.0/0). The remediation involves restricting ingress ru",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM MFA Not Enforced for User Accounts",
+      "check_ids": [
+        "iam_root_mfa_enabled",
+        "iam_user_mfa_enabled_console_access"
+      ],
+      "rationale": "Both checks address the absence of multi-factor authentication enforcement for IAM identities with console access. They share the same root cause of i",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Instance Publicly Accessible",
+      "check_ids": [
+        "rds_instance_no_public_access"
+      ],
+      "rationale": "This finding identifies RDS database instances with public accessibility enabled, exposing databases to internet-based threats. The remediation requir",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "CloudTrail Multi-Region Logging Not Enabled",
+      "check_ids": [
+        "cloudtrail_multi_region_enabled"
+      ],
+      "rationale": "This finding addresses the absence of comprehensive CloudTrail logging across all AWS regions. It represents a critical audit trail gap that requires",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "EBS Volume Encryption Not Enabled",
+      "check_ids": [
+        "ec2_ebs_volume_encryption_enabled"
+      ],
+      "rationale": "This finding represents a distinct data protection gap specific to EC2 EBS volumes lacking encryption at rest. The remediation requires enabling encry",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "EC2 Instance IMDSv2 Not Enforced",
+      "check_ids": [
+        "ec2_instance_imdsv2_enabled"
+      ],
+      "rationale": "This check identifies EC2 instances not configured to require IMDSv2, leaving them vulnerable to SSRF attacks against instance metadata. The remediati",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "RDS Instance Encryption Not Enabled",
+      "check_ids": [
+        "rds_instance_storage_encrypted"
+      ],
+      "rationale": "This check identifies RDS database instances without encryption at rest enabled. The remediation differs significantly from other encryption findings",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "S3 Bucket Encryption Controls Missing",
+      "check_ids": [
+        "s3_bucket_default_encryption",
+        "s3_bucket_public_access"
+      ],
+      "rationale": "Both findings relate to S3 bucket security configuration gaps that expose data to unauthorized access or disclosure risks. While one addresses encrypt",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Config Not Enabled in All Regions",
+      "check_ids": [
+        "config_recorder_all_regions_enabled"
+      ],
+      "rationale": "This check identifies regions where AWS Config configuration recording is not active. Remediation involves enabling Config recorders in all regions to",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "AWS Security Hub Not Enabled",
+      "check_ids": [
+        "securityhub_enabled"
+      ],
+      "rationale": "This finding represents the absence of AWS Security Hub for centralized security findings aggregation and compliance monitoring. Enabling Security Hub",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM Password Policy Lacks Lowercase Requirement",
+      "check_ids": [
+        "iam_password_policy_lowercase"
+      ],
+      "rationale": "This check identifies a gap in the account-level IAM password policy that does not enforce lowercase letter requirements. The remediation involves upd",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "IAM User Access Keys Not Rotated",
+      "check_ids": [
+        "iam_user_access_key_age_90_days"
+      ],
+      "rationale": "This finding identifies IAM user access keys exceeding the 90-day rotation threshold. The remediation requires implementing a key rotation process and",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "VPC Flow Logs Not Enabled",
+      "check_ids": [
+        "vpc_flow_logs_enabled"
+      ],
+      "rationale": "This finding indicates VPCs lacking flow log configuration for network traffic visibility. The remediation requires enabling VPC Flow Logs with approp",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    },
+    {
+      "group_name": "CloudWatch Log Group Retention Policy Not Set",
+      "check_ids": [
+        "cloudwatch_log_group_retention_policy_specific_days_enabled"
+      ],
+      "rationale": "This check identifies CloudWatch log groups without defined retention policies leading to indefinite log retention. The remediation involves setting a",
+      "analyst_note": "",
+      "risk_rating_override": ""
+    }
+  ]
+}

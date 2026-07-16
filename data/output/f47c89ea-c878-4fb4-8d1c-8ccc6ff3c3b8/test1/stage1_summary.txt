@@ -1,0 +1,30 @@
+======================================================================
+STAGE 1 — INGEST & PARSE SUMMARY
+======================================================================
+Run ID           : 4417c655-ee45-461c-8881-485e063edac0
+Source file      : /home/shyam-balakrishnan/cloud-tool/data/synthetic/test-2data.xlsx
+SHA-256          : 0d3d9423d23d581bb89f2f18dcfd0734a941797e2c394611a5f0917f615a03ba
+Scanner          : prowler v4.3.1
+Sheet detected   : Sheet1
+Rows read        : 2
+Findings parsed  : 2
+Unknown columns  : ['FUTURE_COLUMN_V5']
+Ingested at      : 2026-07-08T07:02:02.318075
+
+STATUS BREAKDOWN:
+  FAIL                     : 2
+
+BLANK VALUE CLASSIFICATIONS:
+  Category 2 — DESCRIPTION blank      : 0
+  Category 2 — RISK blank              : 0
+  Category 2 — REMEDIATION_TEXT blank  : 0
+  Category 1 — REGION blank (global)   : 0
+
+MUTED RECONCILIATIONS: 0
+
+ARN FALLBACKS (name used instead of ARN): 0
+
+FLAGGED FOR HUMAN REVIEW: 0
+
+WARNINGS (1):
+  UNKNOWN_COLUMNS                    : 1

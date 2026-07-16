@@ -29,6 +29,8 @@ from api.models import (
     RunCreate,
     RunResponse,
     PlatformInfo,
+    ScanCreate,
+    ScanProvider,
 )
 from api.platform import (
     get_platform_info, run_preflight,
@@ -234,12 +236,17 @@ async def create_run(
     run_id = str(uuid.uuid4())
     now    = _now()
 
+
     # Determine output base directory.
-    # The pipeline appends client_name as a subfolder automatically,
-    # so we pass the run-specific base and let the pipeline handle the rest.
-    # Final path: data/output/{run_id}/{client_slug}/
-    pipeline_base = "data" if body.pipeline == PipelineType.PROWLER else Path("scubagear") / "data"
-    output_dir = (Path.cwd().parent / pipeline_base / "output" / run_id).resolve()
+    # Use short paths on Windows to avoid the 259-char limit (OneDrive makes paths very long).
+    # The pipeline appends client_name as a subfolder automatically.
+    import platform as _plat
+    if _plat.system().lower() == "windows":
+        short_base = Path("C:/CloudSecReports")
+        output_dir = short_base / run_id[:8]
+    else:
+        pipeline_base = "data" if body.pipeline == PipelineType.PROWLER else Path("scubagear") / "data"
+        output_dir = (Path.cwd().parent / pipeline_base / "output" / run_id).resolve()
 
     # Write config.toml
     # Template path: go up from gui/ to repo root, then into templates/
@@ -931,3 +938,527 @@ async def delete_run(
     await db.execute("DELETE FROM runs WHERE id = ?", (run_id,))
     await db.commit()
     return {"deleted": True, "run_id": run_id}
+
+
+# ── Scans ─────────────────────────────────────────────────────────────
+# In-memory store of raw scan secrets keyed by scan_id.
+# Never written to DB. Cleared when scan starts.
+_pending_scan_secrets: dict[str, dict] = {}
+
+
+@router.get("/engagements/{engagement_id}/scans")
+async def list_scans(
+    engagement_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """List all scans for an engagement, newest first."""
+    cursor = await db.execute(
+        "SELECT * FROM scans WHERE engagement_id=? ORDER BY created_at DESC",
+        (engagement_id,),
+    )
+    rows = await cursor.fetchall()
+    return [_scan_row(dict(r)) for r in rows]
+
+
+@router.post("/engagements/{engagement_id}/scans", status_code=201)
+async def create_scan(
+    engagement_id: str,
+    body: ScanCreate,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Create a scan record. Does NOT start the scan yet.
+    Raw secrets are registered via POST /scans/{id}/secrets before start.
+    """
+    from api.scanner import AWS_SERVICES, AZURE_SERVICES
+    import json as _json
+
+    cursor = await db.execute(
+        "SELECT id FROM engagements WHERE id=?", (engagement_id,)
+    )
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Engagement not found")
+
+    scan_id = str(uuid.uuid4())
+    now     = _now()
+
+    # Determine output directory.
+    # Use a short root path to avoid Windows 259-char path limit,
+    # especially when the project is inside OneDrive.
+    import platform as _platform
+    if _platform.system().lower() == "windows":
+        # Use C:\ScubaScans or C:\ProwlerScans to keep paths short
+        provider_val = body.provider.value
+        short_root = Path("C:/ScubaScans") if provider_val == "scubagear" else Path("C:/ProwlerScans")
+        output_dir = short_root / scan_id[:8]  # use first 8 chars of UUID
+    else:
+        repo_root  = Path(__file__).parent.parent.parent
+        output_dir = repo_root / "data" / "scans" / scan_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Determine scan_type
+    scan_type = getattr(body, "scan_type", None)
+    if not scan_type:
+        if body.provider.value == "scubagear":
+            scan_type = "scubagear"
+        elif body.provider.value == "azure":
+            scan_type = "prowler_azure"
+        else:
+            scan_type = "prowler_aws"
+
+    await db.execute(
+        """INSERT INTO scans (
+            id, engagement_id, provider, scan_type, status,
+            credential_source, aws_profile, scan_region, scan_account_id,
+            azure_tenant_id, azure_client_id, azure_subscription_id,
+            resource_scope, services_scope,
+            output_dir, output_file, created_at
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            scan_id, engagement_id, body.provider.value, scan_type, "pending",
+            body.credential_source.value, body.aws_profile,
+            body.scan_region, body.scan_account_id,
+            body.azure_tenant_id, body.azure_client_id, body.azure_subscription_id,
+            _json.dumps(body.resource_scope),
+            _json.dumps(body.services_scope),
+            str(output_dir), "", now,
+        ),
+    )
+    await db.commit()
+
+    return {"id": scan_id, "engagement_id": engagement_id,
+            "provider": body.provider.value, "status": "pending",
+            "output_dir": str(output_dir), "created_at": now}
+
+
+@router.post("/scans/{scan_id}/secrets")
+async def register_scan_secrets(
+    scan_id: str,
+    body: dict,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """
+    Register raw scan credentials in memory only.
+    Must be called before POST /scans/{scan_id}/start.
+    Secrets are cleared from memory as soon as the scan starts.
+    """
+    cursor = await db.execute("SELECT id FROM scans WHERE id=?", (scan_id,))
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    allowed = {
+        "aws_access_key_id", "aws_secret_access_key", "aws_session_token",
+        "azure_client_secret",
+    }
+    _pending_scan_secrets[scan_id] = {
+        k: v for k, v in body.items() if k in allowed and v
+    }
+    return {"registered": True}
+
+
+@router.post("/scans/{scan_id}/start")
+async def start_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """Start a pending scan. Returns task_id for SSE stream."""
+    from api import scanner
+    from api.sse import register_stream
+
+    cursor = await db.execute("SELECT * FROM scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    scan = dict(row)
+    if scan["status"] not in ("pending", "failed"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Scan status is '{scan['status']}' — only pending or failed scans can be started",
+        )
+
+    stream  = register_stream(f"scan-{scan_id}")
+    secrets = _pending_scan_secrets.pop(scan_id, {})
+    output_dir = Path(scan["output_dir"])
+
+    asyncio.create_task(
+        scanner.execute_scan(scan, stream, output_dir, secrets)
+    )
+
+    return {"task_id": f"scan-{scan_id}", "status": "starting"}
+
+
+@router.get("/scans/{scan_id}/stream")
+async def stream_scan(scan_id: str):
+    """SSE endpoint — live Prowler stdout."""
+    from api.sse import get_stream
+    stream = get_stream(f"scan-{scan_id}")
+    if not stream:
+        raise HTTPException(status_code=404, detail="No active stream for this scan")
+    return stream.response()
+
+
+@router.post("/scans/{scan_id}/cancel")
+async def cancel_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """Kill the running Prowler process."""
+    from api import scanner
+
+    cursor = await db.execute("SELECT status FROM scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    if row[0] != "running":
+        raise HTTPException(status_code=400, detail=f"Scan is '{row[0]}' — only running scans can be cancelled")
+
+    await scanner.cancel_scan(scan_id)
+    now = _now()
+    await db.execute(
+        "UPDATE scans SET status='cancelled', completed_at=? WHERE id=?",
+        (now, scan_id),
+    )
+    await db.commit()
+    return {"cancelled": True}
+
+
+@router.get("/scans/{scan_id}")
+async def get_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute("SELECT * FROM scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return _scan_row(dict(row))
+
+
+@router.get("/scans/{scan_id}/logs")
+async def get_scan_logs(
+    scan_id: str,
+    offset: int = 0,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute(
+        "SELECT ts, stream, line FROM scan_logs WHERE scan_id=? ORDER BY id LIMIT 5000 OFFSET ?",
+        (scan_id, offset),
+    )
+    rows = await cursor.fetchall()
+    return [{"ts": r[0], "stream": r[1], "line": r[2]} for r in rows]
+
+
+@router.get("/meta/services")
+async def list_services():
+    """Return available Prowler service names for the scope selector."""
+    from api.scanner import AWS_SERVICES, AZURE_SERVICES, SCUBA_PRODUCTS, SCUBA_PRODUCT_LABELS
+    return {
+        "aws":       AWS_SERVICES,
+        "azure":     AZURE_SERVICES,
+        "scubagear": SCUBA_PRODUCTS,
+        "scubagear_labels": SCUBA_PRODUCT_LABELS,
+    }
+
+
+# ── Scan row helper ───────────────────────────────────────────────────
+
+def _scan_row(row: dict) -> dict:
+    import json as _j
+    row["resource_scope"] = _j.loads(row.get("resource_scope") or "[]")
+    row["services_scope"] = _j.loads(row.get("services_scope") or "[]")
+    return row
+
+
+@router.get("/defaults")
+async def get_defaults():
+    """
+    Return server-side defaults for the Settings page.
+    These come from environment variables set in start.ps1 / start.sh.
+    Only called once on first launch to pre-populate Settings.
+    Never returns raw secret values — only safe display values.
+    """
+    import os
+    return {
+        "deployment_name": os.environ.get("BEDROCK_DEPLOYMENT_NAME", ""),
+        "aws_region":      os.environ.get("AWS_DEFAULT_REGION", "ap-southeast-2"),
+        # Return profile name if set, otherwise hint that env keys are configured
+        "aws_profile":     os.environ.get("AWS_PROFILE", ""),
+        "has_env_keys":    bool(os.environ.get("AWS_ACCESS_KEY_ID")),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# EXPOSURE SCANNER ROUTES
+# Completely independent from runs/scans — new tables, new code path.
+# ═══════════════════════════════════════════════════════════════════════
+
+_pending_exposure_secrets: dict[str, dict] = {}
+
+
+@router.get("/engagements/{engagement_id}/exposures")
+async def list_exposure_scans(
+    engagement_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute(
+        "SELECT * FROM exposure_scans WHERE engagement_id=? ORDER BY created_at DESC",
+        (engagement_id,),
+    )
+    rows = await cursor.fetchall()
+    return [_exposure_row(dict(r)) for r in rows]
+
+
+@router.post("/engagements/{engagement_id}/exposures", status_code=201)
+async def create_exposure_scan(
+    engagement_id: str,
+    body: dict,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    import json as _json
+    cursor = await db.execute("SELECT id FROM engagements WHERE id=?", (engagement_id,))
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Engagement not found")
+
+    scan_id = str(uuid.uuid4())
+    now     = _now()
+
+    await db.execute(
+        """INSERT INTO exposure_scans (
+            id, engagement_id, provider, status,
+            credential_source, aws_profile, aws_region, aws_account_id,
+            azure_tenant_id, azure_client_id, azure_subscription_id,
+            regions_scope, services_scope, created_at
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (
+            scan_id, engagement_id,
+            body.get("provider", "aws"), "pending",
+            body.get("credential_source", "keys"),
+            body.get("aws_profile", ""),
+            body.get("aws_region", ""),
+            body.get("aws_account_id", ""),
+            body.get("azure_tenant_id", ""),
+            body.get("azure_client_id", ""),
+            body.get("azure_subscription_id", ""),
+            _json.dumps(body.get("regions_scope", [])),
+            _json.dumps(body.get("services_scope", [])),
+            now,
+        ),
+    )
+    await db.commit()
+    return {"id": scan_id, "engagement_id": engagement_id,
+            "provider": body.get("provider", "aws"), "status": "pending",
+            "created_at": now}
+
+
+@router.post("/exposures/{scan_id}/secrets")
+async def register_exposure_secrets(
+    scan_id: str,
+    body: dict,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute("SELECT id FROM exposure_scans WHERE id=?", (scan_id,))
+    if not await cursor.fetchone():
+        raise HTTPException(status_code=404, detail="Exposure scan not found")
+    allowed = {
+        "aws_access_key_id", "aws_secret_access_key", "aws_session_token",
+        "azure_client_secret", "azure_subscription_id",
+    }
+    _pending_exposure_secrets[scan_id] = {k: v for k, v in body.items() if k in allowed and v}
+    return {"registered": True}
+
+
+@router.post("/exposures/{scan_id}/start")
+async def start_exposure_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    from api.exposure import execute_exposure_scan
+    from api.sse import register_stream
+
+    cursor = await db.execute("SELECT * FROM exposure_scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Exposure scan not found")
+    scan    = dict(row)
+    if scan["status"] not in ("pending", "failed"):
+        raise HTTPException(status_code=400, detail=f"Scan status is '{scan['status']}'")
+
+    stream  = register_stream(f"exposure-{scan_id}")
+    secrets = _pending_exposure_secrets.pop(scan_id, {})
+    asyncio.create_task(execute_exposure_scan(scan, stream, secrets))
+    return {"task_id": f"exposure-{scan_id}", "status": "starting"}
+
+
+@router.get("/exposures/{scan_id}/stream")
+async def stream_exposure_scan(scan_id: str):
+    from api.sse import get_stream
+    stream = get_stream(f"exposure-{scan_id}")
+    if not stream:
+        raise HTTPException(status_code=404, detail="No active stream")
+    return stream.response()
+
+
+@router.get("/exposures/{scan_id}")
+async def get_exposure_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    cursor = await db.execute("SELECT * FROM exposure_scans WHERE id=?", (scan_id,))
+    row    = await cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Exposure scan not found")
+    return _exposure_row(dict(row))
+
+
+@router.get("/exposures/{scan_id}/findings")
+async def get_exposure_findings(
+    scan_id: str,
+    service:  Optional[str] = None,
+    severity: Optional[str] = None,
+    region:   Optional[str] = None,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    q    = "SELECT * FROM exposure_findings WHERE scan_id=?"
+    args = [scan_id]
+    if service:  q += " AND service=?";  args.append(service)
+    if severity: q += " AND severity=?"; args.append(severity)
+    if region:   q += " AND region=?";   args.append(region)
+    q += " ORDER BY severity DESC, service, resource_name"
+    cursor = await db.execute(q, args)
+    rows   = await cursor.fetchall()
+    return [_finding_row(dict(r)) for r in rows]
+
+
+@router.get("/exposures/{scan_id}/findings/export")
+async def export_exposure_findings(
+    scan_id: str,
+    fmt: str = "csv",
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    """Export exposure findings as CSV or Excel."""
+    from fastapi.responses import StreamingResponse
+    import io
+
+    cursor = await db.execute(
+        "SELECT * FROM exposure_findings WHERE scan_id=? ORDER BY severity DESC, service",
+        (scan_id,),
+    )
+    rows = await cursor.fetchall()
+    findings = [_finding_row(dict(r)) for r in rows]
+
+    if fmt == "csv":
+        import csv
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=[
+            "severity", "provider", "service", "region",
+            "resource_name", "resource_id", "resource_arn",
+            "exposure_type", "details", "discovered_at",
+        ])
+        writer.writeheader()
+        for f in findings:
+            writer.writerow({k: f.get(k, "") for k in writer.fieldnames})
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=exposure_{scan_id[:8]}.csv"},
+        )
+    else:
+        # Excel
+        try:
+            import openpyxl
+            from openpyxl.styles import PatternFill, Font
+        except ImportError:
+            raise HTTPException(status_code=500, detail="openpyxl not installed")
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Exposure Findings"
+
+        SEVERITY_COLOURS = {"High": "FFFF0000", "Medium": "FFFFC000", "Low": "FF92D050"}
+        headers = ["Severity", "Provider", "Service", "Region", "Resource Name",
+                   "Resource ID", "Exposure Type", "Details", "Discovered At"]
+        ws.append(headers)
+        for cell in ws[1]:
+            cell.font = Font(bold=True)
+
+        for f in findings:
+            # Serialise details dict to a readable string for Excel
+            details_val = f.get("details", "")
+            if isinstance(details_val, dict):
+                details_str = ", ".join(f"{k}: {v}" for k, v in details_val.items())
+            else:
+                details_str = str(details_val)
+
+            def _cell(v):
+                # openpyxl only accepts str, int, float, bool, None
+                if isinstance(v, (str, int, float, bool)) or v is None:
+                    return v
+                return str(v)
+
+            row = [
+                _cell(f.get("severity", "")),
+                _cell(f.get("provider", "")),
+                _cell(f.get("service", "")),
+                _cell(f.get("region", "")),
+                _cell(f.get("resource_name", "")),
+                _cell(f.get("resource_id", "")),
+                _cell(f.get("exposure_type", "")),
+                _cell(details_str),
+                _cell(f.get("discovered_at", "")),
+            ]
+            ws.append(row)
+            sev = f.get("severity", "")
+            if sev in SEVERITY_COLOURS:
+                fill = PatternFill("solid", fgColor=SEVERITY_COLOURS[sev])
+                ws.cell(ws.max_row, 1).fill = fill
+
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=exposure_{scan_id[:8]}.xlsx"},
+        )
+
+
+@router.post("/exposures/{scan_id}/cancel")
+async def cancel_exposure_scan(
+    scan_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+):
+    await db.execute(
+        "UPDATE exposure_scans SET status='cancelled', completed_at=? WHERE id=?",
+        (_now(), scan_id),
+    )
+    await db.commit()
+    return {"cancelled": True}
+
+
+@router.get("/meta/exposure-services")
+async def list_exposure_services():
+    from api.exposure import AWS_EXPOSURE_SERVICES, AZURE_EXPOSURE_SERVICES
+    return {"aws": AWS_EXPOSURE_SERVICES, "azure": AZURE_EXPOSURE_SERVICES}
+
+
+# ── Row helpers ───────────────────────────────────────────────────────
+
+def _exposure_row(row: dict) -> dict:
+    import json as _j
+    for field in ("regions_scope", "services_scope"):
+        try:
+            row[field] = _j.loads(row.get(field) or "[]")
+        except Exception:
+            row[field] = []
+    return row
+
+
+def _finding_row(row: dict) -> dict:
+    import json as _j
+    try:
+        row["details"] = _j.loads(row.get("details") or "{}")
+    except Exception:
+        row["details"] = {}
+    return row

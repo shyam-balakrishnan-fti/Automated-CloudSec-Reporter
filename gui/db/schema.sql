@@ -79,3 +79,122 @@ CREATE TABLE IF NOT EXISTS run_logs (
 CREATE INDEX IF NOT EXISTS idx_run_logs_run_id ON run_logs(run_id);
 CREATE INDEX IF NOT EXISTS idx_runs_engagement ON runs(engagement_id);
 CREATE INDEX IF NOT EXISTS idx_runs_status ON runs(status);
+
+-- ── Scans ─────────────────────────────────────────────────────────────
+-- One Prowler execution against one cloud environment.
+-- Separate from runs — a scan produces raw output that can be used
+-- by multiple report runs without re-scanning.
+
+CREATE TABLE IF NOT EXISTS scans (
+    id              TEXT PRIMARY KEY,           -- UUID
+    engagement_id   TEXT NOT NULL REFERENCES engagements(id),
+    provider        TEXT NOT NULL,              -- "aws" | "azure" | "scubagear"
+    scan_type       TEXT NOT NULL DEFAULT 'prowler_aws',
+    -- "prowler_aws" | "prowler_azure" | "scubagear"
+    status          TEXT NOT NULL DEFAULT 'pending',
+    -- pending | running | complete | failed | cancelled
+
+    -- Scan credentials (session-scoped — raw secrets never stored here)
+    credential_source TEXT NOT NULL DEFAULT 'keys', -- "keys" | "profile"
+    aws_profile     TEXT NOT NULL DEFAULT '',   -- if credential_source = profile
+    scan_region     TEXT NOT NULL DEFAULT '',   -- AWS region to scan
+    scan_account_id TEXT NOT NULL DEFAULT '',   -- AWS account ID (informational)
+
+    -- Azure only (injected as env vars, never stored — just metadata)
+    azure_tenant_id TEXT NOT NULL DEFAULT '',
+    azure_client_id TEXT NOT NULL DEFAULT '',
+    azure_subscription_id TEXT NOT NULL DEFAULT '', -- blank = all subscriptions
+
+    -- Scope (optional — blank means full scan)
+    resource_scope  TEXT NOT NULL DEFAULT '',   -- JSON array of ARNs / resource IDs
+    services_scope  TEXT NOT NULL DEFAULT '',   -- JSON array of service names (e.g. ["iam","s3"])
+
+    -- Output
+    output_dir      TEXT NOT NULL DEFAULT '',   -- directory containing scan output files
+    output_file     TEXT NOT NULL DEFAULT '',   -- path to primary CSV/JSON output
+
+    -- Timing
+    created_at      TEXT NOT NULL,
+    started_at      TEXT,
+    completed_at    TEXT,
+
+    -- Results
+    findings_count  INTEGER,                    -- total raw findings before filtering
+    duration_secs   INTEGER                     -- wall clock seconds
+);
+
+-- ── ScanLogs ──────────────────────────────────────────────────────────
+-- Append-only stdout/stderr from the Prowler subprocess.
+
+CREATE TABLE IF NOT EXISTS scan_logs (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    scan_id         TEXT NOT NULL REFERENCES scans(id),
+    ts              TEXT NOT NULL,
+    stream          TEXT NOT NULL DEFAULT 'stdout',
+    line            TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_scan_logs_scan_id ON scan_logs(scan_id);
+CREATE INDEX IF NOT EXISTS idx_scans_engagement  ON scans(engagement_id);
+CREATE INDEX IF NOT EXISTS idx_scans_status      ON scans(status);
+
+-- ── Exposure Scans ────────────────────────────────────────────────────
+-- Independent from runs and scans tables.
+-- One execution of the public exposure scanner against one cloud account.
+
+CREATE TABLE IF NOT EXISTS exposure_scans (
+    id                  TEXT PRIMARY KEY,
+    engagement_id       TEXT NOT NULL REFERENCES engagements(id),
+    provider            TEXT NOT NULL,          -- "aws" | "azure"
+    status              TEXT NOT NULL DEFAULT 'pending',
+    -- pending | running | complete | failed | cancelled
+
+    -- Credentials (metadata only -- secrets never stored)
+    credential_source   TEXT NOT NULL DEFAULT 'keys',
+    aws_profile         TEXT NOT NULL DEFAULT '',
+    aws_region          TEXT NOT NULL DEFAULT '',
+    aws_account_id      TEXT NOT NULL DEFAULT '',
+
+    -- Azure
+    azure_tenant_id     TEXT NOT NULL DEFAULT '',
+    azure_client_id     TEXT NOT NULL DEFAULT '',
+    azure_subscription_id TEXT NOT NULL DEFAULT '',
+
+    -- Scope
+    regions_scope       TEXT NOT NULL DEFAULT '[]',   -- JSON array of regions
+    services_scope      TEXT NOT NULL DEFAULT '[]',   -- JSON array of service names
+
+    -- Output
+    created_at          TEXT NOT NULL,
+    started_at          TEXT,
+    completed_at        TEXT,
+    duration_secs       INTEGER,
+
+    -- Summary counts
+    total_resources     INTEGER DEFAULT 0,
+    total_exposed       INTEGER DEFAULT 0,
+    high_count          INTEGER DEFAULT 0,
+    medium_count        INTEGER DEFAULT 0,
+    low_count           INTEGER DEFAULT 0
+);
+
+-- ── Exposure Findings ─────────────────────────────────────────────────
+-- One row per exposed resource found during an exposure scan.
+
+CREATE TABLE IF NOT EXISTS exposure_findings (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    scan_id         TEXT NOT NULL REFERENCES exposure_scans(id),
+    provider        TEXT NOT NULL,
+    service         TEXT NOT NULL,      -- e.g. "s3", "ec2", "storage"
+    region          TEXT NOT NULL DEFAULT '',
+    resource_id     TEXT NOT NULL,      -- short ID or name
+    resource_arn    TEXT NOT NULL DEFAULT '',
+    resource_name   TEXT NOT NULL DEFAULT '',
+    exposure_type   TEXT NOT NULL,      -- e.g. "Public access block disabled"
+    severity        TEXT NOT NULL,      -- "High" | "Medium" | "Low"
+    details         TEXT NOT NULL DEFAULT '{}',  -- JSON with extra context
+    discovered_at   TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_exposure_findings_scan  ON exposure_findings(scan_id);
+CREATE INDEX IF NOT EXISTS idx_exposure_scans_eng      ON exposure_scans(engagement_id);

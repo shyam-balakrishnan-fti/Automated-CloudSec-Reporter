@@ -100,9 +100,12 @@ if [ ! -d "$VENV" ]; then
   uv venv "$VENV" --python "$PYTHON"
 fi
 
-info "Installing pipeline dependencies into root venv..."
+info "Installing pipeline dependencies (openpyxl, boto3, azure-mgmt-*)..."
 uv pip install --python "$VENV/bin/python" \
   openpyxl pydantic boto3 tomli \
+  azure-identity azure-mgmt-compute azure-mgmt-storage azure-mgmt-sql \
+  azure-mgmt-network azure-mgmt-containerservice azure-mgmt-keyvault \
+  azure-mgmt-cosmosdb azure-mgmt-web azure-mgmt-containerregistry \
   --quiet
 success "Pipeline dependencies ready"
 
@@ -115,6 +118,14 @@ success "GUI dependencies ready"
 
 # ── 7. Open browser and launch ───────────────────────────────
 header "Step 7: Launch"
+
+# Set Bedrock deployment name if not already in environment
+if [ -z "$BEDROCK_DEPLOYMENT_NAME" ]; then
+  warn "BEDROCK_DEPLOYMENT_NAME is not set."
+  warn "Set it before running: export BEDROCK_DEPLOYMENT_NAME='arn:aws:bedrock:...'"
+  warn "Or enter it in Settings in the GUI after launch."
+fi
+
 URL="http://localhost:$PORT"
 info "Starting GUI on $URL"
 info "Press Ctrl+C to stop"
